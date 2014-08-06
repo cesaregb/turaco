@@ -63,3 +63,6 @@ $RECYCLE.BIN/
 *.msi
 *.msm
 *.msp
+
+# TURACO Application files 
+config/appCredentials.js

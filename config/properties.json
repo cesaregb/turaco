@@ -1,0 +1,7 @@
+{
+    "consumerKey": "vpwXS702oXJl9ZWKQCfoXqOwG",
+    "consumerSecret": "VMS8Ea9PLwmtDEI0982JrSX2cb9yL2uV19LTAfVM2ACSI1WXlU",
+    "accessToken": "{accessToken}",
+    "accessTokenSecret": "{accessTokenSecret}",
+    "callBackUrl": "http://localhost/turaco/twitter_oauth.php"
+}
