@@ -1,0 +1,15 @@
+doctype html
+html(ng-app="listModule")
+	head
+		title= title
+		link(rel='stylesheet', href='/dist/css/bootstrap.min.css')
+		link(rel='stylesheet', href='/stylesheets/turaco_template.css')
+	body
+		include header
+		block content
+		include footer
+		script(src='//ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js')
+		script(src='//ajax.googleapis.com/ajax/libs/angularjs/1.0.8/angular.min.js')
+		script(src='//ajax.googleapis.com/ajax/libs/angularjs/1.0.8/angular-resource.min.js')
+		script(src='/dist/js/bootstrap.min.js')
+		script(src='/javascripts/turacoLib.js')

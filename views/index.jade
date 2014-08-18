@@ -1,10 +1,41 @@
-extends layout
+extends layout_index
 
 block content
-	div.jumbotron
-		div.container
-			h1 Hello, world!
-			p
-				| This is a template for a simple marketing or informational website. It includes a large callout called a jumbotron and three supporting pieces of content. Use it as a starting point to create something more unique.
-			p
-				a.btn.btn-primary.btn-lg(role='button') Learn more »
+	header.header-image
+		.headline
+			.container
+				h1 Turaco List Organizer
+				p
+					| Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam.
+				if (!login_status)
+					h2
+						a.btn.btn-primary.btn-lg(role='button' href='/auth/twitter')
+							img(src="images/sign-in-with-twitter-gray.png" alt="Sign in with Twitter" title="Sign in with Twitter")
+	.container
+		hr.featurette-divider
+		// First Featurette
+		#about.featurette
+			img.featurette-image.img-circle.img-responsive.pull-right(src='http://placehold.it/500x500')
+			h2.featurette-heading
+				| This First Heading
+				span.text-muted Will Catch Your Eye
+			p.lead
+				| Donec ullamcorper nulla non metus auctor fringilla. Vestibulum id ligula porta felis euismod semper. Praesent commodo cursus magna, vel scelerisque nisl consectetur. Fusce dapibus, tellus ac cursus commodo.
+		hr.featurette-divider
+		// Second Featurette
+		#services.featurette
+			img.featurette-image.img-circle.img-responsive.pull-left(src='http://placehold.it/500x500')
+			h2.featurette-heading
+				| The Second Heading
+				span.text-muted Is Pretty Cool Too.
+			p.lead
+				| Donec ullamcorper nulla non metus auctor fringilla. Vestibulum id ligula porta felis euismod semper. Praesent commodo cursus magna, vel scelerisque nisl consectetur. Fusce dapibus, tellus ac cursus commodo.
+		hr.featurette-divider
+		// Third Featurette
+		#contact.featurette
+			img.featurette-image.img-circle.img-responsive.pull-right(src='http://placehold.it/500x500')
+			h2.featurette-heading
+				| The Third Heading
+				span.text-muted Will Seal the Deal.
+			p.lead
+				| Donec ullamcorper nulla non metus auctor fringilla. Vestibulum id ligula porta felis euismod semper. Praesent commodo cursus magna, vel scelerisque nisl consectetur. Fusce dapibus, tellus ac cursus commodo.

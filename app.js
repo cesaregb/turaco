@@ -10,8 +10,6 @@ var favicon = require('static-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
-var mongo = require('mongodb');
-var monk = require('monk');
 
 var configDB = require('./config/database');
 var passportConfig = require('./config/passport');
@@ -21,7 +19,8 @@ mongoose.connect(configDB.url);
 passportConfig(passport);
 
 var routes = require('./routes/index');
-var listsApi = require('./routes/lists');
+var lists = require('./routes/lists');
+var listsApi = require('./routes/api/listsApi');
 
 var app = express();
 
@@ -39,8 +38,12 @@ app.set('views', path.join(__dirname, 'views'))
 
 app.use(express.static(path.join(__dirname, 'public')));
 
+/***** Views */
 app.use('/', routes);
-app.use('/lists', listsApi);
+app.use('/lists', lists);
+
+/***** Services */
+app.use('/api/lists', listsApi);
 
 app.use(function(req, res, next) {
 	var err = new Error('Not Found');
@@ -49,6 +52,7 @@ app.use(function(req, res, next) {
 });
 
 if (app.get('env') === 'development') {
+	app.locals.pretty = true;
 	app.use(function(err, req, res, next) {
 		res.status(err.status || 500);
 		res.render('error', {

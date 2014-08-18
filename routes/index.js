@@ -7,51 +7,22 @@ var router = express.Router();
 
 router.get('/', function(req, res) {
 	if (req.user == null){
-		console.log('User not loggeed')
-//		res.redirect('/auth/twitter');
+		console.log('**** User not loggeed');
+		res.render('index', { title: 'Turaco', login_status: false});
 	}else{
-//		res.render('index', { title: 'Express', "user" : req.user });
+		console.log('**** User loggeed: ' + req.user.username);
+		res.render('index', { title: 'Turaco', login_status: true, "user" : req.user });
 	}
-	res.render('index', { title: 'Turaco'});
 });
 
 router.get('/helloworld', function(req, res) {
     res.render('helloworld', { title: 'Hello, World!' });
 });
 
-//router.get('/userList', function (req, res){
-//	res.render('helloworld', { title: 'Hello, World!' });
-//	var db = req.db;
-//	var collection = db.get('usercollection');
-//	collection.find({},{}, function (e, docs){
-//		res.render('userlist', {
-//			"userlist" : docs
-//		});
-//	});
-//});
-//
-//router.get('/newuser', function(req, res){
-//	res.render('newuser', {title: 'Add New User' });
-//});
-//
-//router.post('/adduser', function(req, res){
-//	res.render('helloworld', { title: 'Hello, World!' });
-//	var db = req.db;
-//	var userName = req.body.username;
-//	var userEmail = req.body.useremail;
-//	var collection = db.get('usercollection');
-//	collection.insert({
-//		"username" : userName,
-//		"email" : userEmail
-//	}, function (err, doc){
-//		if (err){
-//			res.send("There was a problem adding  the information to the database.");
-//		}else{
-//			res.location("userlist");
-//			res.redirect("userlist");
-//		}
-//	});
-//});
+router.get('/requirejs/', function(req, res) {
+	res.render('helloworld', { title: 'Hello, World!' });
+});
+
 
 // ************************************* 
 router.get('/account', ensureAuthenticated, function(req, res) {
