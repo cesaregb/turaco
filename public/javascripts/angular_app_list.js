@@ -10,6 +10,7 @@
 	 			listModule.config(['$routeProvider', 
 	 			                   '$locationProvider',  
 	 			                   function ($routeProvider, $locationProvider) {
+	 				
 	 				var urlBase = '/lists/partials/list_';
 	 				$routeProvider.when('/lists/view1', {
 	 					templateUrl: urlBase + 'partial1', 
@@ -26,7 +27,6 @@
 	
 	 			 	$locationProvider.html5Mode(true);
 	 			}]);
-	 			console.log("List routes defined.");
 	 			
 	 			listModule.factory('dataFactory', ['$http', listFactory]);
 	 			

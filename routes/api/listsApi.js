@@ -2,10 +2,12 @@ var express = require('express');
 var router = express.Router();
 var twitterController = require('../../config/TwitterController');
 var error_codes = require('../../config/error_codes');
+var turacoSingleton = require('../../config/turacoSingleton');
 var twitter = require('ntwitter');
 var User = require('../../app/models/user');
 
 router.get('/', function(req, res) {
+	console.log("WITHIN request " + res.locals.jsonType);
 	var _user = null;
 	if (req.user != null){
 		_user = req.user;
@@ -26,6 +28,10 @@ router.get('/', function(req, res) {
 				}).getLists(user.username, function(err, data) {
 					if (!err){
 						res.json(data);
+						list = data;
+						for (pos in data){ 
+							console.log('id: ' + json[pos].id);
+						}
 					}
 				});
 			}else{
@@ -35,6 +41,9 @@ router.get('/', function(req, res) {
 		
 	}
 });
+
+
+
 
 /* ************************* */
 /* ************************* */
@@ -48,7 +57,6 @@ router.get('/todos', function(req, res) {
 });
 
 router.post('/todos', function(req, res) {
-
 	// create a todo, information comes from AJAX request from Angular
 	Todo.create({
 		text : req.body.text,

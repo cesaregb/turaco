@@ -12,7 +12,7 @@ router.get('/partials/:name', function(req, res) {
 
 router.get('*', function(req, res) {
 	if (req.user == null){
-		res.render('lists', { title: 'Turaco', login_status: false});
+		res.render('lists', { title: 'Turaco', login_status: false, topnav_section : 1});
 	}else{
 		res.render('lists', { title: 'Turaco', login_status: true, "user" : req.user });
 	}

@@ -12,6 +12,7 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
 var configDB = require('./config/database');
+var turacoSingleton = require('./config/turacoSingleton');
 var passportConfig = require('./config/passport');
 
 mongoose.connect(configDB.url);
@@ -38,12 +39,23 @@ app.set('views', path.join(__dirname, 'views'))
 
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.use(function(req, res, next) {
+	res.locals.jsonType = true;
+	if (!req.accepts('json')){
+		res.locals.jsonType = false;
+		console.log("Application specified to accept json");
+	}
+	res.contentType('application/json');
+	next();
+});
+
 /***** Views */
 app.use('/', routes);
 app.use('/lists', lists);
 
 /***** Services */
 app.use('/api/lists', listsApi);
+
 
 app.use(function(req, res, next) {
 	var err = new Error('Not Found');
@@ -61,6 +73,7 @@ if (app.get('env') === 'development') {
 		});
 	});
 }
+
 app.use(function(err, req, res, next) {
 	res.status(err.status || 500);
 	res.render('error', {

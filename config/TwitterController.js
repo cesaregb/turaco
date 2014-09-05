@@ -17,6 +17,6 @@ twitterConfig = function(accessTokenKey, accessTokenSecret, _log) {
 	});
 	
 	return twit;
-}
+};
 
 module.exports = twitterConfig;
