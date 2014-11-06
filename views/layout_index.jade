@@ -1,9 +1,10 @@
 doctype html
-html(ng-app="listModule")
+html
 	head
+		meta(name='viewport', content='width=device-width, initial-scale=1.0')
 		title= title
-		link(rel='stylesheet', href='/dist/css/bootstrap.min.css')
-		link(rel='stylesheet', href='/stylesheets/turaco_template.css')
+		link(rel='stylesheet', href='/dist/css/bootstrap.css')
+		link(rel='stylesheet', href='/stylesheets/turaco_base.css')
 	body
 		include header
 		block content
@@ -12,4 +13,3 @@ html(ng-app="listModule")
 		script(src='//ajax.googleapis.com/ajax/libs/angularjs/1.0.8/angular.min.js')
 		script(src='//ajax.googleapis.com/ajax/libs/angularjs/1.0.8/angular-resource.min.js')
 		script(src='/dist/js/bootstrap.min.js')
-		script(src='/javascripts/turacoLib.js')
