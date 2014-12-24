@@ -12,7 +12,6 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
 var configDB = require('./config/database');
-var turacoSingleton = require('./config/turacoSingleton');
 var passportConfig = require('./config/passport');
 
 mongoose.connect(configDB.url);
@@ -23,6 +22,8 @@ var routes = require('./routes/index');
 var lists = require('./routes/lists');
 var listsApi = require('./routes/api/listsApi');
 
+var proxy = require('express-http-proxy');
+
 var app = express();
 
 app.set('views', path.join(__dirname, 'views'))
@@ -30,7 +31,7 @@ app.set('views', path.join(__dirname, 'views'))
 	.use(favicon())
 	.use(logger('dev'))
 	.use(bodyParser.json())
-	.use(bodyParser.urlencoded())
+	.use(bodyParser.urlencoded({ extended: false }))
 	.use(cookieParser())
 	.use(require('method-override')())
 	.use(expressSession({ secret:'keyboard cat' }))
@@ -40,12 +41,14 @@ app.set('views', path.join(__dirname, 'views'))
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(function(req, res, next) {
-	res.locals.jsonType = true;
-	if (!req.accepts('json')){
-		res.locals.jsonType = false;
-		console.log("Application specified to accept json");
+	if (req.url.indexOf("api") > 0){
+		res.locals.jsonType = true;
+		if (!req.accepts('json')){
+			res.locals.jsonType = false;
+			console.log("Application specified to accept json");
+		}
+		res.contentType('application/json');
 	}
-	res.contentType('application/json');
 	next();
 });
 
@@ -81,6 +84,12 @@ app.use(function(err, req, res, next) {
 		error : {}
 	});
 });
+
+app.use('/proxy', proxy('http://wpad/wpad.dat', {
+	forwardPath: function(req, res) {
+		return require('url').parse(req.url).path;
+	}
+}));
 
 module.exports = app;
 

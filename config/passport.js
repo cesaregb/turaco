@@ -48,7 +48,7 @@ passportConfig = function(passport) {
 					user.image = profile._json.profile_image_url;
 					user.save(function(err) {
 						if(err) { throw err; }
-							done(null, user);
+						done(null, user);
 					});
 				}	
 			});

@@ -21,6 +21,7 @@
 		"ejs": ">= 0.0.0",
 	    "method-override": ">= 0.0.0",
 	    "express-session": ">= 0.0.0",
+	    "express-http-proxy": ">= 0.0.0",
 	    "morgan": ">= 0.0.0",
 	    "connect-ensure-login": ">= 0.0.0"
 	}
