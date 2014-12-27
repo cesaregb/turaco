@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Turaco</title>
+    <link rel="stylesheet" href="dist/css/bootstrap.css">
+    <link rel="stylesheet" href="stylesheets/turaco_base.css">
+  </head>
+  <body>
+    <nav role="navigation" class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" class="navbar-toggle"><span class="sr-only">Toggle navigation</span><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button><a href="/" class="navbar-brand">Turaco</a>
+        </div>
+        <div id="bs-example-navbar-collapse-1" class="collapse navbar-collapse">
+          <ul class="nav navbar-nav navbar-right">
+            <li class="active"><a href="/lists">Lists</a></li>
+            <li><a href="/accounts">Accounts</a></li>
+            <li class="dropdown"><a href="#" data-toggle="dropdown" class="dropdown-toggle">Other Pages<b class="caret"></b></a>
+              <ul class="dropdown-menu">
+                <li><a href="full-width">Full Width Page</a></li>
+                <li><a href="sidebar">Sidebar Page</a></li>
+                <li><a href="faq">FAQ</a></li>
+                <li><a href="404">404</a></li>
+                <li><a href="pricing">Pricing Table</a></li>
+              </ul>
+            </li>
+            <li><a href="/auth/twitter">Login</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <div class="jumbotron seaction-header">
+      <div class="thumbnail center-block trc-jumbotron-img-container"><img src="https://pbs.twimg.com/profile_images/378800000856269061/640b424d1feda99258739cc413ccc679_400x400.jpeg" alt="Cesar Gonzalez" class="img-responsive"></div>
+      <p>@cesaregb</p>
+    </div>
+    <div id="containerLists" class="container">
+      <div style="padding-bottom:10px;" class="row col-md-12">
+        <div class="btn-group pull-right">
+          <button id="btnAddList" type="button" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-plus"></span>Add</button>
+          <button type="button" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-pencil"></span>Edit</button>
+          <button type="button" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-cloud"></span>Smart List</button>
+        </div>
+      </div>
+      <div class="row col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Mode</th>
+                  <th>Own</th>
+                  <th>Members</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>listname</td>
+                  <td>Public</td>
+                  <td>Yes</td>
+                  <td><a href="#" onclick="showUsers(1);">150</a></td>
+                  <td>Bla bla bla </td>
+                </tr>
+                <tr>
+                  <td>listname</td>
+                  <td>Public</td>
+                  <td>Yes</td>
+                  <td><a href="#" onclick="showUsers(1);">150</a></td>
+                  <td>Bla bla bla </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="containerUsers" style="display:none;" class="container">
+      <div style="padding-bottom:10px;" class="row col-md-12">
+        <div class="btn-group col-lg-3 left-search-box">
+          <div class="input-group"><span class="input-group-addon">
+              <input type="checkbox"> All</span>
+            <input type="text" placeholder="@account" class="form-control input-sm"><span class="input-group-btn">
+              <button type="button" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-search"></span></button></span>
+          </div>
+        </div>
+        <div class="btn-group pull-right">
+          <button id="btnAssignAccnts2List" type="button" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-th-list"></span>&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;List</button>
+          <button id="btnBackLists" type="button" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-remove"></span>&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;Cancel</button>
+          <button type="button" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-ok"></span>&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;Apply</button>
+        </div>
+      </div>
+      <div class="row col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading clearfix">
+            <h4 style="padding-top: 7.5px;" class="panel-title pull-left">Dricving.... </h4>
+          </div>
+          <div class="panel-body">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Selected</th>
+                  <th>Account</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <input type="checkbox" checked="true">
+                  </td>
+                  <td>@cesaregb</td>
+                  <td><a href="#">unfollow</a></td>
+                </tr>
+                <tr>
+                  <td>
+                    <input type="checkbox" checked="true">
+                  </td>
+                  <td>@cesaregb</td>
+                  <td><a href="#">unfollow</a></td>
+                </tr>
+                <tr>
+                  <td>
+                    <input type="checkbox" checked="true">
+                  </td>
+                  <td>@cesaregb</td>
+                  <td><a href="#">unfollow</a></td>
+                </tr>
+                <tr>
+                  <td>
+                    <input type="checkbox" checked="true">
+                  </td>
+                  <td>@cesaregb</td>
+                  <td><a href="#">unfollow</a></td>
+                </tr>
+                <tr>
+                  <td>
+                    <input type="checkbox" checked="true">
+                  </td>
+                  <td>@cesaregb</td>
+                  <td><a href="#">unfollow</a></td>
+                </tr>
+                <tr>
+                  <td>
+                    <input type="checkbox" checked="true">
+                  </td>
+                  <td>@cesaregb</td>
+                  <td><a href="#">unfollow</a></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <hr>
+    <!-- ***************************************-->
+    <!-- ****************MODALS*****************-->
+    <!-- ***************************************-->
+    <div id="modalAddListForm" class="modal fade">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" data-dismiss="modal" aria-hidden="true" class="close">&#xFFFD;</button>
+            <h4 class="modal-title">Add List</h4>
+          </div>
+          <div class="modal-body">
+            <form class="form-horizontal">
+              <div class="form-group">
+                <label for="list-name" class="control-label col-xs-2">Name</label>
+                <div class="col-xs-8">
+                  <input id="list-name" name="list-name" type="text" placeholder="list" required="" class="form-control input-md">
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="list-description" class="control-label col-xs-2">Description</label>
+                <div class="col-xs-8">
+                  <textarea id="list-description" name="list-description" class="form-control"></textarea>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="list-category" class="control-label col-xs-2">Category</label>
+                <div class="col-xs-8 input-group">
+                  <select id="list-category" name="list-category" class="form-control">
+                    <option value="1">Option one</option>
+                    <option value="2">Option two</option>
+                  </select>
+                  <div class="input-group-btn">
+                    <button id="btnEditUserCategories" tabindex="-1" type="button" class="btn btn-default"><span class="glyphicon glyphicon-pencil"></span> Edit</button>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" data-dismiss="modal" class="btn btn-default">Cancel</button>
+            <button type="button" class="btn btn-primary">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="modalEditCategoryForm" class="modal fade">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" data-dismiss="modal" aria-hidden="true" class="close">&#xFFFD;</button>
+            <h4 class="modal-title">Edit Categories</h4>
+          </div>
+          <div class="modal-body">
+            <form class="form-horizontal">
+              <div class="form-group">
+                <label for="list-name" class="control-label col-xs-2">Name</label>
+                <div class="col-xs-8 input-group">
+                  <input id="list-name" name="list-name" type="text" class="form-control">
+                  <div class="input-group-btn">
+                    <button id="btnEditUserCategories" tabindex="-1" type="button" class="btn btn-default"><span class="glyphicon glyphicon-ok"></span> Ok</button>
+                  </div>
+                </div>
+              </div>
+              <hr>
+              <div class="form-group">
+                <label for="list-category" class="control-label col-xs-2">Category</label>
+                <div class="col-xs-8">
+                  <select multiple="" class="form-control">
+                    <option>Car</option>
+                    <option>Bla</option>
+                    <option>Bla bla</option>
+                  </select>
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button id="btnDoneCategoryForm" type="button" class="btn btn-primary">Done</button>
+          </div>
+        </div>
+        <!-- /.modal-content-->
+      </div>
+      <!-- /.modal-dialog-->
+    </div>
+    <!-- /.modal-->
+    <div id="modalAssignUsersToList" class="modal fade">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" data-dismiss="modal" aria-hidden="true" class="close">&#xFFFD;</button>
+            <h4 class="modal-title">Lists</h4>
+          </div>
+          <div class="modal-body">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>Name</th>
+                  <th>Category</th>
+                  <th>Members</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <input type="checkbox" checked="true">
+                  </td>
+                  <td>List</td>
+                  <td>Bla</td>
+                  <td>150</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>
+                    <input type="checkbox" checked="true">
+                  </td>
+                  <td>List</td>
+                  <td>Bla</td>
+                  <td>150</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>
+                    <input type="checkbox" checked="false">
+                  </td>
+                  <td>List</td>
+                  <td>Bla</td>
+                  <td>150</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>
+                    <input type="checkbox" checked="true">
+                  </td>
+                  <td>List</td>
+                  <td>Bla</td>
+                  <td>150</td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary">Apply</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div ng-view></div>
+    <!-- ***************************************-->
+    <!-- ****************FOOTER*****************-->
+    <!-- ***************************************--> 
+    <footer class="text-center">
+      <div class="footer-above">
+        <div class="container">
+          <div class="row">
+            <div class="footer-col col-md-12 center-block">
+              <h3>Around the Web</h3>
+              <ul class="list-inline">
+                <li><a href="#" class="btn-social btn-outline"><i class="fa fa-fw fa-facebook"></i></a></li>
+                <li><a href="#" class="btn-social btn-outline"><i class="fa fa-fw fa-google-plus"></i></a></li>
+                <li><a href="#" class="btn-social btn-outline"><i class="fa fa-fw fa-twitter"></i></a></li>
+                <li><a href="#" class="btn-social btn-outline"><i class="fa fa-fw fa-linkedin"></i></a></li>
+                <li><a href="#" class="btn-social btn-outline"><i class="fa fa-fw fa-dribbble"></i></a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="footer-below">
+        <div class="container">
+          <div class="row">
+            <div class="col-lg-12">Copyright &copy; Turaco 2014</div>
+          </div>
+        </div>
+      </div>
+    </footer>
+    <!--script(src='//ajax.googleapis.com/ajax/libs/angularjs/1.2.21/angular-sanitize.min.js')-->
+    <!--script(src='//ajax.googleapis.com/ajax/libs/angularjs/1.2.21/angular-animate.min.js')-->
+    <!--script(src='//ajax.googleapis.com/ajax/libs/angularjs/1.2.21/angular-cookies.min.js')-->
+    <script src="/frameworks/require.js" data-main="/javascripts/main"></script>
+  </body>
+</html>
