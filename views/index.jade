@@ -6,36 +6,33 @@ block content
 			.container
 				h1 Turaco List Organizer
 				p
-					| Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam.
+					| Easily organize your Twitter lists. 
 				if (!login_status)
 					h2
 						a.btn.btn-primary.btn-lg(role='button' href='/auth/twitter')
 							img(src="images/sign-in-with-twitter-gray.png" alt="Sign in with Twitter" title="Sign in with Twitter")
-	.container
+	#container.container
 		hr.featurette-divider
 		// First Featurette
 		#about.featurette
 			img.featurette-image.img-circle.img-responsive.pull-right(src='http://placehold.it/500x500')
 			h2.featurette-heading
-				| This First Heading
-				span.text-muted Will Catch Your Eye
+				| <a href='/lists'> Organize Lists </a>
 			p.lead
-				| Donec ullamcorper nulla non metus auctor fringilla. Vestibulum id ligula porta felis euismod semper. Praesent commodo cursus magna, vel scelerisque nisl consectetur. Fusce dapibus, tellus ac cursus commodo.
+				| Here you can easily manage your lists, Create, Read, Update or Delete.  
 		hr.featurette-divider
 		// Second Featurette
 		#services.featurette
 			img.featurette-image.img-circle.img-responsive.pull-left(src='http://placehold.it/500x500')
 			h2.featurette-heading
-				| The Second Heading
-				span.text-muted Is Pretty Cool Too.
+				| <a href='/lists'> Manage accounts </a>
 			p.lead
-				| Donec ullamcorper nulla non metus auctor fringilla. Vestibulum id ligula porta felis euismod semper. Praesent commodo cursus magna, vel scelerisque nisl consectetur. Fusce dapibus, tellus ac cursus commodo.
+				| You will be able to organize the accounts you are following on lists. This way you may get a cleaner time line when using twitter for an specific topic
 		hr.featurette-divider
 		// Third Featurette
 		#contact.featurette
 			img.featurette-image.img-circle.img-responsive.pull-right(src='http://placehold.it/500x500')
 			h2.featurette-heading
-				| The Third Heading
-				span.text-muted Will Seal the Deal.
+				| <a href='/lists'> Subscribe and Clone</a>
 			p.lead
-				| Donec ullamcorper nulla non metus auctor fringilla. Vestibulum id ligula porta felis euismod semper. Praesent commodo cursus magna, vel scelerisque nisl consectetur. Fusce dapibus, tellus ac cursus commodo.
+				| The user will be able to subscribe and clone existing list. 

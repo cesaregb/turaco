@@ -1,28 +1,30 @@
 {
-	"name": "turaco",
-	"version": "0.0.1",
-	"private": true,
-	"scripts": 
-	{
-		"start": "node ./bin/www"
-	},
-
-	"dependencies": 
-	{
-		"express": "~4.0.0",
-		"static-favicon": "~1.0.0",
-		"cookie-parser": "~1.0.1",
-		"body-parser": "~1.0.0",
-		"debug": "~0.7.4",
-		"jade": "~1.3.0",
-		"passport": ">= 0.0.0",
-    	"passport-twitter": ">= 0.0.0",
-    	"mongoose": ">= 0.0.0",
-		"ejs": ">= 0.0.0",
-	    "method-override": ">= 0.0.0",
-	    "express-session": ">= 0.0.0",
-	    "express-http-proxy": ">= 0.0.0",
-	    "morgan": ">= 0.0.0",
-	    "connect-ensure-login": ">= 0.0.0"
-	}
+  "name": "turaco",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "node ./bin/www"
+  },
+  "dependencies": {
+    "express": "~4.0.0",
+    "static-favicon": "~1.0.0",
+    "cookie-parser": "~1.0.1",
+    "body-parser": "~1.0.0",
+    "debug": "~0.7.4",
+    "jade": "~1.3.0",
+    "passport": ">= 0.0.0",
+    "passport-twitter": ">= 0.0.0",
+    "mongoose": ">= 0.0.0",
+    "ejs": ">= 0.0.0",
+    "method-override": ">= 0.0.0",
+    "express-session": ">= 0.0.0",
+    "express-http-proxy": ">= 0.0.0",
+    "morgan": ">= 0.0.0",
+    "async": "*",
+    "connect-ensure-login": ">= 0.0.0"
+  },
+  "devDependencies": {
+    "gulp": "^3.8.10",
+    "gulp-develop-server": "^0.2.5"
+  }
 }

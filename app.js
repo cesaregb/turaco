@@ -15,14 +15,12 @@ var configDB = require('./config/database');
 var passportConfig = require('./config/passport');
 
 mongoose.connect(configDB.url);
-
+var proxy = require('express-http-proxy');
 passportConfig(passport);
 
 var routes = require('./routes/index');
 var lists = require('./routes/lists');
 var listsApi = require('./routes/api/listsApi');
-
-var proxy = require('express-http-proxy');
 
 var app = express();
 
@@ -40,17 +38,17 @@ app.set('views', path.join(__dirname, 'views'))
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use(function(req, res, next) {
-	if (req.url.indexOf("api") > 0){
-		res.locals.jsonType = true;
-		if (!req.accepts('json')){
-			res.locals.jsonType = false;
-			console.log("Application specified to accept json");
-		}
-		res.contentType('application/json');
-	}
-	next();
-});
+//app.use(function(req, res, next) {
+//	if (req.url.indexOf("api") > 0){
+//		res.locals.jsonType = true;
+//		if (!req.accepts('json')){
+//			res.locals.jsonType = false;
+//			console.log("Application specified to accept json");
+//		}
+//		res.contentType('application/json');
+//	}
+//	next();
+//});
 
 /***** Views */
 app.use('/', routes);
@@ -85,11 +83,11 @@ app.use(function(err, req, res, next) {
 	});
 });
 
-app.use('/proxy', proxy('http://wpad/wpad.dat', {
-	forwardPath: function(req, res) {
-		return require('url').parse(req.url).path;
-	}
-}));
+//app.use('/proxy', proxy('http://wpad/wpad.dat', {
+//	forwardPath: function(req, res) {
+//		return require('url').parse(req.url).path;
+//	}
+//}));
 
 module.exports = app;
 
