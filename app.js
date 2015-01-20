@@ -19,8 +19,10 @@ var proxy = require('express-http-proxy');
 passportConfig(passport);
 
 var routes = require('./routes/index');
-var lists = require('./routes/lists');
-var listsApi = require('./routes/api/listsApi');
+var routesLists = require('./routes/lists');
+var routesListsApi = require('./routes/api/listsApi');
+var routesUsersApi = require('./routes/api/usersApi');
+var User = require('./app/models/user');
 
 var app = express();
 
@@ -38,24 +40,36 @@ app.set('views', path.join(__dirname, 'views'))
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-//app.use(function(req, res, next) {
-//	if (req.url.indexOf("api") > 0){
-//		res.locals.jsonType = true;
-//		if (!req.accepts('json')){
-//			res.locals.jsonType = false;
-//			console.log("Application specified to accept json");
-//		}
-//		res.contentType('application/json');
-//	}
-//	next();
-//});
+app.use(function (req, res, next) {
+    req.root = req.protocol + '://' + req.get('host') + '/';
+    next();
+});
+
+
+app.use(function(req, res, next) {
+	if (req.url.indexOf("api") > 0){
+		res.locals.jsonType = true;
+		if (!req.accepts('json')){
+			res.locals.jsonType = false;
+			console.log("Application specified to accept json");
+		}
+		res.contentType('application/json');
+	}
+	
+	User.findOne({"uid": "36063580"}, function(err, u){
+		req.user = u;
+		console.log("User added");
+		next();
+	});
+});
 
 /***** Views */
 app.use('/', routes);
-app.use('/lists', lists);
+app.use('/lists', routesLists);
 
 /***** Services */
-app.use('/api/lists', listsApi);
+app.use('/api/lists', routesListsApi);
+app.use('/api/users', routesUsersApi);
 
 
 app.use(function(req, res, next) {

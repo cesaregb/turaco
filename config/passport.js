@@ -1,4 +1,5 @@
 var User = require('../app/models/user');
+var List = require('../app/models/list');
 var configAppCredentials = require('./appCredentials');
 var	TwitterStrategy = require('passport-twitter').Strategy;
 
@@ -33,24 +34,37 @@ passportConfig = function(passport) {
 		callbackURL : "http://127.0.0.1:3000/auth/twitter/callback"
 	}, function(token, tokenSecret, profile, done) {
 		process.nextTick(function() {
-			User.findOne({uid: profile.id}, function(err, user) {
-				if(user) {
-					done(null, user);
+			console.log("Profile: " + JSON.stringify(profile));
+			var user = new User();
+			user.provider = "twitter";
+			user.token = token;
+			user.tokenSecret = tokenSecret;
+			user.uid = profile.id;
+			user.screen_name = profile.username;
+			user.name = profile.displayName;
+			var image_name = profile._json.profile_image_url;
+			image_name = image_name.replace("_normal", "");
+			user.profile_image_url = image_name;
+			user.profile = profile;
+			/*Deleting information.. */
+			User.remove({uid: profile.id}, function(err) {
+				if(err) {
+					console.log("error deleting item: " + err);
 				} else {
-					console.log("--> Save to database: \n profile" + profile.id + " \n token: " + token + " \n tokenSecret: " + tokenSecret);
-					var user = new User();
-					user.provider = "twitter";
-					user.token = token;
-					user.tokenSecret = tokenSecret;
-					user.uid = profile.id;
-					user.name = profile.displayName;
-					user.username = profile.username;
-					user.image = profile._json.profile_image_url;
-					user.save(function(err) {
-						if(err) { throw err; }
-						done(null, user);
+					
+					List.remove({uid: profile.id}, function(err) {
+						if (!err){
+							console.log("Lists deleted... ");
+						}else{
+							console.log("error deleting lists: " + err);
+						}
 					});
+					console.log("User deleted... ");
 				}	
+			});
+			user.save(function(err) {
+				if(err) { throw err; }
+				done(null, user);
 			});
 		});
 	}));

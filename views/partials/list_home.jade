@@ -1,0 +1,35 @@
+#containerLists.container
+	.alert.alert-danger(role='alert')
+		span.glyphicon.glyphicon-exclamation-sign(aria-hidden='true')
+		span.sr-only Error:
+		| Enter a valid email address
+	div.alert.alert-info(ng-show="loading") Loading
+	.row.col-md-12(style='padding-bottom:10px;')
+		.btn-group.pull-right
+			a.btn.btn-default.btn-sm(href='/lists/add_list', type='button')
+				span.glyphicon.glyphicon-plus
+				| Add
+			a.btn.btn-default.btn-sm(href='/lists/assign_users_to_list', type='button')
+				span.glyphicon.glyphicon-cloud
+				| Smart List
+	.row.col-md-12
+		.panel.panel-default
+			.panel-body
+				table.table.table-hover
+					thead
+						tr
+							th Name
+							th Mode
+							th Own List
+							th Members
+							th Description
+							th
+					tbody
+						tr(ng-repeat="list in lists")
+							td 
+								a(href='/lists/view_users/{{list.id}}/{{list.member_count}}' ) {{list.name}}
+							td {{list.mode}}
+							td {{list.own_list}}
+							td {{list.member_count}}
+							td {{list.description}}
+							td

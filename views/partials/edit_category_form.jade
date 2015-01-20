@@ -1,0 +1,26 @@
+#modalEditCategoryForm
+	.modal-dialog
+		.modal-content
+			.modal-header
+				button.close(type='button', data-dismiss='modal', aria-hidden='true') &#xFFFD;
+				h4.modal-title Edit Categories
+			.modal-body
+				form.form-horizontal
+					.form-group
+						label.control-label.col-xs-2(for='list-name') Name
+						.col-xs-8.input-group
+							input#list-name.form-control(name='list-name', type='text')
+							.input-group-btn
+								button#btnEditUserCategories.btn.btn-default(tabindex='-1', type='button')
+									span.glyphicon.glyphicon-ok
+									|  Ok
+					hr
+					.form-group
+						label.control-label.col-xs-2(for='list-category') Category
+						.col-xs-8
+							select.form-control(multiple='')
+								option Car
+								option Bla
+								option Bla bla
+			.modal-footer
+				button#btnDoneCategoryForm.btn.btn-primary(type='button') Done

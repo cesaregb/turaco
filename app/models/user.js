@@ -6,11 +6,13 @@ var mongoose = require('mongoose');
 var userSchema = mongoose.Schema({
 	token			: String,
 	tokenSecret		: String,
-	provider		: String,
 	uid				: String,
 	name			: String,
-	username		: String,
-	image			: String,
+	screen_name		: String,
+	profile_image_url: String,
+	location		: String,
+	url				: String,
+	profile			: {},
 	created			: {type: Date, "default": Date.now}
 });
 

@@ -1,0 +1,57 @@
+#containerUsers.container(style='block;')
+	.row.col-md-12(style='padding-bottom:10px;')
+		.btn-group.col-lg-3.left-search-box
+			.input-group
+				span.input-group-addon
+					input(type='checkbox')
+					|  All
+				input.form-control.input-sm(type='text', placeholder='@account')
+				span.input-group-btn
+					button.btn.btn-default.btn-sm(type='button')
+						span.glyphicon.glyphicon-search
+		.btn-group.pull-right
+			a#btnAssignAccnts2List.btn.btn-default.btn-sm(type='button', href='/lists/index')
+				span.glyphicon.glyphicon-th-list
+				| &#x9;&#x9;&#x9;&#x9;&#x9;&#x9;List
+			button#btnBackLists.btn.btn-default.btn-sm(type='button')
+				span.glyphicon.glyphicon-remove
+				| &#x9;&#x9;&#x9;&#x9;&#x9;&#x9;Remove Selected
+			button.btn.btn-default.btn-sm(type='button')
+				span.glyphicon.glyphicon-file
+				| &#x9;&#x9;&#x9;&#x9;&#x9;&#x9;Copy
+	.row.col-md-12
+		.panel.panel-default
+			.panel-heading.clearfix
+				h4.panel-title.pull-left(style='padding-top: 7.5px;') List members 
+			.panel-body
+				div(style='border-bottom:1px solid #999; clear:both;', ng-repeat="user in users")
+					div(style='float:left; margin-top: 10px;')
+						.stream-item-header
+							a.account-group(href='https://twitter.com/EgoCentriQo', target='_blank')
+								span(style='float: left; padding-right: 10px; margin-top: 15px;')
+									input(type='checkbox')
+								| &#x9;&#x9;&#x9;&#x9;&#x9;
+								img.avatar(src='https://pbs.twimg.com/profile_images/553229289936543745/kfaUICbZ_normal.jpeg', alt='', style='float: left; margin-top: 3px; padding-right:10px;')
+								| &#x9;&#x9;
+								| &#x9;&#x9;&#x9;&#x9;&#x9;
+								strong EgoXentriQuo
+								| &#x9;&#x9;
+								| &#x9;&#x9;&#x9;&#x9;&#x9;
+								span @EgoCentriQo
+						| &#x9;
+						| &#x9;&#x9;&#x9;
+						p.bio El ego es la parte m&aacute;s sensible y fr&aacute;gil de todo ser humano
+					| &#x9;
+					| &#x9;&#x9;
+					div(style='float: right; margin-top:10px')
+						.btn-group.pull-right
+							button.btn.btn-default.btn-sm(type='button') Unfollow
+							| &#x9;&#x9;&#x9;
+							| &#x9;&#x9;&#x9;&#x9;
+							button.btn.btn-default.btn-sm(type='button') Remove
+							| &#x9;&#x9;&#x9;
+							| &#x9;&#x9;&#x9;&#x9;
+							button.btn.btn-default.btn-sm(type='button') Open
+					| &#x9;&#x9;
+					div(style='clear:both;')
+			

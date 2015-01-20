@@ -194,8 +194,8 @@ body {
 }
 
 .trc-jumbotron-img-container{
-	width:100px; 
-	height:100px; 
+	width:90px; 
+	height:90px; 
 	margin-bottom:8px;
 	background-color: #363e4c;
 }
@@ -250,4 +250,9 @@ and (max-device-width : 480px) {
 		float: none;
 		padding-bottom: 5px;
 	}
+}
+
+.col-centered{
+    float: none;
+    margin: 0 auto;
 }

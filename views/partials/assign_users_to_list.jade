@@ -1,0 +1,45 @@
+#modalAssignUsersToList
+	.modal-dialog
+		.modal-content
+			.modal-header
+				button.close(type='button', data-dismiss='modal', aria-hidden='true') &#xFFFD;
+				h4.modal-title Lists
+			.modal-body
+				table.table.table-hover
+					thead
+						tr
+							th
+							th Name
+							th Category
+							th Members
+					tbody
+						tr
+							td
+								input(type='checkbox', checked='true')
+							td List
+							td Bla
+							td 150
+							td
+						tr
+							td
+								input(type='checkbox', checked='true')
+							td List
+							td Bla
+							td 150
+							td
+						tr
+							td
+								input(type='checkbox', checked='false')
+							td List
+							td Bla
+							td 150
+							td
+						tr
+							td
+								input(type='checkbox', checked='true')
+							td List
+							td Bla
+							td 150
+							td
+			.modal-footer
+				button.btn.btn-primary(type='button') Apply

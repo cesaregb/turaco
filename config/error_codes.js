@@ -8,20 +8,24 @@ module.exports.error_codes = {
 		message : 'Bad URL'
 	}, 
 	SERVICE_ERROR : {
-		code : 0,
+		code : 1,
 		message : 'Sorry there is a problem communicating with Twitter'
 	}, 
 	ACCESS_USER_ERROR : {
-		code : 1,
+		code : 2,
 		message : 'Access not granted, please login into the service'
 	},
 	USER_NOT_FOUND_ERROR : {
-		code : 1,
+		code : 3,
 		message : 'User not found on the database '
 	},
 	TWITTER_VERIFY_CREDENTIALS_ERROR : {
-		code : 1,
+		code : 4,
 		message : 'Problem verifying the users credentials on twitter'
+	},
+	USER_NOT_LOGED : {
+		code : 5,
+		message : 'User not loged'
 	} 
 };
 

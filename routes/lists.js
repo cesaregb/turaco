@@ -6,6 +6,7 @@ var expressSession = require('express-session');
 var router = express.Router();
 
 router.get('/partials/:name', function(req, res) {
+	console.log("into the router for partials");
 	var name = req.params.name;
 	res.render('partials/' + name);
 });

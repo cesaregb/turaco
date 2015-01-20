@@ -2,6 +2,10 @@ var express = require('express');
 var	passport = require('passport'); 
 var	TwitterStrategy = require('passport-twitter').Strategy;
 var expressSession = require('express-session');
+var twitterController = require('../config/TwitterController');
+var listHelpers = require('../utils/list_helpers');
+var User = require('../app/models/user');
+var List = require('../app/models/list');
 
 var router = express.Router();
 
@@ -15,14 +19,9 @@ router.get('/', function(req, res) {
 	}
 });
 
-router.get('/helloworld', function(req, res) {
-    res.render('helloworld', { title: 'Hello, World!' });
-});
-
 router.get('/requirejs/', function(req, res) {
 	res.render('helloworld', { title: 'Hello, World!' });
 });
-
 
 // ************************************* 
 router.get('/account', ensureAuthenticated, function(req, res) {
@@ -45,6 +44,54 @@ router.get('/auth/twitter', passport.authenticate('twitter'), function(req, res)
 router.get('/auth/twitter/callback', passport.authenticate('twitter', {
 	failureRedirect : '/error'
 }), function(req, res) {
+	console.log("getting lists...");
+	var user = req.user;
+	var twit = twitterController(user.token, user.tokenSecret);
+	twit.verifyCredentials(function(err, data) {
+		if (err){
+			console.error("Err: " + err);
+			return;
+		}
+	}).getLists(user.screen_name, function(err, data) {
+		if (err){ 
+			console.error("Err: " + err);
+			return;
+		}
+		var listCollection = {};
+		var response = {};
+		response.timestamp = Date.now; 
+		response.items = []; 
+		List.find({'uid': user.uid}, function(err, lists){
+			if (err) {
+				return console.error(err);
+			} else{
+				for (item in lists){
+					lists[item].active = 0;
+					lists[item].save();
+				}
+			}
+		});
+		for (pos in data){
+			(function(item){
+				var list = new List();
+				list = listHelpers.convertJson2List(list, item, user.uid);
+				listCollection[list.id] = true;
+				List.findOne({id: list.id}, function(err, listInDatabase) {
+					if (listInDatabase){
+						list.category = listInDatabase.category;
+						listInDatabase.active = 1;
+						listInDatabase.save();
+					}else{
+						list.category = 0; // get default category.
+						list.save(function (err) {
+							if (!err) console.log('Saved list Success!');
+						});
+					};
+				});
+				response.items.push(list);
+			})(data[pos]);
+		}
+	});
 	res.redirect('/');
 });
 
