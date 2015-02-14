@@ -51,7 +51,6 @@ passportConfig = function(passport) {
 				if(err) {
 					console.log("error deleting item: " + err);
 				} else {
-					
 					List.remove({uid: profile.id}, function(err) {
 						if (!err){
 							console.log("Lists deleted... ");

@@ -1,45 +1,91 @@
-#modalAssignUsersToList
-	.modal-dialog
-		.modal-content
-			.modal-header
-				button.close(type='button', data-dismiss='modal', aria-hidden='true') &#xFFFD;
-				h4.modal-title Lists
-			.modal-body
+#containerLists.container
+	.alert.alert-danger(role='alert', ng-show="error")
+		span.glyphicon.glyphicon-exclamation-sign(aria-hidden='true')
+		span.sr-only Error:
+		| {{error_message}}
+	div.alert.alert-info(ng-show="loading") Loading
+	div.alert.alert-info(ng-show="warning_not_all_friends") # friends: {{friends_count}}, over 1000, some results may not be included, please use the search tool 
+	
+	.row.col-md-12(style='padding-bottom:10px;')
+		.btn-group.col-lg-3.left-search-box
+			.input-group
+				span.input-group-addon
+					input(type='checkbox', checked='true', disabled='')
+					|  All
+				input.form-control.input-sm(type='text', placeholder='@account', ng-model="search")
+				span.input-group-btn
+					button.btn.btn-default.btn-sm(type='button', ng-click='searchFriends()')
+						span.glyphicon.glyphicon-search
+					button.btn.btn-default.btn-sm(type='button', ng-click='bringFriends()')
+						span.glyphicon.glyphicon-remove
+		.btn-group.pull-right
+			a#btnAssignAccnts2List.btn.btn-default.btn-sm(type='button', href='/lists/index')
+				span.glyphicon.glyphicon-th-list
+				| &#x9;&#x9;&#x9;&#x9;&#x9;&#x9;List
+			button#btnBackLists.btn.btn-default.btn-sm(type='button')
+				span.glyphicon.glyphicon-remove
+				| &#x9;&#x9;&#x9;&#x9;&#x9;&#x9;Remove Selected
+			button.btn.btn-default.btn-sm(type='button')
+				span.glyphicon.glyphicon-file
+				| &#x9;&#x9;&#x9;&#x9;&#x9;&#x9;Copy
+	.row.col-md-6
+		.panel.panel-default
+			.panel-body 
+				div(style='border-bottom:1px solid #999; clear:both;', ng-repeat="user in filtered | startFrom:(currentPage-1)*itemsPerPage | limitTo:itemsPerPage")
+					div(style='float:left; margin-top: 10px; max-width: 750px;')
+						.stream-item-header
+							a.account-group(href='https://twitter.com/{{user.screen_name}}', target='_blank')
+								span(style='float: left; padding-right: 10px; margin-top: 15px;')
+									input(type='checkbox')
+								| &#x9;&#x9;&#x9;&#x9;&#x9;
+								img.avatar(src='{{user.profile_image_url}}', alt='', style='float: left; margin-top: 3px; padding-right:10px;')
+								| &#x9;&#x9;
+								| &#x9;&#x9;&#x9;&#x9;&#x9;
+								strong {{user.name}}
+								| &#x9;&#x9;
+								| &#x9;&#x9;&#x9;&#x9;&#x9;
+								span @{{user.screen_name}}
+						| &#x9;
+						| &#x9;&#x9;&#x9;
+						p.bio {{user.description}}
+					| &#x9;
+					| &#x9;&#x9;
+					div(style='float: right; margin-top:10px')
+						.btn-group.pull-right
+							button.btn.btn-default.btn-sm(type='button') Unfollow
+							| &#x9;&#x9;&#x9;
+							| &#x9;&#x9;&#x9;&#x9;
+							button.btn.btn-default.btn-sm(type='button') Remove
+							| &#x9;&#x9;&#x9;
+							| &#x9;&#x9;&#x9;&#x9;
+							button.btn.btn-default.btn-sm(type='button') Open
+					| &#x9;&#x9;
+					div(style='clear:both;')
+		pagination.pagination-sm(total-items='totalItems',items-per-page='itemsPerPage', ng-model='currentPage', ng-change='pageChanged()',  max-size='maxSize', boundary-links='true' num-pages='numPages')
+		p
+			| total Items: {{totalItems}}
+			br
+			| Items per page: {{itemsPerPage}}
+			br
+			| Current Page: {{currentPage}}
+	.row.col-md-5.col-md-offset-1
+		.panel.panel-default
+			.panel-body
 				table.table.table-hover
 					thead
 						tr
-							th
 							th Name
-							th Category
+							th Mode
+							th Own List
 							th Members
+							th Description
+							th
 					tbody
-						tr
+						tr(ng-repeat="list in lists")
+							td 
+								a(href='/lists/view_users/{{list.id}}/{{list.member_count}}' ) {{list.name}}
+							td {{list.mode}}
+							td {{list.own_list}}
+							td {{list.member_count}}
+							td {{list.description}}
 							td
-								input(type='checkbox', checked='true')
-							td List
-							td Bla
-							td 150
-							td
-						tr
-							td
-								input(type='checkbox', checked='true')
-							td List
-							td Bla
-							td 150
-							td
-						tr
-							td
-								input(type='checkbox', checked='false')
-							td List
-							td Bla
-							td 150
-							td
-						tr
-							td
-								input(type='checkbox', checked='true')
-							td List
-							td Bla
-							td 150
-							td
-			.modal-footer
-				button.btn.btn-primary(type='button') Apply

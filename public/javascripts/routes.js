@@ -11,7 +11,7 @@ define([
 			controller: 'listController'
 		}).when('/lists/view_users/:list_id/:member_count', {
 			templateUrl: urlListBase + 'view_users', 
-			controller: 'userController'
+			controller: 'listController'
 		}).when('/lists/add_list', {
 			templateUrl: urlListBase + 'add_list_form', 
 			controller: 'listController'

@@ -10,9 +10,14 @@ define(['./module'], function (module) {
     		return $http.get(urlBase + "/test/a");
     	};
     	
-    	factory.getListUsers = function () {
-    		console.log("calling " + urlBase + "/test/a");
-    		return $http.get(urlBase + "/test/a");
+    	factory.getUserFriends = function () {
+    		console.log("calling " + urlBase + "/friends_list");
+    		return $http.get(urlBase + "/friends_list");
+    	};
+    	
+    	factory.serachUserFriends = function (term) {
+    		console.log("calling " + urlBase + "/search_user/" + term);
+    		return $http.get(urlBase + "/search_user/"+term);
     	};
     	
     	return factory;

@@ -1,4 +1,9 @@
 #containerLists.container
+	.alert.alert-danger(role='alert')
+		span.glyphicon.glyphicon-exclamation-sign(aria-hidden='true')
+		span.sr-only Error:
+		| Enter a valid email address
+	div.alert.alert-info(ng-show="loading") Loading
 	div.row
 		.col-md-2.col-md-offset-5 Add List
 		.col-md-2.col-md-offset-1(style='padding-bottom:10px;')

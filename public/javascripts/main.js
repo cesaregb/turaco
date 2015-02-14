@@ -4,7 +4,8 @@ require.config({
     	jquery			: '//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min',
     	angular			: '//ajax.googleapis.com/ajax/libs/angularjs/1.2.21/angular.min',
     	ngRoute			: '//ajax.googleapis.com/ajax/libs/angularjs/1.2.21/angular-route.min',
-    	bootstrap		: '../dist/js/bootstrap.min'
+    	bootstrap		: '../dist/js/bootstrap.min',
+    	'ui-bootstrap'	: '//angular-ui.github.io/bootstrap/ui-bootstrap-tpls-0.12.0'
     },
     shim	: {
     	jquery: {
@@ -26,7 +27,7 @@ require.config({
 		'app': {
 	        deps: ['jquery', 'angular']
 	    }, 
-	    uiBootstrap :{
+	    'ui-bootstrap' :{
             deps: ['angular']
         }
     }

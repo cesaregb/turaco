@@ -1,9 +1,9 @@
 
 define([ 'ngRoute', 
-//         './services/index', 
+         'ui-bootstrap', 
+         './filters/index', 
          './factories/index', 
          './controllers/index' ], function(ngRoute) {
-//	console.log("creatting app...");
-	return angular.module('app', ['ngRoute', 'app.controllers', 'app.factories' ]);
+	return angular.module('app', ['ngRoute', 'app.controllers', 'app.factories', 'app.filters', 'ui.bootstrap' ]);
 });
 

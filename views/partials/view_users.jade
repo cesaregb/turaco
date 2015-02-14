@@ -1,11 +1,16 @@
 #containerUsers.container(style='block;')
+	.alert.alert-danger(role='alert')
+		span.glyphicon.glyphicon-exclamation-sign(aria-hidden='true')
+		span.sr-only Error:
+		| Enter a valid email address
+	div.alert.alert-info(ng-show="loading") Loading
 	.row.col-md-12(style='padding-bottom:10px;')
 		.btn-group.col-lg-3.left-search-box
 			.input-group
 				span.input-group-addon
 					input(type='checkbox')
 					|  All
-				input.form-control.input-sm(type='text', placeholder='@account')
+				input.form-control.input-sm(type='text', placeholder='@account', ng-model="search.screen_name")
 				span.input-group-btn
 					button.btn.btn-default.btn-sm(type='button')
 						span.glyphicon.glyphicon-search
@@ -24,23 +29,23 @@
 			.panel-heading.clearfix
 				h4.panel-title.pull-left(style='padding-top: 7.5px;') List members 
 			.panel-body
-				div(style='border-bottom:1px solid #999; clear:both;', ng-repeat="user in users")
-					div(style='float:left; margin-top: 10px;')
+				div(style='border-bottom:1px solid #999; clear:both;', ng-repeat="user in users | filter:search")
+					div(style='float:left; margin-top: 10px; max-width: 750px;')
 						.stream-item-header
-							a.account-group(href='https://twitter.com/EgoCentriQo', target='_blank')
+							a.account-group(href='https://twitter.com/{{user.screen_name}}', target='_blank')
 								span(style='float: left; padding-right: 10px; margin-top: 15px;')
 									input(type='checkbox')
 								| &#x9;&#x9;&#x9;&#x9;&#x9;
-								img.avatar(src='https://pbs.twimg.com/profile_images/553229289936543745/kfaUICbZ_normal.jpeg', alt='', style='float: left; margin-top: 3px; padding-right:10px;')
+								img.avatar(src='{{user.profile_image_url}}', alt='', style='float: left; margin-top: 3px; padding-right:10px;')
 								| &#x9;&#x9;
 								| &#x9;&#x9;&#x9;&#x9;&#x9;
-								strong EgoXentriQuo
+								strong {{user.name}}
 								| &#x9;&#x9;
 								| &#x9;&#x9;&#x9;&#x9;&#x9;
-								span @EgoCentriQo
+								span @{{user.screen_name}}
 						| &#x9;
 						| &#x9;&#x9;&#x9;
-						p.bio El ego es la parte m&aacute;s sensible y fr&aacute;gil de todo ser humano
+						p.bio {{user.description}}
 					| &#x9;
 					| &#x9;&#x9;
 					div(style='float: right; margin-top:10px')

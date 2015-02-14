@@ -1,49 +1,86 @@
 define(['./module'], function (module) {
-	module.controller('listController', ['$scope', 'listFactory', '$location', '$routeParams',  function ($scope, listFactory, $location, $routeParams) {
-		$scope.$on('LOAD',function(){$scope.loading=true});
-		$scope.$on('UNLOAD',function(){$scope.loading=false});
-    	init();
+	module.controller('listController', ['$scope', 'listFactory', 'userFactory', '$location', '$routeParams', 'filterFilter', 
+	                                     function ($scope, listFactory, userFactory, $location, $routeParams, filterFilter) {
+		$scope.num_loading = 0;
+		$scope.num_errors = 0;
+		
+		$scope.$on('LOAD', function(){
+			$scope.num_loading++;
+			console.log("LOAD count: " + $scope.num_loading);
+			$scope.loading=true;
+		});
+		$scope.$on('UNLOAD', function(){
+			$scope.num_loading--;
+			console.log("UNLOAD count: " + $scope.num_loading);
+			if ($scope.num_loading == 0){
+				$scope.loading=false;
+			}
+		});
+		
+		$scope.$on('ERROR_SHOW', function(){
+			$scope.num_errors++;
+			if($scope.error_message == ""){
+				$scope.error_message = 'Error on the service';
+			}
+			$scope.error=true;
+		});
+		$scope.$on('ERROR_HIDE', function(){
+			$scope.num_errors--;
+			if ($scope.num_errors == 0){
+				$scope.error=false;
+			}
+		});
+    	
     	function init(){
-    		var path = $location.$$path;
-    		if ($scope.lists == null){
-    			
-    			if (path == '/lists/index'){
-    				$scope.$emit('LOAD');
-    				listFactory.getUserLists().success(function (response) {
-    					$scope.$emit('UNLOAD')
-    					var result = response;
-    					if (result.type == "SUCCESS"){
-    						$scope.lists = result.data.items;
-    					}
-    				}).error(function (error) {
-    					$scope.$emit('UNLOAD')
-    					console.log("Error on the service: " + error);
-    					$scope.status = 'Unable to load lists data: ' + error.message;
-    				});
-    			}else if(path.indexOf("lists/view_users") > 0){
-    				var list_id = $routeParams.list_id;
-    				var member_count = $routeParams.member_count;
-    				$scope.$emit('LOAD');
-    				listFactory.getListUsers(list_id, member_count).success(function (response) {
-    					$scope.$emit('UNLOAD')
-    					var result = response;
-    					if (result.type == "SUCCESS"){
-    						$scope.users = result.data.users;
-    					}
-    				}).error(function (error) {
-    					$scope.$emit('UNLOAD')
-    					console.log("Error on the service: " + error);
-    					$scope.status = 'Unable to load lists data: ' + error.message;
-    				});
-    				
-    			}else if(path == '/lists/add_list'){
-    				
-    			}else{
-    				
-    			}
-    			
-    		}
-    	}
+    		var path = $location.$$path; // get the path for initialization per page.
+    		
+			if (path == '/lists/index'){ /*SHOW LISTS INIT PAGE*/
+				if ($scope.lists == null){
+					$scope.$emit('LOAD');
+					listFactory.getUserLists().success(function (response) {
+						$scope.$emit('UNLOAD')
+						var result = response;
+						if (result.type == "SUCCESS"){
+							$scope.$emit('ERROR_HIDE');
+							$scope.lists = result.data.items;
+						}else{
+							$scope.$emit('ERROR_SHOW');
+						}
+					}).error(function (error) {
+						$scope.$emit('ERROR_SHOW');
+						$scope.$emit('UNLOAD')
+						console.log("Error on the service: " + error);
+					});
+				}
+			}else if(path.indexOf("lists/view_users") > 0){ /* VIEW LIST USERS... */
+				var list_id = $routeParams.list_id;
+				var member_count = $routeParams.member_count;
+				$scope.$emit('LOAD');
+				listFactory.getListUsers(list_id, member_count).success(function (response) {
+					$scope.$emit('UNLOAD')
+					var result = response;
+					if (result.type == "SUCCESS"){
+						$scope.$emit('ERROR_HIDE');
+						$scope.users = result.data.users;
+					}else{
+						$scope.$emit('ERROR_SHOW');
+					}
+				}).error(function (error) {
+					$scope.$emit('ERROR_SHOW');
+					$scope.$emit('UNLOAD')
+					console.log("Error on the service: " + error);
+				});
+			}else if(path == '/lists/assign_users_to_list'){ /* get users and lists */ 
+				initUsersFriendsLists($scope, userFactory, listFactory, filterFilter);
+				
+			}else if(path == '/lists/add_list'){
+				
+			}else{
+				
+			}
+		}
+    	
+    	init();
     	
     	$scope.refreshList = function(){
     		$scope.$emit('LOAD');
@@ -71,7 +108,6 @@ define(['./module'], function (module) {
 				$scope.$emit('UNLOAD')
 				var result = response;
 				if (result.type == "SUCCESS"){
-					/**/
 					console.log("LIST SAVED");
 				}
 			}).error(function (error) {
@@ -85,81 +121,124 @@ define(['./module'], function (module) {
     }]);
 });
 
+function initUsersFriendsLists($scope, userFactory, listFactory, filterFilter){
+	$scope.warning_not_all_friends = false;
+	/* 
+	 * get user friends 
+	 * */ 
+	$scope.totalItems = 0;
+	$scope.currentPage = 1;
+	$scope.itemsPerPage = 20
+	$scope.maxSize = 5;
+	$scope.bigTotalItems = 0;
+	$scope.bigCurrentPage = 1;
+	
+	$scope.bringFriends = function() {
+		$scope.$emit('LOAD');
+		userFactory.getUserFriends().success(function (response) {
+			$scope.$emit('UNLOAD')
+			var result = response;
+			if (result.type == "SUCCESS"){
+				$scope.$emit('ERROR_HIDE');
+				$scope.friends_count = result.data.friends_count;
+				if (parseInt(result.data.friends_count) > 1000){
+					$scope.warning_not_all_friends = true;
+				}
+				$scope.friends = result.data.users;
+				$scope.filtered = filterFilter($scope.friends, {screen_name: ""});
+				$scope.totalItems = $scope.filtered.length;
+			}else{
+				$scope.$emit('ERROR_SHOW');
+				console.log("Error on the service: " + response);
+			}
+		}).error(function(error, status, header, config) {
+			$scope.$emit('ERROR_SHOW'); $scope.$emit('UNLOAD');
+			console.log("Error on the service: " + error);
+			$scope.error_message = 'Unable to load lists data: ' + error.message;
+		});
+		
+	};
+	$scope.bringFriends(); 
+	
+	$scope.setPage = function(pageNo) {
+		$scope.currentPage = pageNo;
+	};
 
-//function listController($scope, dataFactory) {
-//    
-//	$scope.status = null;
-//	$scope.name = "Cesar Eduardo";
-//	$scope.customers = null;
-//	$scope.orders = null;
-//	init();
-//	
-//	function init() {
-//		dataFactory.getCustomers().success(function (custs) {
-//			$scope.customers = custs;
-//		})
-//		.error(function (error) {
-//			$scope.status = 'Unable to load customer data: ' + error.message;
-//		});
-//	}
-//	
-//	$scope.updateCustomer = function (id) {
-//		var cust;
-//		for (var i = 0; i < $scope.customers.length; i++) {
-//			var currCust = $scope.customers[i];
-//			if (currCust.ID === id) {
-//				cust = currCust;
-//				break;
-//			}
+	$scope.pageChanged = function() { console.log('Page changed to: ' + $scope.currentPage); };
+	
+	$scope.pageCount = function() {
+		if ($scope.filtered != null){
+			return Math.ceil($scope.filtered.length / $scope.itemsPerPage);
+		}else{
+			return Math.ceil($scope.friends.length / $scope.itemsPerPage);
+		}
+	};
+	$scope.noOfPages = 
+	
+	$scope.$watch('search', function(term) {
+        $scope.filtered = filterFilter($scope.friends, {screen_name: term});
+        if ($scope.filtered != null ){
+        	$scope.totalItems = $scope.filtered.length;
+        }
+    });
+	
+//	$scope.$watch('[friends,currentPage]', function() {
+//		if ($scope.friends != null){
+//			var begin = (($scope.currentPage - 1) * $scope.itemsPerPage);
+//			var end = begin	+ $scope.itemsPerPage;
+//			
+//			$scope.filteredFriends = $scope.friends.slice(begin, end);
+//			$scope.totalItems = $scope.friends.length;
 //		}
-//		dataFactory.updateCustomer(cust).success(function () {
-//			$scope.status = 'Updated Customer! Refreshing customer list.';
-//		})
-//		.error(function (error) {
-//			$scope.status = 'Unable to update customer: ' + error.message;
-//		});
-//	};
-//	
-//	$scope.insertCustomer = function () {
-//	// Fake customer data
-//		var cust = {
-//			ID: 10,
-//			FirstName: 'JoJo',
-//			LastName: 'Pikidily'
-//		};
-//		dataFactory.insertCustomer(cust).success(function () {
-//			$scope.status = 'Inserted Customer! Refreshing customer list.';
-//			$scope.customers.push(cust);
-//		}).
-//		error(function(error) {
-//			$scope.status = 'Unable to insert customer: ' + error.message;
-//		});
-//	};
-//	
-//	$scope.deleteCustomer = function (id) {
-//		dataFactory.deleteCustomer(id).success(function () {
-//		$scope.status = 'Deleted Customer! Refreshing customer list.';
-//			for (var i = 0; i < $scope.customers.length; i++) {
-//				var cust = $scope.customers[i];
-//				if (cust.ID === id) {
-//					$scope.customers.splice(i, 1);
-//					break;
-//				}
-//			}
-//			$scope.orders = null;
-//		})
-//		.error(function (error) {
-//			$scope.status = 'Unable to delete customer: ' + error.message;
-//		});
-//	};
-//	
-//	$scope.getCustomerOrders = function (id) {
-//		dataFactory.getOrders(id).success(function (orders) {
-//			$scope.status = 'Retrieved orders!';
-//			$scope.orders = orders;
-//		})
-//		.error(function (error) {
-//			$scope.status = 'Error retrieving customers! ' + error.message;
-//		});
-//	};
-//}
+//	}, true);
+	
+	/*
+	 * get user lists 
+	 * */ 
+	$scope.$emit('LOAD')
+	listFactory.getUserLists().success(function (response) {
+		$scope.$emit('UNLOAD')
+		var result = response;
+		if (result.type == "SUCCESS"){
+			$scope.$emit('ERROR_HIDE');
+			$scope.lists = result.data.items;
+		}else{
+			console.log("Error on the service: " + response);
+		}
+	}).error(function (error) {
+		$scope.$emit('UNLOAD')
+		console.log("Error on the service: " + error);
+		$scope.status = 'Unable to load lists data: ' + error.message;
+	});	
+	
+	/*declare functions*/
+	$scope.searchFriends = function(){
+		if ($scope.search != "undefined") {
+			$scope.$emit('LOAD');
+			userFactory.serachUserFriends($scope.search).success(function (response) {
+				$scope.$emit('UNLOAD')
+				var result = response;
+				if (result.type == "SUCCESS"){
+					$scope.$emit('ERROR_HIDE');
+					$scope.friends_count = result.data.friends_count;
+					if (parseInt(result.data.friends_count) > 1000){
+						$scope.warning_not_all_friends = true;
+					}
+					$scope.friends = result.data;
+					$scope.filtered = filterFilter($scope.friends, {screen_name: ""});
+					$scope.totalItems = $scope.filtered.length;
+				}else{
+					$scope.$emit('ERROR_SHOW');
+					console.log("Error on the service: " + response);
+				}
+			}).error(function(error, status, header, config) {
+				$scope.$emit('ERROR_SHOW'); $scope.$emit('UNLOAD');
+				console.log("Error on the service: " + error);
+				$scope.error_message = 'Unable to load lists data: ' + error.message;
+			});
+		}
+	}
+	
+}
+
+

@@ -12,6 +12,7 @@ var userSchema = mongoose.Schema({
 	profile_image_url: String,
 	location		: String,
 	url				: String,
+	followers_count	: String,
 	profile			: {},
 	created			: {type: Date, "default": Date.now}
 });

@@ -31,23 +31,35 @@ function ListHelper(options) {
 ListHelper.user = null;
 module.exports.ListHelper = ListHelper;
 
-ListHelper.prototype.getUser = function(uid, callback){
+ListHelper.prototype.getUser = function(_user, uid, callback){
 	var _method = "getUser()";
-	console.log("IN " + fileName + "-"+ _method);
+	var debug_message = (_user.uid != null)?_user.uid:"user null";
+	console.log("IN " + fileName + " - " + _method + " - " + debug_message);
+	if (typeof uid === 'function') {
+		callback = uid;
+		uid = null;
+	}
+	
 	var _self = this;
-	User.findOne({uid: uid}, function(err, user) {
-		if (err){
-			callback(err, null);
-		} 
-		if(user) {
-			_self.user = user;
-			callback(null, user);
-			return this;
-		}else{
-			callback(fileName + "-"+ _method + " Error user not found", null);
-			return this;
-		}
-	});
+	
+	if ( _user == null) {
+		User.findOne({uid: uid}, function(err, user) {
+			if (err){
+				callback(err, null);
+			} 
+			if(user) {
+				_self.user = user;
+				callback(null, user);
+				return this;
+			}else{
+				callback(fileName + "-"+ _method + " Error user not found", null);
+				return this;
+			}
+		});
+	}else{
+		_self.user = _user;
+		callback(null, _user);
+	}
 }
 
 function isFunctionA(object) {
@@ -57,12 +69,11 @@ function isFunctionA(object) {
 ListHelper.prototype.getTwittObjectFromUser = function (user, callback){
 	var _method = "getTwittObjectFromUser()";
 	console.log("IN " + fileName + "-"+ _method);
-	if (isFunctionA(user) ){ 
+	if (isFunctionA(user) ){
 		callback = user;
 		user = this.user;
 	}
 	try{
-//		console.log("DEBUG: " + JSON.stringify(user) );
 		var twit =  null;
 		if (!user){
 			callback("Error not user getTwittObjectFromUser", null, null);
@@ -77,7 +88,6 @@ ListHelper.prototype.getTwittObjectFromUser = function (user, callback){
 			});
 		}
 	}catch(ex){
-		console.log("getTwittObjectFromUser - USER: " + user);
 		callback(error_codes.SERVICE_ERROR, twit, user);
 	}
 	return this;

@@ -21,10 +21,7 @@
     "express-http-proxy": ">= 0.0.0",
     "morgan": ">= 0.0.0",
     "async": "*",
+    "http-proxy": "*",
     "connect-ensure-login": ">= 0.0.0"
-  },
-  "devDependencies": {
-    "gulp": "^3.8.10",
-    "gulp-develop-server": "^0.2.5"
   }
 }

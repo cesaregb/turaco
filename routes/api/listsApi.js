@@ -13,23 +13,17 @@ var async = require("async");
 var fileName = "listApi.js";
 var pathString = "/api/lists";
 
-//router.get('/', function(req, res) {
-//	res.json(json_api_responses.error(error_codes.BAD_URL_ERROR));
-//});
-
+/*
+ * GET the lists by the scren_name sended 
+ * */
 router.get('/byUser/:screen_name', function(req, res) {
 	var _method = "get /byUSer/:uid (get lists)";
 	console.log("IN " + fileName + "-" + _method);
 	try{
-		if (req.user){
-			user = req.user;
-		}else{
-			throw error_codes.ACCESS_USER_ERROR;
-		}
-	
+		var session = req.session;
 		var screen_name = req.params.screen_name;
 		helper = new listHelpers.ListHelper();
-		helper.getUser(user.uid, function(err, user){
+		helper.getUser(session.user, function(err, user){
 			if (err){
 				console.error("Error getting the logged user from the database");
 				res.json(json_api_responses.error(error_codes.USER_NOT_FOUND_ERROR, err));
@@ -69,6 +63,9 @@ router.get('/byUser/:screen_name', function(req, res) {
 	}
 });
 
+/*
+ * GET the lists of the logged user
+ * */
 router.get('/', function(req, res) {
 	var _method = "get / (get lists)";
 	console.log("IN " + fileName + "-" + _method);
@@ -84,7 +81,7 @@ router.get('/', function(req, res) {
 		}
 		if (session.user_lists == null ) {/* Store list on session to avoid multiple request to get the actual lists, */
 			helper = new listHelpers.ListHelper();
-			helper.getUser(user.uid, function(err, user){
+			helper.getUser(session.user, function(err, user){
 				if (err){
 					console.error("Error getting the logged user from the database");
 					res.json(json_api_responses.error(error_codes.USER_NOT_FOUND_ERROR, err));
@@ -129,83 +126,14 @@ router.get('/', function(req, res) {
 	}
 });
 
-router.get('/DEPRECATED', function(req, res) {
-	var _method = "get /:uid (get lists)";
-	console.log("IN " + fileName + "-" + _method);
-	var uid = req.params.uid;
-	try{
-		if (uid == null){
-			throw error_codes.ACCESS_USER_ERROR;
-		}
-		helper = new listHelpers.ListHelper();
-		helper.getUser(uid, function(err, user){
-			if (err){
-				res.json(json_api_responses.error(error_codes.USER_NOT_FOUND_ERROR, err));
-				return;
-			}
-			var twit = twitterController(user.token, user.tokenSecret);
-			twit.verifyCredentials(function(err, data) {
-				if (err){
-					res.json(json_api_responses.error(error_codes.TWITTER_VERIFY_CREDENTIALS_ERROR, err));
-					return;
-				}
-			}).getLists(user.screen_name, function(err, data) {
-				if (err){ 
-					res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
-					return;
-				}
-				var listCollection = {};
-				var response = {};
-				response.timestamp = Date.now; 
-				response.items = []; 
-				List.find({'uid': uid}, function(err, lists){
-					if (err) {
-						res.json(json_api_responses.string_error(err, err));
-						return;
-						return console.error(err);
-					} else{
-						for (item in lists){
-							lists[item].active = 0;
-							lists[item].save();
-						}
-					}
-				});
-				for (pos in data){
-					(function(item){
-						var list = new List();
-						list = listHelpers.convertJson2List(list, item, uid);
-						listCollection[list.id] = true;
-						List.findOne({id: list.id}, function(err, listInDatabase) {
-							if (listInDatabase){
-								list.category = listInDatabase.category;
-								listInDatabase.active = 1;
-								listInDatabase.save();
-							}else{
-								list.category = 0; // get default category.
-								list.save(function (err) {
-									if (!err) console.log('Saved list Success!');
-								});
-							};
-						});
-						response.items.push(list);
-					})(data[pos]);
-				}
-				res.json(json_api_responses.success(response));
-				return;
-			});
-		});
-	}catch(ex){
-		res.json(json_api_responses.error(ex));
-		return;
-	}
-});
-
+/*
+ * CREATE a list
+ * */
 router.put('/', function(req, res) {
 	var _method = "put / (create list)";
 	console.log("IN " + fileName + "-" + _method);
 	try{
 		var myParams = getParams(req);
-		console.log("---> " + JSON.stringify(myParams));
 		var uid = null;
 		var list_name = null;
 		
@@ -218,7 +146,7 @@ router.put('/', function(req, res) {
 		}
 		console.log("LIST_NAME en api: " + list_name);
 		helper = new listHelpers.ListHelper();
-		helper.getUser(uid, function(err, user){
+		helper.getUser(user, function(err, user){
 			if (err){
 				res.json(json_api_responses.error(error_codes.USER_NOT_FOUND_ERROR, err));
 				return;
@@ -247,7 +175,10 @@ router.put('/', function(req, res) {
 	
 });
 
-router.delete('/', function(req, res) { //41349136
+/*
+ * Delete a list 
+ * */
+router.delete('/', function(req, res) { // 41349136
 	var _method = "delete / (delete list)";
 	console.log("IN " + fileName + "-" + _method);
 	
@@ -263,7 +194,7 @@ router.delete('/', function(req, res) { //41349136
 			throw error_codes.ACCESS_USER_ERROR;
 		}
 		helper = new listHelpers.ListHelper();
-		helper.getUser(uid, function(err, user){
+		helper.getUser(user, function(err, user){
 			if (err){
 				res.json(json_api_responses.error(error_codes.USER_NOT_FOUND_ERROR, err));
 				return;
@@ -291,6 +222,10 @@ router.delete('/', function(req, res) { //41349136
 	}
 });
 
+/*
+ * Delete a list and unfollow all the users from that list. 
+ * */
+
 router.delete('/and_unfollow', function(req, res) { 
 	var _method = "delete / (delete list and unfollow... )";
 	console.log("IN " + fileName + "-" + _method);
@@ -306,7 +241,7 @@ router.delete('/and_unfollow', function(req, res) {
 			throw error_codes.ACCESS_USER_ERROR;
 		}
 		helper = new listHelpers.ListHelper();
-		helper.getUser(uid, function(err, user){
+		helper.getUser(user, function(err, user){
 			if (err){
 				res.json(json_api_responses.error(error_codes.USER_NOT_FOUND_ERROR, err));
 				return;
@@ -373,7 +308,6 @@ router.delete('/and_unfollow', function(req, res) {
 								}
 							}
 						);
-						
 						twit.deleteList(user.screen_name, myParams, function(err, data){
 							if (err){
 								res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
@@ -394,7 +328,9 @@ router.delete('/and_unfollow', function(req, res) {
 	}
 });
 
-
+/*
+ * UPDATE an existing list 
+ * */
 router.post('/', function(req, res) {
 	var _method = "post / (update list)";
 	console.log("IN " + fileName + "-" + _method);
@@ -410,7 +346,7 @@ router.post('/', function(req, res) {
 		}
 		
 		helper = new listHelpers.ListHelper();
-		helper.getUser(uid, function(err, user){
+		helper.getUser(user, function(err, user){
 			if (err){
 				res.json(json_api_responses.error(error_codes.USER_NOT_FOUND_ERROR, err));
 				return;
@@ -439,6 +375,9 @@ router.post('/', function(req, res) {
 	}
 });
 
+/*
+ * Subscribe to a list 
+ * */
 router.post('/subscribe', function(req, res) {
 	var _method = "post / (subscribeMe to a list)";
 	console.log("IN " + fileName + "-" + _method);
@@ -455,7 +394,7 @@ router.post('/subscribe', function(req, res) {
 		}
 		
 		helper = new listHelpers.ListHelper();
-		helper.getUser(uid, function(err, user){
+		helper.getUser(user, function(err, user){
 			if (err){
 				res.json(json_api_responses.error(error_codes.USER_NOT_FOUND_ERROR, err));
 				return;
@@ -483,6 +422,9 @@ router.post('/subscribe', function(req, res) {
 	}
 });
 
+/*
+ * Un-Subscribe to a list 
+ * */
 router.post('/unsubscribe', function(req, res) {
 	var _method = "post / (UN subscribeMe to a list)";
 	console.log("IN " + fileName + "-" + _method);
@@ -498,7 +440,7 @@ router.post('/unsubscribe', function(req, res) {
 			throw error_codes.ACCESS_USER_ERROR;
 		}
 		helper = new listHelpers.ListHelper();
-		helper.getUser(uid, function(err, user){
+		helper.getUser(user, function(err, user){
 			if (err){
 				res.json(json_api_responses.error(error_codes.USER_NOT_FOUND_ERROR, err));
 				return;
@@ -526,6 +468,9 @@ router.post('/unsubscribe', function(req, res) {
 	}
 });
 
+/*
+ * Get subscriptions  
+ * */
 router.get('/subscriptions', function(req, res) {
 	var _method = "get /subscriptions/:uid (get user's subscriptions)";
 	console.log("IN " + fileName + "-" + _method);
@@ -544,7 +489,7 @@ router.get('/subscriptions', function(req, res) {
 		}
 		
 		helper = new listHelpers.ListHelper();
-		helper.getUser(uid, function(err, user){
+		helper.getUser(user, function(err, user){
 			if (err){
 				res.json(json_api_responses.error(error_codes.USER_NOT_FOUND_ERROR, err));
 				return;
@@ -573,6 +518,9 @@ router.get('/subscriptions', function(req, res) {
 	}
 });
 
+/*
+ * Clone and follow the users from the list
+ * */
 router.post('/clone' , function(req, res){
 	var _method = "post /clone (clone a list)";
 	console.log("IN " + fileName + "-" + _method);
@@ -590,7 +538,7 @@ router.post('/clone' , function(req, res){
 		}
 		
 		helper = new listHelpers.ListHelper();
-		helper.getUser(uid, function(err, user){
+		helper.getUser(user, function(err, user){
 			if (err){
 				res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
 				return;
@@ -689,6 +637,10 @@ router.post('/clone' , function(req, res){
 	}
 });
 
+
+/*
+ * Clone but no following  
+ * */
 router.post('/clone/no_follow' , function(req, res){
 	var _method = "post /clone (clone a list)";
 	console.log("IN " + fileName + "-" + _method);
@@ -704,7 +656,7 @@ router.post('/clone/no_follow' , function(req, res){
 			throw error_codes.ACCESS_USER_ERROR;
 		}
 		helper = new listHelpers.ListHelper();
-		helper.getUser(uid, function(err, user){
+		helper.getUser(user, function(err, user){
 			if (err){
 				res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
 				return;
@@ -719,7 +671,7 @@ router.post('/clone/no_follow' , function(req, res){
 					var list_member_count = data.member_count;
 					list = listHelpers.convertJson2List(list, data, uid);
 					list_id = list.id; 
-					//create list;
+					// create list;
 					twit.createList(user.screen_name, list.name, {mode: list.mode, description: list.description}, function(err, data){
 						if (err){
 							res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
@@ -798,7 +750,9 @@ router.post('/clone/no_follow' , function(req, res){
 	}
 });
 
-
+/*
+ *  get users of the lists_id 
+ * */
 router.get('/list_users/:list_id/:list_member_count', function(req, res) {
 	var _method = "get / (get list's users )";
 	console.log("IN " + fileName + "-" + _method);
@@ -817,7 +771,7 @@ router.get('/list_users/:list_id/:list_member_count', function(req, res) {
 		}
 		
 		helper = new listHelpers.ListHelper();
-		helper.getUser(user.uid, function(err, user){
+		helper.getUser(user, function(err, user){
 			if (err){
 				console.error("Error getting the logged user from the database");
 				res.json(json_api_responses.error(error_codes.USER_NOT_FOUND_ERROR, err));
@@ -856,7 +810,7 @@ router.get('/list_users/:list_id/:list_member_count', function(req, res) {
 							var usersWithError = new Array();
 							var numErr = 0;
 							var numTries = 0;
-							users.push.apply(users, data.users)
+							users.push.apply(users, data.users);
 							callback(null, cursor);
 						});
 					},
