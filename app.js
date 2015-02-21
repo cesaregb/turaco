@@ -30,12 +30,12 @@ var app = express();
 
 var globalTunnel = require('global-tunnel');
 
-globalTunnel.initialize();
+//globalTunnel.initialize();
 
-//globalTunnel.initialize({
-//	host : 'www-proxy.us.oracle.com',
-//	port : 80
-//});
+globalTunnel.initialize({
+	host : 'www-proxy.us.oracle.com',
+	port : 80
+});
 
 //globalTunnel.initialize({
 //	host : '127.0.0.1',

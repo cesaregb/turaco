@@ -21,6 +21,11 @@ define(['./module'], function (module) {
     		return lists
     	};
     	
+    	listDataFactory.getUserListsRefresh = function () {
+			lists = $http.get(urlBase + "/refreshSession/");
+    		return lists
+    	};
+    	
     	listDataFactory.saveList = function ( list ) {
     		return $http.put(urlBase, {name: list.name, description: list.description, mode: list.mode });
     	};
@@ -30,8 +35,8 @@ define(['./module'], function (module) {
     		return $http.get(urlBase + "/list_users" + "/" + list_id + "/" + member_count);
     	};
     	
-    	listDataFactory.insertCustomer = function (item) {
-    		return $http.post(urlBase, item);
+    	listDataFactory.membersCreateAll = function (list_id, users_list) {
+    		return $http.post(urlBase + "/members_create_all", {users_list: users_list, list_id: list_id});
     	};
     	
     	listDataFactory.updateCustomer = function (item) {

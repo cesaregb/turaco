@@ -1,17 +1,15 @@
 define(['./module'], function (module) {
-	module.controller('listController', ['$scope', 'listFactory', 'userFactory', '$location', '$routeParams', 'filterFilter', 
-	                                     function ($scope, listFactory, userFactory, $location, $routeParams, filterFilter) {
+	module.controller('listController', ['$scope', 'listFactory', 'userFactory', '$location', '$routeParams', 'filterFilter', '$modal', 
+	                                     function ($scope, listFactory, userFactory, $location, $routeParams, filterFilter, $modal) {
 		$scope.num_loading = 0;
 		$scope.num_errors = 0;
 		
 		$scope.$on('LOAD', function(){
 			$scope.num_loading++;
-			console.log("LOAD count: " + $scope.num_loading);
 			$scope.loading=true;
 		});
 		$scope.$on('UNLOAD', function(){
 			$scope.num_loading--;
-			console.log("UNLOAD count: " + $scope.num_loading);
 			if ($scope.num_loading == 0){
 				$scope.loading=false;
 			}
@@ -71,8 +69,7 @@ define(['./module'], function (module) {
 					console.log("Error on the service: " + error);
 				});
 			}else if(path == '/lists/assign_users_to_list'){ /* get users and lists */ 
-				initUsersFriendsLists($scope, userFactory, listFactory, filterFilter);
-				
+				initUsersFriendsLists($scope, userFactory, listFactory, filterFilter, $modal);
 			}else if(path == '/lists/add_list'){
 				
 			}else{
@@ -102,13 +99,11 @@ define(['./module'], function (module) {
     	}
     	
     	$scope.saveList = function(new_list){
-    		console.log("Saving list... " + JSON.stringify(new_list));
     		$scope.$emit('LOAD')
     		listFactory.saveList(new_list).success(function (response) {
 				$scope.$emit('UNLOAD')
 				var result = response;
 				if (result.type == "SUCCESS"){
-					console.log("LIST SAVED");
 				}
 			}).error(function (error) {
 				$scope.$emit('UNLOAD')
@@ -121,8 +116,9 @@ define(['./module'], function (module) {
     }]);
 });
 
-function initUsersFriendsLists($scope, userFactory, listFactory, filterFilter){
+function initUsersFriendsLists($scope, userFactory, listFactory, filterFilter, $modal){
 	$scope.warning_not_all_friends = false;
+	$scope.showSearchButton = false;
 	/* 
 	 * get user friends 
 	 * */ 
@@ -147,6 +143,9 @@ function initUsersFriendsLists($scope, userFactory, listFactory, filterFilter){
 				$scope.friends = result.data.users;
 				$scope.filtered = filterFilter($scope.friends, {screen_name: ""});
 				$scope.totalItems = $scope.filtered.length;
+				if ($scope.totalItems > 25000){
+					$scope.showSearchButton = true;
+				}
 			}else{
 				$scope.$emit('ERROR_SHOW');
 				console.log("Error on the service: " + response);
@@ -195,21 +194,43 @@ function initUsersFriendsLists($scope, userFactory, listFactory, filterFilter){
 	/*
 	 * get user lists 
 	 * */ 
-	$scope.$emit('LOAD')
-	listFactory.getUserLists().success(function (response) {
-		$scope.$emit('UNLOAD')
-		var result = response;
-		if (result.type == "SUCCESS"){
-			$scope.$emit('ERROR_HIDE');
-			$scope.lists = result.data.items;
-		}else{
-			console.log("Error on the service: " + response);
+	$scope.loadUserLists = function(type){
+		if (type == 0){
+			$scope.$emit('LOAD')
+			listFactory.getUserLists().success(function (response) {
+				$scope.$emit('UNLOAD')
+				var result = response;
+				if (result.type == "SUCCESS"){
+					$scope.$emit('ERROR_HIDE');
+					$scope.lists = result.data.items;
+				}else{
+					console.log("Error on the service: " + response);
+				}
+			}).error(function (error) {
+				$scope.$emit('UNLOAD')
+				console.log("Error on the service: " + error);
+				$scope.status = 'Unable to load lists data: ' + error.message;
+			});	
+		}else{ /*load values avoiding session.. */
+			$scope.$emit('LOAD')
+			listFactory.getUserListsRefresh().success(function (response) {
+				$scope.$emit('UNLOAD')
+				var result = response;
+				if (result.type == "SUCCESS"){
+					$scope.$emit('ERROR_HIDE');
+					$scope.lists = result.data.items;
+				}else{
+					console.log("Error on the service: " + response);
+				}
+			}).error(function (error) {
+				$scope.$emit('UNLOAD')
+				console.log("Error on the service: " + error);
+				$scope.status = 'Unable to load lists data: ' + error.message;
+			});	
+			
 		}
-	}).error(function (error) {
-		$scope.$emit('UNLOAD')
-		console.log("Error on the service: " + error);
-		$scope.status = 'Unable to load lists data: ' + error.message;
-	});	
+	}
+	$scope.loadUserLists(0);
 	
 	/*declare functions*/
 	$scope.searchFriends = function(){
@@ -239,6 +260,77 @@ function initUsersFriendsLists($scope, userFactory, listFactory, filterFilter){
 		}
 	}
 	
+	
+	$scope.items = ['item1', 'item2', 'item3'];
+
+	$scope.open = function (size) {
+		size = 'lg';
+		var modalInstance = $modal.open({
+			templateUrl: 'modalListContainer.html',
+			controller: 'modalListsController',
+			size: size,
+			resolve: {
+				lists: function () {
+					return $scope.lists;
+				}
+			}
+		});
+
+		modalInstance.result.then(function (selectedItem) {
+			console.log("TURACO_DEBUG - callback from modal: " + JSON.stringify(selectedItem));
+			$scope.assignUsers2List(selectedItem);
+		}, function () {
+			console.log('Modal dismissed at: ' + new Date());
+		});
+	};
+	
+	$scope.assignUsers2List = function(_list){
+		console.log("TURACO_DEBUG - _list: " + JSON.stringify(_list));
+		if (_list != null && _list != "undefined"){
+			$scope.list_selected = _list;
+		}
+		/* call the service */
+		var user_id_list = "";
+		for (var i in $scope.usersArray) {
+			if ($scope.usersArray.hasOwnProperty(i)) {
+				user_id_list += $scope.usersArray[i].id + ",";
+			}
+		}
+		user_id_list = user_id_list.substring(0, (user_id_list.length - 1 ));
+		console.log("TURACO_DEBUG - within assignUsers2List \n list: " + $scope.list_selected + "\n users: " + user_id_list);
+		
+		/*call service to add items to the list.. */
+		$scope.$emit('LOAD');
+		listFactory.membersCreateAll($scope.list_selected.id, user_id_list).success(function (response) {
+			$scope.$emit('UNLOAD')
+			var result = response;
+			if (result.type == "SUCCESS"){
+				$scope.$emit('ERROR_HIDE');
+				/*call get the lists again.. */
+				$scope.loadUserLists(1);
+			}else{
+				console.log("Error on the service: " + response);
+			}
+		}).error(function (error) {
+			$scope.$emit('UNLOAD')
+			console.log("Error on the service: " + error);
+			$scope.status = 'Unable to load lists data: ' + error.message;
+		});	
+		
+	}
+	
+	$scope.userSelected = function(user){
+		user.checked = !user.checked;
+		console.log("TURACO_DEBUG - addig or removing user.");
+		if (user.checked){
+			$scope.usersArray[user.screen_name] = user;
+		}else{
+			delete $scope.usersArray[user.screen_name];
+		}
+		/* 
+		 * add user to a hashkind of, to be able to add it or remove it quickly...
+		 * */
+	}
+	
+	$scope.usersArray = {};
 }
-
-

@@ -116,3 +116,79 @@ function convertJson2List(list, item, uid){
 	return list;
 }
 module.exports.convertJson2List = convertJson2List;
+function getParams(req){
+	var uid = req.body.uid;
+	var list_id = req.body.list_id;
+	var slug = req.body.slug;
+	var name = req.body.name;
+	var mode = req.body.mode;
+	var description = req.body.description;
+	var owner_screen_name = req.body.owner_screen_name;
+	var owner_id = req.body.owner_id;
+	var myParams = {
+			slug 			: slug, 
+			name			: name, 
+			mode 			: mode, 
+			list_id			: list_id, 
+			description		: description,
+			owner_screen_name:owner_screen_name,
+			owner_id		: owner_id
+	}; 
+	return myParams; 
+}
+module.exports.getParams = getParams;
+
+function example_async (twit, lists){
+	for (i in lists){
+		list = lists[i];
+		/*
+		 * get list's user
+		 * this step may requiere async call because the list could be consumed with cursor calls...  
+		 * */
+		var objects = [];
+		var cursor = -1;
+		async.whilst(
+			function () {
+				if (cursor == 0){
+					/*success after bringing all the data from twitter api*/
+				}
+				return cursor != 0; 
+			},
+			function (callback) {
+				var params = {cursor : cursor};
+				params.limit_depending_the_service = 10000;
+				var self = this; 
+				/*
+				 * call the service 
+				 * */
+				
+				twit.getFriends(user.screen_name, params, function(err, data) {
+					if (err){
+						res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
+						return;
+					}
+					cursor = data.next_cursor;
+					for (var index in data.users){
+						var json_user = data.users[index];
+						var turaco_user = {};
+						turaco_user.id = json_user.id;
+						turaco_user.name = json_user.name;
+						turaco_user.screen_name = json_user.screen_name;
+						turaco_user.description = json_user.description;
+						turaco_user.profile_image_url = json_user.profile_image_url;
+						users.push(turaco_user);
+					}
+					callback(null, cursor);
+				});
+			},
+			function (err) {
+				if (err){
+					res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
+					return;
+				}
+			}
+		);
+	}
+}
+
+
