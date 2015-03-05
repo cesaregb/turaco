@@ -8,15 +8,18 @@ var listHelpers = require('../../utils/list_helpers');
 var twitter = require('ntwitter');
 var User = require('../../app/models/user');
 var List = require('../../app/models/list');
+var SessionObjects = require('../../app/models/sessionObjects');
 var user_friends_temporal = require('./user_friends_temporal.json');
+var SessionObjects = require('../../app/models/sessionObjects');
 var async = require("async");
+var loginGatherInfoUser = require('../../lib/loginGatherInfoUser');
 
 var fileName = "userHandlers.js";
 var pathString = "/api/users";
 
 /* *********Request function ********** */
 function getUserFromSession(req, res) {
-	var _method = "get / (get user)";
+	var _method = "getUserFromSession";
 	console.log("IN " + fileName + "-" + _method);
 	if (req.user){
 		user = req.user;
@@ -42,7 +45,7 @@ function getUserFromSession(req, res) {
 module.exports.getUserFromSession = getUserFromSession;
 
 function getTwitterUser(req, res) {
-	var _method = "get /:uid (get user)";
+	var _method = "getTwitterUser";
 	console.log("IN " + fileName + "-" + _method);
 	if (req.user){
 		var uid = req.params.uid;
@@ -68,8 +71,11 @@ function getTwitterUser(req, res) {
 }
 module.exports.getTwitterUser = getTwitterUser;
 
+/*
+ * DEPRECATED
+ * */
 function getAllFriends_depracated(req, res) {
-	var _method = "get /friends_list (get USERS)";
+	var _method = "getAllFriends_depracated";
 	console.log("IN " + fileName + " - " + _method);
 	var session = req.session;
 	var response = {};
@@ -127,7 +133,6 @@ function getAllFriends_depracated(req, res) {
 							function () {
 								if (cursor == 0){
 									response.users = users;
-									console.log("adding to session: ");
 									session.user_friends_response = response;
 									res.json(json_api_responses.success(response));
 									return;
@@ -202,48 +207,41 @@ function getAllFriends_depracated(req, res) {
 	}
 }
 module.exports.getAllFriends_depracated = getAllFriends_depracated;
-
-function getAllFriends(req, res) {
-	var _method = "get /friends_list_1 (get USERS)";
-	console.log("IN " + fileName + " - " + _method);
-	var session = req.session;
-	var response = {};
-	var myParams = getParams(req);
-	/* 
-	 * Check if response is on session already... 
-	 * what would be the response if we offer pagination?? 
-	 * */
-	if (session.user_friends_response != null ) {
-		console.log(" ****** Getting User FRIENDS from session.")
-		res.json(json_api_responses.success(session.user_friends_response));
-		return;
+/*
+ * END DEPRECATED
+ * */
+/*
+ * DEPRECATED
+ * */
+function getAllFriendsAPI(session, user, returnSession, callback){
+	resutlt = {};
+	if (typeof returnSession === 'function') {
+		callback = returnSession;
+		returnSession = null;
+	}
+	
+	if((typeof returnSession !== "undefined") 
+			&& returnSession != null 
+			&& returnSession == true
+			&& session.user_friends_response != null){  // return from session in case of needed... 
+		return callback(null, session.user_friends_response);
 	}
 	if (false){ // DEV MOC DATA... GETTING DATA FROM JSON PREDEFINED...  
 		var params = getParams(req);
-		
-		if (session.user == null){
-			res.json(json_api_responses.error(error_codes.ACCESS_USER_ERROR, err));
-			return;
+		if (user == null){
+			return callback("User is null");
 		}
 		
 		helper = new listHelpers.ListHelper();
-		helper.getUser(session.user, function(err, user){
-			
-			if (err){
-				res.json(json_api_responses.error(error_codes.USER_NOT_FOUND_ERROR, err));
-				return;
-			}
+		helper.getUser(user, function(err, user){
+			if (err){ return callback(err); }
 			
 			helper.getTwittObjectFromUser(function(err, twit){
-				if (err){
-					res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
-					return;
-				}
+				if (err){ return callback(err); }
+				
 				twit.showUser(user.uid, function(err, data) {
-					if (err){ 
-						res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
-						return;
-					}
+					if (err){ return callback(err); }
+					
 					/* get number of friends... */
 					var friends_count = 0;
 					for (var item in data) {
@@ -252,8 +250,8 @@ function getAllFriends(req, res) {
 							friends_count = object.friends_count;
 						}
 					}
-					
 					response.friends_count = friends_count;
+					var parentCallback = callback;
 					if (friends_count < 25000){
 						var users = []; // users to be returned by the service (small consice information) 
 						var twitter_users = []; // users to store on the database.. or make some other stuff with them... (all information returned from the service. )  
@@ -262,15 +260,11 @@ function getAllFriends(req, res) {
 						 * this async iterates thru the getFriendsIds (up to 5000 by call) */
 						async.whilst(
 							function () {
-								console.log("**** TURACO_DEBUG - in callback checking cursor... : " + cursor + "\n users: " + users.length + " \n");
 								if (cursor == 0){
 									response.users = users;
-									console.log("TURACO_DEBUG adding user Friends, to session:");
-									session.user_friends_response = response;
 									session.full_user_friends_response = twitter_users;
-									
-									res.json(json_api_responses.success(response));
-									return;
+									session.user_friends_response = response; // we ensure that the response is setted to the session
+									return parentCallback(null, response);
 								}
 								return cursor != 0; 
 							},
@@ -309,7 +303,6 @@ function getAllFriends(req, res) {
 												twitter_users.push(data[index]); // adding to server side information about friends
 												users.push(turaco_user); // information that is going to be returned to the user...  
 											}
-											console.log("TURACO_DEBUG - NUMBERS " + idArray.length + " -- " + friends_in_array + " -- " + i + "\n\tlength: " + users.length);
 											if (idArray.length <= friends_in_array){ // when all the friends are comleted
 												callback(null, cursor);
 											}
@@ -318,11 +311,8 @@ function getAllFriends(req, res) {
 								});
 							},
 							function (err) {
-								console.log("TURACO_DEBUG - within error listener: " + err);
 								if (err){
-									
-									res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
-									return;
+									return parentCallback(err, null);
 								}
 							}
 						);
@@ -333,10 +323,7 @@ function getAllFriends(req, res) {
 						params.count = 200;
 						var self = this;
 						twit.getFriends(user.screen_name, params, function(err, data) {
-							if (err){
-								res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
-								return;
-							}
+							if (err){ return callback(err); }
 							cursor = data.next_cursor;
 							for (var index in data.users){
 								var json_user = data.users[index]; 
@@ -349,72 +336,170 @@ function getAllFriends(req, res) {
 								users.push.apply(users, turaco_user);
 							}
 							response.users = users;
-							session.user_friends_response = response;
 							session.full_user_friends_response = null;
-							res.json(json_api_responses.success(response));
-							return;
-							
+							return callback(null, response);
 						});
 					}
 				});
 			});
 		});
-	}else{
-		session.user_friends_response = user_friends_temporal;
-		res.json(json_api_responses.success(user_friends_temporal));
-		return;
+	}else{ // read file temporal.. 
+		return callback(null, user_friends_temporal);
 	}
 }
-module.exports.getAllFriends = getAllFriends;
+/*
+ * END DEPRECATED
+ * */
 
-function getFilteredFriends(req, res) {
-	var _method = "get /friends_list/:filter (get USERS)";
+function getAllFriends(req, res) {
+	var _method = "get /getAllFriends (get USERS)";
 	console.log("IN " + fileName + " - " + _method);
-	var filter = req.params.filter;
 	var session = req.session;
 	var response = {};
+	var myParams = getParams(req);
+	var user = req.user;
+	if (session.friends != null){
+		return res.json(json_api_responses.success(session.friends));
+	}else{
+		SessionObjects.findOne({
+			'uid' : user.uid
+		}).sort({created: 'asc'}).exec(function(err, sessionObj) {
+			if(sessionObj == null || err){
+				getAllFriendsAPI(session, session.user, function(err, data){ //get users from Twitter api 
+					if (err){
+						res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
+						return;
+					}
+					
+					session.user_friends_response = data;
+					res.json(json_api_responses.success(data));
+					return;
+				});
+				
+				var gatherInfoInstance = new loginGatherInfoUser();
+				gatherInfoInstance.getAll(req.user, req.session, function(err, data){
+					if (err){
+						console.log("TURACO_DEBUG - error gettin the user basic information " );
+					}else{
+						console.log("TURACO_DEBUG - user information gather complete." );
+					}
+					
+				});
+			}else{
+				session.friends = sessionObj.friends;
+				session.usersListHash = sessionObj.usersListHash; 
+				session.completeListsObject = sessionObj.completeListsObject;
+				session.user_lists = sessionObj.lists; 
+				return res.json(json_api_responses.success(sessionObj.friends));
+			}
+		});
+	}
+}
+
+module.exports.getAllFriends = getAllFriends;
+/*
+ * DEPRECATED
+ * */
+function getAllFriends2(req, res) {
+	var _method = "get /friends_list_1 (get USERS)";
+	console.log("IN " + fileName + " - " + _method);
+	var session = req.session;
+	var response = {};
+	var myParams = getParams(req);
+	/* 
+	 * Check if response is on session already... 
+	 * what would be the response if we offer pagination?? 
+	 * */
+	if (session.user_friends_response != null ) {
+		res.json(json_api_responses.success(session.user_friends_response));
+		return;
+	}
+	getAllFriendsAPI(session, session.user, function(err, data){ //get users from Twitter api 
+		if (err){
+			res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
+			return;
+		}
+		
+		session.user_friends_response = data;
+		res.json(json_api_responses.success(data));
+		return;
+	});
+}
+module.exports.getAllFriends2 = getAllFriends2;
+/*
+ * END DEPRECATED
+ * */
+
+/*
+ * Iterate thru the users comparing it with the hash. 
+ * used for get list IN the list or get list NOT IN list
+ * */
+function getUsersByStatusList(session, user, status, callback){
+	status = (status == "undefined" || status == null)?true:status;
+	var response = {};
 	var resultUsers = [];
-	
-	if (filter == "byUnlisted"){
-		console.log("TURACO_DEBUG - Session: %j", session);
-		console.log("TURACO_DEBUG - session.user_friends_response:" + session.user_friends_response);
-		console.log("TURACO_DEBUG - session.usersInList:" + session.usersInList);
-		if (session.user_friends_response != null && session.usersInList != null){
-			var userFriends = session.user_friends_response.data.users;
-			var usersInList = session.usersInList;
+	getAllFriendsAPI(session, user, true, function(err, data){
+		var userFriends = data.users;
+		SessionObjects.findOne({
+			'uid' : user.uid
+		}).sort({created: 'desc'}).exec(function(err, sessionObj) {
+			if (err) {
+				callback(err);
+				res.json(json_api_responses.error(err));
+				return;
+			}
+			var usersListHash = sessionObj.usersListHash;
 			for (index in userFriends){
-				var user = userFriends[index];
-				if (usersInList[user.id]){
-					resultUsers.push(user);
+				var _user = userFriends[index];
+				if (status && usersListHash[_user.id]){
+					resultUsers.push(_user);
+				}else if(!status && (usersListHash[_user.id] == null || usersListHash[_user.id] == "undefined")){
+					resultUsers.push(_user);
 				}
 			}
 			response.friends_count = resultUsers.length;
 			response.users = resultUsers;
-			res.json(json_api_responses.success(response));
-			return;
-			
-		}else{
-			res.json(json_api_responses.error("We need to get the friends and complete liste objects first.. think how to do it... "));
-			return;
-		}
-	}else if (filter == "byUnlisted111"){
-		if (session.user_friends_response != null && session.completeListObject != null){
-			session.completeListObject
-		}else{
-			res.json(json_api_responses.error("We need to get the friends and complete liste objects first.. think how to do it... ", err));
-			return;
-		}
-		
-	}else{
-		res.json(json_api_responses.error("We need to get the friends and complete liste objects first.. think how to do it... ", err));
-		return;
-	}
+			return callback(null, response);
+		});
+	});
+}
+
+function getFilteredFriends(req, res) {
+	var _method = "getFilteredFriends";
+	console.log("IN " + fileName + " - " + _method);
+	var filter = req.params.filter;
+	var session = req.session;
+	var response = {};
+	var user = req.user;
 	
+	return res.json(json_api_responses.error("nor working yet... "));
+	if (false){
+		if (filter == "byUnlisted"){
+			getUsersByStatusList(session, user, false, function(err, result){
+				if (err) {
+					return res.json(json_api_responses.error(err));
+				}
+				response = result;
+				return res.json(json_api_responses.success(response));
+			});
+		}else if (filter == "byListed"){
+			getUsersByStatusList(session, user, true, function(err, result){
+				if (err) {
+					return res.json(json_api_responses.error(err));
+				}
+				response = result;
+				return res.json(json_api_responses.success(response));
+			});
+		}else{
+			res.json(json_api_responses.error("no filter selected ", err));
+			return;
+		}
+	}
 }
 module.exports.getFilteredFriends = getFilteredFriends;
 
 function searchUser(req, res) {
-	var _method = "get /search_user/:search (get USERS bt query)";
+	var _method = "searchUser";
 	console.log("IN " + fileName + "-" + _method);
 	var search = req.params.search;
 	var session = req.session;

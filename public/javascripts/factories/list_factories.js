@@ -32,7 +32,7 @@ define(['./module'], function (module) {
     	
     	listDataFactory.getListUsers = function (list_id, member_count) {
     		console.log("getting list's users: " + list_id);
-    		return $http.get(urlBase + "/list_users" + "/" + list_id + "/" + member_count);
+    		return $http.get(urlBase + "/list_users" + "/" + list_id);
     	};
     	
     	listDataFactory.membersCreateAll = function (list_id, users_list) {

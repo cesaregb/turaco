@@ -1,9 +1,10 @@
 
 define(['./module'], function (module) {
     'use strict';
-	module.filter('friendFilter', function () {
+	module.filter('typeFilter', function () {
 		if (true){
 			return function (input, scope) {
+				console.log("TURACO_DEBUG - input: " );
 				var friends = scope.friends;
 				var users = [];
 				for (var index in friends){
@@ -24,6 +25,7 @@ define(['./module'], function (module) {
 			return function () {return;};
 		}
     });
+	
 	module.filter('startFrom', function () {
 		return function(input, start) {
 	        if(input) {

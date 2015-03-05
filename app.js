@@ -27,7 +27,7 @@ var List = require('./app/models/list');
 var twitterController = require('./config/TwitterController');
 
 var app = express();
-
+global.dev_mode = false;
 var globalTunnel = require('global-tunnel');
 
 //globalTunnel.initialize();
@@ -43,12 +43,6 @@ globalTunnel.initialize({
 //});
 
 //globalTunnel.end();
-
-//var httpProxy = require('http-proxy');
-//var apiProxy = httpProxy.createProxyServer();
-//app.get("/api/*", function(req, res){ 
-//  apiProxy.web(req, res, { target: 'http://google.com:80' });
-//});
 
 app.set('views', path.join(__dirname, 'views'))
 	.set('view engine', 'jade')
@@ -80,18 +74,32 @@ app.use(function(req, res, next) {
 		}
 		res.contentType('application/json');
 	}
+	var session = req.session;
+	
+	if (global.refresSessionObject != null 
+			&& global.refresSessionObject == true){
+		session.user_lists = null;
+		session.usersListHash = null;
+		session.completeListsObject = null;
+		session.friends = null;
+	}
 	
 	/* DEV MODE ON*/
-	if (req.session.user == null){
-		User.findOne({"uid": "36063580"}, function(err, u){ /*gettin user cesaregb*/
-			/* get information from twitter service... */
-			req.user = u;
-			req.session.user = u;
+	console.log("TURACO_DEBUG - dev mode: " + global.dev_mode);
+	if (true){
+		if (req.session.user == null){
+			User.findOne({"uid": "36063580"}, function(err, u){ /*gettin user cesaregb*/
+				/* get information from twitter service... */
+				req.user = u;
+				req.session.user = u;
+				next();
+			});
+		}else{
+			console.log("Getting TURACO USER from session.")
+			req.user = req.session.user;
 			next();
-		});
+		}
 	}else{
-		console.log("Getting TURACO USER from session.")
-		req.user = req.session.user;
 		next();
 	}
 });
@@ -135,6 +143,14 @@ app.use(function(err, req, res, next) {
 //		return require('url').parse(req.url).path;
 //	}
 //}));
+
+/*
+ * session.user_lists 			= [] 
+ * session.usersListHash 		= {lists: []}
+ * session.completeListsObject 	= { [hash<uid, boolean>] }
+ * session.friends 				= {friends_count, users: []}
+ * global.refresSessionObject	= true||false
+ * */
 
 module.exports = app;
 

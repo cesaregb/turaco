@@ -54,7 +54,7 @@ define(['./module'], function (module) {
 				var list_id = $routeParams.list_id;
 				var member_count = $routeParams.member_count;
 				$scope.$emit('LOAD');
-				listFactory.getListUsers(list_id, member_count).success(function (response) {
+				listFactory.getlistusers(list_id, member_count).success(function (response) {
 					$scope.$emit('UNLOAD')
 					var result = response;
 					if (result.type == "SUCCESS"){
@@ -68,7 +68,8 @@ define(['./module'], function (module) {
 					$scope.$emit('UNLOAD')
 					console.log("Error on the service: " + error);
 				});
-			}else if(path == '/lists/assign_users_to_list'){ /* get users and lists */ 
+			}else if(path == '/lists/assign_users_to_list'){ 
+				/* get users and lists */ 
 				initUsersFriendsLists($scope, userFactory, listFactory, filterFilter, $modal);
 			}else if(path == '/lists/add_list'){
 				
@@ -119,9 +120,6 @@ define(['./module'], function (module) {
 function initUsersFriendsLists($scope, userFactory, listFactory, filterFilter, $modal){
 	$scope.warning_not_all_friends = false;
 	$scope.showSearchButton = false;
-	/* 
-	 * get user friends 
-	 * */ 
 	$scope.totalItems = 0;
 	$scope.currentPage = 1;
 	$scope.itemsPerPage = 20
@@ -129,6 +127,9 @@ function initUsersFriendsLists($scope, userFactory, listFactory, filterFilter, $
 	$scope.bigTotalItems = 0;
 	$scope.bigCurrentPage = 1;
 	
+	/* 
+	 * get user friends 
+	 * */ 
 	$scope.bringFriends = function() {
 		$scope.$emit('LOAD');
 		userFactory.getUserFriends().success(function (response) {
@@ -172,24 +173,18 @@ function initUsersFriendsLists($scope, userFactory, listFactory, filterFilter, $
 			return Math.ceil($scope.friends.length / $scope.itemsPerPage);
 		}
 	};
-	$scope.noOfPages = 
-	
 	$scope.$watch('search', function(term) {
+		if ($scope.typeFilter != null && $scope.typeFilter > 0){
+			var typeFilter = ($scope.typeFilte == 2);
+			$scope.filtered = filterFilter($scope.friends, {screen_name: term, inList: typeFilter});
+		}else{
+			$scope.filtered = filterFilter($scope.friends, {screen_name: term});
+		}
         $scope.filtered = filterFilter($scope.friends, {screen_name: term});
         if ($scope.filtered != null ){
         	$scope.totalItems = $scope.filtered.length;
         }
     });
-	
-//	$scope.$watch('[friends,currentPage]', function() {
-//		if ($scope.friends != null){
-//			var begin = (($scope.currentPage - 1) * $scope.itemsPerPage);
-//			var end = begin	+ $scope.itemsPerPage;
-//			
-//			$scope.filteredFriends = $scope.friends.slice(begin, end);
-//			$scope.totalItems = $scope.friends.length;
-//		}
-//	}, true);
 	
 	/*
 	 * get user lists 
@@ -332,5 +327,56 @@ function initUsersFriendsLists($scope, userFactory, listFactory, filterFilter, $
 		 * */
 	}
 	
+	/* DEPRECATED */
+	$scope.getFilteredFriends = function(type){
+		var filter = "";
+		if (parseInt(type) == 0){ // 0 or false  = unlisted (this value is matched on the backend as well) 
+			filter = "/byUnlisted";
+		}else{
+			filter = "/byListed";
+		}
+		$scope.$emit('LOAD');
+		userFactory.getUserFriendsFilter(filter).success(function (response) {
+			$scope.$emit('UNLOAD')
+			var result = response;
+			if (result.type == "SUCCESS"){
+				$scope.$emit('ERROR_HIDE');
+				$scope.friends_count = result.data.friends_count;
+				if (parseInt(result.data.friends_count) > 1000){
+					$scope.warning_not_all_friends = true;
+				}
+				$scope.friends = result.data.users;
+				$scope.filtered = filterFilter($scope.friends, {screen_name: ""});
+				$scope.totalItems = $scope.filtered.length;
+				if ($scope.totalItems > 25000){
+					$scope.showSearchButton = true;
+				}
+			}else{
+				$scope.$emit('ERROR_SHOW');
+				console.log("Error on the service: " + response);
+			}
+		}).error(function(error, status, header, config) {
+			$scope.$emit('ERROR_SHOW'); $scope.$emit('UNLOAD');
+			console.log("Error on the service: " + error);
+			$scope.error_message = 'Unable to load lists data: ' + error.message;
+		});
+		
+	}
+	
+	$scope.filteredFriends = function(type){
+		$scope.typeFilter = parseInt(type);
+		var typeFilter = null;
+		if (parseInt(type) == 1){
+			typeFilter = false;
+		}else if (parseInt(type) == 2){
+			typeFilter = true;
+		}
+		
+		console.log("TURACO_DEBUG - into the filter: " + typeFilter);
+		$scope.filtered = filterFilter($scope.friends, {inList: typeFilter});
+		if ($scope.filtered != null ){
+			$scope.totalItems = $scope.filtered.length;
+		}
+	}
 	$scope.usersArray = {};
 }

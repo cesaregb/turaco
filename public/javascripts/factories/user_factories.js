@@ -14,6 +14,10 @@ define(['./module'], function (module) {
     		console.log("calling " + urlBase + "/friends_list");
     		return $http.get(urlBase + "/friends_list");
     	};
+    	factory.getUserFriendsFilter = function (fiterBy) {
+    		console.log("calling " + urlBase + "/friends_list" + fiterBy);
+    		return $http.get(urlBase + "/friends_list" + fiterBy);
+    	};
     	
     	factory.serachUserFriends = function (term) {
     		console.log("calling " + urlBase + "/search_user/" + term);

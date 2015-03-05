@@ -25,44 +25,37 @@ router.put('/', handler.createList);
 /*
  * Delete a list 
  * */
-
 router.delete('/', handler.deleteList);
 
 /*
  * Delete a list and unfollow all the users from that list. 
  * */
-
 router.delete('/and_unfollow', handler.deleteAndUnfollow);
 
 /*
  * UPDATE an existing list 
  * */
-
-router.post('/', handler.udateList);
+router.post('/', handler.updateList);
 
 /*
  * Subscribe to a list 
+ * add user to an existing list, not owned by the logged user 
  * */
-
 router.post('/subscribe', handler.subscribe);
 
 /*
  * Un-Subscribe to a list 
  * */
-
-
 router.post('/unsubscribe', handler.unsubscribe);
 
 /*
  * Get subscriptions  
  * */
-
 router.get('/subscriptions', handler.getSubscriptions);
 
 /*
  * Clone and follow the users from the list
  * */
-
 router.post('/clone', handler.cloneList);
 
 /*
@@ -73,13 +66,12 @@ router.post('/clone/no_follow', handler.cloneNoFollow);
 /*
  * Add members to a list (comma separated members...)    
  * */
-
 router.post('/members_create_all' , handler.membersCreateAll);
 
 /*
  *  get users of the lists_id 
  * */
-router.get('/list_users/:list_id/:list_member_count', handler.getListUsers);
+router.get('/list_users/:list_id/', handler.getListUsers);
 
 
 module.exports = router;

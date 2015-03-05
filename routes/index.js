@@ -6,6 +6,7 @@ var twitterController = require('../config/TwitterController');
 var listHelpers = require('../utils/list_helpers');
 var User = require('../app/models/user');
 var List = require('../app/models/list');
+var loginGatherInfoUser = require('../lib/loginGatherInfoUser');
 
 var router = express.Router();
 
@@ -14,13 +15,18 @@ router.get('/', function(req, res) {
 		console.log('**** User not loggeed');
 		res.render('index', { title: 'Turaco', login_status: false});
 	}else{
+		var gatherInfoInstance = new loginGatherInfoUser();
+		gatherInfoInstance.getAll(req.user, req.session, function(err, data){
+			if (err){
+				console.log("TURACO_DEBUG - error gettin the user basic information " );
+			}else{
+				console.log("TURACO_DEBUG - user information gather complete.");
+			}
+			
+		});
 		console.log('**** User loggeed: ' + req.user.username);
 		res.render('index', { title: 'Turaco', login_status: true, "user" : req.user });
 	}
-});
-
-router.get('/requirejs/', function(req, res) {
-	res.render('helloworld', { title: 'Hello, World!' });
 });
 
 // ************************************* 
@@ -44,54 +50,62 @@ router.get('/auth/twitter', passport.authenticate('twitter'), function(req, res)
 router.get('/auth/twitter/callback', passport.authenticate('twitter', {
 	failureRedirect : '/error'
 }), function(req, res) {
-	console.log("getting lists...");
+	/* LOGIN successful, web container side. */
+	console.log("TURACO_DEBUG - user successfuly loged ");
+	console.log("TURACO_DEBUG - getting basic information into session ");
 	var user = req.user;
-	var twit = twitterController(user.token, user.tokenSecret);
-	twit.verifyCredentials(function(err, data) {
-		if (err){
-			console.error("Err: " + err);
-			return;
-		}
-	}).getLists(user.screen_name, function(err, data) {
-		if (err){ 
-			console.error("Err: " + err);
-			return;
-		}
-		var listCollection = {};
-		var response = {};
-		response.timestamp = Date.now; 
-		response.items = []; 
-		List.find({'uid': user.uid}, function(err, lists){
-			if (err) {
-				return console.error(err);
-			} else{
-				for (item in lists){
-					lists[item].active = 0;
-					lists[item].save();
+//	var gatherInfoInstance = new loginGatherInfoUser();
+//	gatherInfoInstance.getAll(user, req.session, function(err, data){});
+	
+	if(false){
+		console.log("getting lists...");
+		var twit = twitterController(user.token, user.tokenSecret);
+		twit.verifyCredentials(function(err, data) {
+			if (err){
+				console.error("Err: " + err);
+				return;
+			}
+		}).getLists(user.screen_name, function(err, data) {
+			if (err){ 
+				console.error("Err: " + err);
+				return;
+			}
+			var listCollection = {};
+			var response = {};
+			response.timestamp = Date.now; 
+			response.items = []; 
+			List.find({'uid': user.uid}, function(err, lists){
+				if (err) {
+					return console.error(err);
+				} else{
+					for (item in lists){
+						lists[item].active = 0;
+						lists[item].save();
+					}
 				}
+			});
+			for (pos in data){
+				(function(item){
+					var list = new List();
+					list = listHelpers.convertJson2List(list, item, user.uid);
+					listCollection[list.id] = true;
+					List.findOne({id: list.id}, function(err, listInDatabase) {
+						if (listInDatabase){
+							list.category = listInDatabase.category;
+							listInDatabase.active = 1;
+							listInDatabase.save();
+						}else{
+							list.category = 0; // get default category.
+							list.save(function (err) {
+								if (!err) console.log('Saved list Success!');
+							});
+						};
+					});
+					response.items.push(list);
+				})(data[pos]);
 			}
 		});
-		for (pos in data){
-			(function(item){
-				var list = new List();
-				list = listHelpers.convertJson2List(list, item, user.uid);
-				listCollection[list.id] = true;
-				List.findOne({id: list.id}, function(err, listInDatabase) {
-					if (listInDatabase){
-						list.category = listInDatabase.category;
-						listInDatabase.active = 1;
-						listInDatabase.save();
-					}else{
-						list.category = 0; // get default category.
-						list.save(function (err) {
-							if (!err) console.log('Saved list Success!');
-						});
-					};
-				});
-				response.items.push(list);
-			})(data[pos]);
-		}
-	});
+	}
 	res.redirect('/');
 });
 

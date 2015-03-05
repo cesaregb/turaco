@@ -11,7 +11,7 @@
 			.input-group
 				span.input-group-addon
 					input(type='checkbox', checked='true', disabled='')
-					|  Unlisted
+					|  Search
 				input.form-control.input-sm(type='text', placeholder='@account', ng-model="search")
 				span.input-group-btn
 					button.btn.btn-default.btn-sm(type='button', ng-click='searchFriends()', ng-show="showSearchButton")
@@ -20,12 +20,16 @@
 						span.glyphicon.glyphicon-remove
 					.btn-group
 						button.btn.btn-default.btn-sm.dropdown-toggle(type='button', data-toggle='dropdown', aria-expanded='false')
-							| Add to
+							| Filter By 
 							span.caret
 						|   
 						ul.dropdown-menu(role='menu')
-							li(ng-repeat="list in lists")
-								a(href='#') {{list.name}} | {{list.member_count}}
+							li 
+								a(href='#', ng-click='filteredFriends(\'0\')') All
+							li 
+								a(href='#', ng-click='filteredFriends(\'1\')') Friends not listed
+							li 
+								a(href='#', ng-click='filteredFriends(\'2\')') Friends listed
 		.btn-group.pull-right
 			button.btn.btn-default.btn-sm.dropdown-toggle(type='button', data-toggle='dropdown', aria-expanded='false')
 				| Add to 
