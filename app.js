@@ -24,25 +24,27 @@ var routesListsApi = require('./routes/api/listsApi');
 var routesUsersApi = require('./routes/api/usersApi');
 var User = require('./app/models/user');
 var List = require('./app/models/list');
+var SessionObjects = require('./app/models/sessionObjects');
 var twitterController = require('./config/TwitterController');
 
+var loginGatherInfoUser = require('./lib/loginGatherInfoUser');
+
 var app = express();
-global.dev_mode = false;
+
+global.dev_mode = true;
+global.userInfoLoaded = false;
+global.success = "01";
+global.error = "02";
+global.warn = "03";
+
+
 var globalTunnel = require('global-tunnel');
-
 //globalTunnel.initialize();
-
 globalTunnel.initialize({
 	host : 'www-proxy.us.oracle.com',
 	port : 80
 });
 
-//globalTunnel.initialize({
-//	host : '127.0.0.1',
-//	port : 8081
-//});
-
-//globalTunnel.end();
 
 app.set('views', path.join(__dirname, 'views'))
 	.set('view engine', 'jade')
@@ -63,8 +65,6 @@ app.use(function (req, res, next) {
     next();
 });
 
-app.enable('trust proxy');
-
 app.use(function(req, res, next) {
 	if (req.url.indexOf("api") > 0){
 		res.locals.jsonType = true;
@@ -74,33 +74,82 @@ app.use(function(req, res, next) {
 		}
 		res.contentType('application/json');
 	}
+	
 	var session = req.session;
 	
-	if (global.refresSessionObject != null 
-			&& global.refresSessionObject == true){
-		session.user_lists = null;
-		session.usersListHash = null;
-		session.completeListsObject = null;
-		session.friends = null;
+	function checkLoadData(user, callback ){
+		if (global.refresSessionObject){
+			session.user_lists = null;
+			session.usersListHash = null;
+			session.completeListsObject = null;
+			session.friends = null;
+			
+			SessionObjects.findOne({
+				'uid' : user.uid
+			}).sort({created: 'desc'}).exec(function(err, sessionObj) {
+				if(sessionObj == null || err){
+					console.log("TURACO_DEBUG - Error loading information from database when user exists...");
+					console.log("Loading it from the services.. this takes some time... ");
+					var gatherInfoInstance = new loginGatherInfoUser();
+					gatherInfoInstance.getAll(req.user, req.session, function(err, data){
+						if (err){
+							console.log("TURACO_DEBUG - error gettin the user basic information " );
+						}else{
+							console.log("TURACO_DEBUG - user information gather complete." );
+						}
+						callback(err);
+					});
+				}else{
+					console.log("TURACO_DEBUG - Loading the updated information to session...");
+					session.friends = sessionObj.friends;
+					session.usersListHash = sessionObj.usersListHash; 
+					session.completeListsObject = sessionObj.completeListsObject;
+					session.user_lists = sessionObj.lists; 
+					callback(null);				
+				}
+			});
+			
+		}else{
+			callback(null);
+		}
 	}
 	
-	/* DEV MODE ON*/
-	console.log("TURACO_DEBUG - dev mode: " + global.dev_mode);
-	if (true){
+	if (!global.dev_mode){
 		if (req.session.user == null){
-			User.findOne({"uid": "36063580"}, function(err, u){ /*gettin user cesaregb*/
-				/* get information from twitter service... */
+			next();
+		}else{
+			checkLoadData(req.session.user, function(err){
+				if (err){
+					console.log("TURACO_DEBUG - ERROR checkLoadData ");
+				}
+				next();
+			});
+		}
+	}else{// dev mode 
+		if (req.session.user == null){
+//				var id = "36063580"; //cesar
+			var id = "1710981037";
+			User.findOne({"uid": id}, function(err, u){ 
 				req.user = u;
 				req.session.user = u;
-				next();
+				checkLoadData(req.session.user, function(err){
+					if (err){
+						console.log("TURACO_DEBUG - ERROR checkLoadData ");
+					}
+					next();
+				});
+				
 			});
 		}else{
 			console.log("Getting TURACO USER from session.")
 			req.user = req.session.user;
-			next();
+			checkLoadData(req.session.user, function(err){
+				if (err){
+					console.log("TURACO_DEBUG - ERROR checkLoadData ");
+				}
+				next();
+			});
 		}
-	}else{
-		next();
 	}
 });
 
@@ -137,12 +186,6 @@ app.use(function(err, req, res, next) {
 		error : {}
 	});
 });
-
-//app.use('/proxy', proxy('http://wpad/wpad.dat', {
-//	forwardPath: function(req, res) {
-//		return require('url').parse(req.url).path;
-//	}
-//}));
 
 /*
  * session.user_lists 			= [] 

@@ -6,21 +6,13 @@ var pathString = "/api/users";
 /*
  * Get logged user from the turao system...  
  * */
-
 router.get('/', handler.getUserFromSession);
 
 /*
  * Get user from the turao system...  
  * */
-
 router.get('/by_user/:uid', handler.getTwitterUser);
 
-/*
- * GET ALL THE "FOLLOW" 
- * */
-
-
-router.get('/friends_list_deprecated', handler.getAllFriends_depracated);
 
 /*
  * GET ALL THE "FOLLOW" BY ID

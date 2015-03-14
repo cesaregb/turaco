@@ -12,10 +12,6 @@ router.get('/byUser/:screen_name', handler.getListByUser);
  * GET the lists of the logged user
  * */
 router.get('/', handler.getUsersListFunction);
-/*
-	Get the full objects. 
-*/
-router.get('/refreshSession', handler.getUsersListFunctionRefresh);
 
 /*
  * CREATE a list
@@ -69,9 +65,14 @@ router.post('/clone/no_follow', handler.cloneNoFollow);
 router.post('/members_create_all' , handler.membersCreateAll);
 
 /*
+ * Destroy members to a list (comma separated members...)    
+ * */
+router.post('/members_destroy_all' , handler.membersDestroyAll);
+
+/*
  *  get users of the lists_id 
  * */
-router.get('/list_users/:list_id/', handler.getListUsers);
+router.get('/list_users/:list_id', handler.getListUsers);
 
 
 module.exports = router;

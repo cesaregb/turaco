@@ -5,8 +5,8 @@ var	TwitterStrategy = require('passport-twitter').Strategy;
 
 
 passportConfig = function(passport) {
+	
 	passport.serializeUser(function(user, done) {
-		console.log ("SERIALIZE: " + user.uid);
 		done(null, user.uid);
 	});
 
@@ -14,7 +14,6 @@ passportConfig = function(passport) {
 		User.findOne({uid: obj}, function (err, user) {
 			done(err, user);
 		});
-//		done(null, obj);
 	});
 
 	passport.use(new TwitterStrategy({

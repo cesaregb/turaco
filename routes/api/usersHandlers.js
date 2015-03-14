@@ -9,8 +9,6 @@ var twitter = require('ntwitter');
 var User = require('../../app/models/user');
 var List = require('../../app/models/list');
 var SessionObjects = require('../../app/models/sessionObjects');
-var user_friends_temporal = require('./user_friends_temporal.json');
-var SessionObjects = require('../../app/models/sessionObjects');
 var async = require("async");
 var loginGatherInfoUser = require('../../lib/loginGatherInfoUser');
 
@@ -74,145 +72,6 @@ module.exports.getTwitterUser = getTwitterUser;
 /*
  * DEPRECATED
  * */
-function getAllFriends_depracated(req, res) {
-	var _method = "getAllFriends_depracated";
-	console.log("IN " + fileName + " - " + _method);
-	var session = req.session;
-	var response = {};
-	/* 
-	 * Check if response is on session already... 
-	 * what would be the response if we offer pagination?? 
-	 * */
-	
-	if (session.user_friends_response != null ) {
-		console.log("Getting User FRIENDS from session.")
-		res.json(json_api_responses.success(session.user_friends_response));
-		return;
-	}
-	if (false){ // disabled while developing... 
-		var params = getParams(req);
-		
-		if (session.user == null){
-			res.json(json_api_responses.error(error_codes.ACCESS_USER_ERROR, err));
-			return;
-		}
-		
-		helper = new listHelpers.ListHelper();
-		helper.getUser(session.user, function(err, user){
-			
-			if (err){
-				res.json(json_api_responses.error(error_codes.USER_NOT_FOUND_ERROR, err));
-				return;
-			}
-			
-			helper.getTwittObjectFromUser(function(err, twit){
-				if (err){
-					res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
-					return;
-				}
-				twit.showUser(user.uid, function(err, data) {
-					if (err){ 
-						res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
-						return;
-					}
-					/* get number of friends... */
-					var friends_count = 0;
-					for (var item in data) {
-						if (data.hasOwnProperty(item)) {
-							object = data[item];
-							friends_count = object.friends_count;
-						}
-					}
-					
-					response.friends_count = friends_count;
-					
-					if (friends_count < 1000){
-						var users = [];
-						var cursor = -1;
-						async.whilst(
-							function () {
-								if (cursor == 0){
-									response.users = users;
-									session.user_friends_response = response;
-									res.json(json_api_responses.success(response));
-									return;
-								}
-								return cursor != 0; 
-							},
-							function (callback) {
-								var params = {cursor : cursor};
-								params.count = 200;
-								var self = this;
-								twit.getFriends(user.screen_name, params, function(err, data) {
-									if (err){
-										res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
-										return;
-									}
-									cursor = data.next_cursor;
-									for (var index in data.users){
-										var json_user = data.users[index];
-										var turaco_user = {};
-										turaco_user.id = json_user.id;
-										turaco_user.name = json_user.name;
-										turaco_user.screen_name = json_user.screen_name;
-										turaco_user.description = json_user.description;
-										turaco_user.profile_image_url = json_user.profile_image_url;
-										users.push(turaco_user);
-									}
-									callback(null, cursor);
-								});
-							},
-							function (err) {
-								if (err){
-									res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
-									return;
-								}
-							}
-						);
-					}else{ // if user have a bunch of friends.... 
-						var users = [];
-						var params = {cursor : -1};
-						params.count = 200;
-						var self = this;
-						twit.getFriends(user.screen_name, params, function(err, data) {
-							if (err){
-								res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
-								return;
-							}
-							cursor = data.next_cursor;
-							for (var index in data.users){
-								var json_user = data.users[index]; 
-								var turaco_user = {};
-								turaco_user.id = json_user.id;
-								turaco_user.name = json_user.name;
-								turaco_user.screen_name = json_user.screen_name;
-								turaco_user.description = json_user.description;
-								turaco_user.profile_image_url = json_user.profile_image_url;
-								users.push.apply(users, turaco_user);
-							}
-							response.users = users;
-							session.user_friends_response = response;
-							res.json(json_api_responses.success(response));
-							return;
-							
-						});
-					}
-				});
-			});
-		});
-	}else{
-		session.user_friends_response = user_friends_temporal;
-		res.json(json_api_responses.success(user_friends_temporal));
-		return;
-	}
-}
-module.exports.getAllFriends_depracated = getAllFriends_depracated;
-/*
- * END DEPRECATED
- * */
-/*
- * DEPRECATED
- * */
 function getAllFriendsAPI(session, user, returnSession, callback){
 	resutlt = {};
 	if (typeof returnSession === 'function') {
@@ -226,126 +85,122 @@ function getAllFriendsAPI(session, user, returnSession, callback){
 			&& session.user_friends_response != null){  // return from session in case of needed... 
 		return callback(null, session.user_friends_response);
 	}
-	if (false){ // DEV MOC DATA... GETTING DATA FROM JSON PREDEFINED...  
-		var params = getParams(req);
-		if (user == null){
-			return callback("User is null");
-		}
+	var params = getParams(req);
+	if (user == null){
+		return callback("User is null");
+	}
+	
+	helper = new listHelpers.ListHelper();
+	helper.getUser(user, function(err, user){
+		if (err){ return callback(err); }
 		
-		helper = new listHelpers.ListHelper();
-		helper.getUser(user, function(err, user){
+		helper.getTwittObjectFromUser(function(err, twit){
 			if (err){ return callback(err); }
 			
-			helper.getTwittObjectFromUser(function(err, twit){
+			twit.showUser(user.uid, function(err, data) {
 				if (err){ return callback(err); }
 				
-				twit.showUser(user.uid, function(err, data) {
-					if (err){ return callback(err); }
-					
-					/* get number of friends... */
-					var friends_count = 0;
-					for (var item in data) {
-						if (data.hasOwnProperty(item)) {
-							object = data[item];
-							friends_count = object.friends_count;
-						}
+				/* get number of friends... */
+				var friends_count = 0;
+				for (var item in data) {
+					if (data.hasOwnProperty(item)) {
+						object = data[item];
+						friends_count = object.friends_count;
 					}
-					response.friends_count = friends_count;
-					var parentCallback = callback;
-					if (friends_count < 25000){
-						var users = []; // users to be returned by the service (small consice information) 
-						var twitter_users = []; // users to store on the database.. or make some other stuff with them... (all information returned from the service. )  
-						var cursor = -1;
-						/* async call to get all the user...
-						 * this async iterates thru the getFriendsIds (up to 5000 by call) */
-						async.whilst(
-							function () {
-								if (cursor == 0){
-									response.users = users;
-									session.full_user_friends_response = twitter_users;
-									session.user_friends_response = response; // we ensure that the response is setted to the session
-									return parentCallback(null, response);
-								}
-								return cursor != 0; 
-							},
-							function (callback) {
-								var params = {cursor : cursor};
-								var self = this;
-								twit.getFriendsIds(user.screen_name, params, function(err, data) {
-									if (err){
-										callback(err, cursor);
-									}
-									cursor = data.next_cursor;
-									var count = 0;
-									var current_ids = "";
-									var friends_in_array = 0;
-									var idArray = data.ids;
-									// split the returining array into chunks of 99 or less
-									var i, j, temparray, chunk = 100;
-									for (i = 0, j = idArray.length; i<j; i += chunk) {
-									    var temparray = idArray.slice(i, (i + chunk) );
-									    var stringSubArray = temparray.toString();
-									    /* go and get the current information from the user... */
-									    twit.lookupUser(stringSubArray, {include_entities: false}, function(err, data){
-									    	friends_in_array = friends_in_array  + data.length;
-											if (err){
-												callback(err, cursor);
-											}
-											for (var index in data){
-												var json_user = data[index];
-												var turaco_user = {};
-												turaco_user.id = json_user.id;
-												turaco_user.name = json_user.name;
-												turaco_user.screen_name = json_user.screen_name;
-												turaco_user.description = json_user.description;
-												turaco_user.profile_image_url = json_user.profile_image_url;
-												
-												twitter_users.push(data[index]); // adding to server side information about friends
-												users.push(turaco_user); // information that is going to be returned to the user...  
-											}
-											if (idArray.length <= friends_in_array){ // when all the friends are comleted
-												callback(null, cursor);
-											}
-									    });
-									}
-								});
-							},
-							function (err) {
+				}
+				response.friends_count = friends_count;
+				var parentCallback = callback;
+				if (friends_count < 25000){
+					var users = []; // users to be returned by the service (small consice information) 
+					var twitter_users = []; // users to store on the database.. or make some other stuff with them... (all information returned from the service. )  
+					var cursor = -1;
+					/* async call to get all the user...
+					 * this async iterates thru the getFriendsIds (up to 5000 by call) */
+					async.whilst(
+						function () {
+							if (cursor == 0){
+								response.users = users;
+								session.full_user_friends_response = twitter_users;
+								session.user_friends_response = response; // we ensure that the response is setted to the session
+								return parentCallback(null, response);
+							}
+							return cursor != 0; 
+						},
+						function (callback) {
+							var params = {cursor : cursor};
+							var self = this;
+							twit.getFriendsIds(user.screen_name, params, function(err, data) {
 								if (err){
-									return parentCallback(err, null);
+									callback(err, cursor);
 								}
+								cursor = data.next_cursor;
+								var count = 0;
+								var current_ids = "";
+								var friends_in_array = 0;
+								var idArray = data.ids;
+								// split the returining array into chunks of 99 or less
+								var i, j, temparray, chunk = 100;
+								for (i = 0, j = idArray.length; i<j; i += chunk) {
+								    var temparray = idArray.slice(i, (i + chunk) );
+								    var stringSubArray = temparray.toString();
+								    /* go and get the current information from the user... */
+								    twit.lookupUser(stringSubArray, {include_entities: false}, function(err, data){
+								    	friends_in_array = friends_in_array  + data.length;
+										if (err){
+											callback(err, cursor);
+										}
+										for (var index in data){
+											var json_user = data[index];
+											var turaco_user = {};
+											turaco_user.id = json_user.id;
+											turaco_user.name = json_user.name;
+											turaco_user.screen_name = json_user.screen_name;
+											turaco_user.description = json_user.description;
+											turaco_user.profile_image_url = json_user.profile_image_url;
+											
+											twitter_users.push(data[index]); // adding to server side information about friends
+											users.push(turaco_user); // information that is going to be returned to the user...  
+										}
+										if (idArray.length <= friends_in_array){ // when all the friends are comleted
+											callback(null, cursor);
+										}
+								    });
+								}
+							});
+						},
+						function (err) {
+							if (err){
+								return parentCallback(err, null);
 							}
-						);
-					}else{
-						/*getting friends but not all.. */
-						var users = [];
-						var params = {cursor : -1};
-						params.count = 200;
-						var self = this;
-						twit.getFriends(user.screen_name, params, function(err, data) {
-							if (err){ return callback(err); }
-							cursor = data.next_cursor;
-							for (var index in data.users){
-								var json_user = data.users[index]; 
-								var turaco_user = {};
-								turaco_user.id = json_user.id;
-								turaco_user.name = json_user.name;
-								turaco_user.screen_name = json_user.screen_name;
-								turaco_user.description = json_user.description;
-								turaco_user.profile_image_url = json_user.profile_image_url;
-								users.push.apply(users, turaco_user);
-							}
-							response.users = users;
-							session.full_user_friends_response = null;
-							return callback(null, response);
-						});
-					}
-				});
+						}
+					);
+				}else{
+					/*getting friends but not all.. */
+					var users = [];
+					var params = {cursor : -1};
+					params.count = 200;
+					var self = this;
+					twit.getFriends(user.screen_name, params, function(err, data) {
+						if (err){ return callback(err); }
+						cursor = data.next_cursor;
+						for (var index in data.users){
+							var json_user = data.users[index]; 
+							var turaco_user = {};
+							turaco_user.id = json_user.id;
+							turaco_user.name = json_user.name;
+							turaco_user.screen_name = json_user.screen_name;
+							turaco_user.description = json_user.description;
+							turaco_user.profile_image_url = json_user.profile_image_url;
+							users.push.apply(users, turaco_user);
+						}
+						response.users = users;
+						session.full_user_friends_response = null;
+						return callback(null, response);
+					});
+				}
 			});
 		});
-	}else{ // read file temporal.. 
-		return callback(null, user_friends_temporal);
-	}
+	});
 }
 /*
  * END DEPRECATED
@@ -363,7 +218,7 @@ function getAllFriends(req, res) {
 	}else{
 		SessionObjects.findOne({
 			'uid' : user.uid
-		}).sort({created: 'asc'}).exec(function(err, sessionObj) {
+		}).sort({created: 'desc'}).exec(function(err, sessionObj) {
 			if(sessionObj == null || err){
 				getAllFriendsAPI(session, session.user, function(err, data){ //get users from Twitter api 
 					if (err){

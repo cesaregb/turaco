@@ -1,17 +1,26 @@
 var express = require('express');
 var router = express.Router();
+
+//a fucking mess
 var twitterController = require('../../config/TwitterController');
-var turacoError = require('../../config/error_codes');
-var json_api_responses = require('../../config/responses')();
-var error_codes = turacoError.error_codes;
+var turacoError = require('../../config/error_codes'); //TODO ADD MORE CODES
+var json_api_responses = require('../../config/responses')(); //TODO integrate me with turaco errors
+var error_codes = turacoError.error_codes; //TODO WTF
+
+//helpers
 var listHelpers = require('../../utils/list_helpers');
+var sessionObjectHelpers = require('../../utils/sessionObject_helpers'); // we are doing this kind of correctly not others ...
+var loginGatherInfoUser = require('../../lib/loginGatherInfoUser');
+
 var twitter = require('ntwitter');
+var async = require("async");
+
+//Model
 var User = require('../../app/models/user');
 var List = require('../../app/models/list');
 var SessionObjects = require('../../app/models/sessionObjects');
-var async = require("async");
-var loginGatherInfoUser = require('../../lib/loginGatherInfoUser');
 
+//loggin information ...
 var fileName = "listApi.js";
 var pathString = "/api/lists";
 
@@ -20,7 +29,7 @@ var pathString = "/api/lists";
  * query twitter api with the provided user. 
  * */
 function getListByUser(req, res) {
-	var _method = "get /byUSer/:uid (get lists)";
+	var _method = "getListByUser";
 	console.log("IN " + fileName + "-" + _method);
 	try{
 		var session = req.session;
@@ -85,7 +94,7 @@ function getUsersListFunction(req, res) {
 		}else{ 
 			SessionObjects.findOne({
 				'uid' : user.uid
-			}).sort({created: 'asc'}).exec(function(err, sessionObj) {
+			}).sort({created: 'desc'}).exec(function(err, sessionObj) {
 				if(sessionObj == null || err){
 					/*
 					 * get information even if is incomplete. 
@@ -119,6 +128,7 @@ function getUsersListFunction(req, res) {
 						}
 						
 					});
+					
 				}else{
 					session.friends = sessionObj.friends;
 					session.usersListHash = sessionObj.usersListHash; 
@@ -138,70 +148,6 @@ function getUsersListFunction(req, res) {
 	}
 }
 module.exports.getUsersListFunction = getUsersListFunction;
-/*
- * DEPRECATED
- * */
-function getUsersListFunction2(req, res) {
-	var _method = "get / (get lists)";
-	console.log("IN " + fileName + "-" + _method);
-	var session = req.session;
-	
-	var user = null;
-	var uid = null;
-	
-	if (req.user){
-		user = req.user;
-		uid = user.uid;
-	}
-	if (session.user_lists == null) {/* Store list on session to avoid multiple request to get the actual lists, */
-		helper = new listHelpers.ListHelper();
-		helper.getUser(session.user, function(err, user){
-			if (err){
-				console.error("Error getting the logged user from the database");
-				res.json(json_api_responses.error(error_codes.USER_NOT_FOUND_ERROR, err));
-				return;
-			}
-			helper.getTwittObjectFromUser(function(err, twit){
-				if (err){
-					res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
-					return;
-				}
-				twit.getLists(user.screen_name, function(err, data) {
-					if (err){
-						res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
-						return;
-					}
-					var listCollection = {};
-					var response = {};
-					response.timestamp = Date.now; 
-					response.items = []; 
-					for (pos in data){
-						(function(item){
-							var list = new List();
-							list = listHelpers.convertJson2List(list, item, uid);
-							listCollection[list.id] = true;
-							response.items.push(list);
-						})(data[pos]);
-					}
-					session.user_lists = response;
-					/*
-					 * get list users... 
-					 * */
-					getListsUsers(twit, response.items, session, user);
-					res.json(json_api_responses.success(response));
-					return;
-				});
-			});
-		});
-	}else{
-		res.json(json_api_responses.success(session.user_lists));
-		return;
-	}
-}
-module.exports.getUsersListFunction2 = getUsersListFunction2;
-/*
- * END DEPRECATED
- * */
 
 /*
  * helper function.. duplicated with the gather information
@@ -283,13 +229,6 @@ function getListsUsers(twit, lists, session, user){
 }
 module.exports.getListsUsers = getListsUsers;
 
-function getUsersListFunctionRefresh(req, res){
-	var _method = " getUsersListFunctionRefresh ";
-	console.log("IN " + fileName + "-" + _method);
-	req.session.user_lists = null;
-	getUsersListFunction(req, res);
-}
-module.exports.getUsersListFunctionRefresh = getUsersListFunctionRefresh;
 
 function createList (req, res) {
 	var _method = "createList";
@@ -320,27 +259,16 @@ function createList (req, res) {
 				twit.createList(user.screen_name, list_name, myParams, function(err, data){
 					if (err){ return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
 					}else{
+						//update the sessionObject and set value to restore sessions 
 						global.refresSessionObject = true;
-						// update SessionObject.lists  
-						// update SessionObject.completeListsObject  
-						// this is done async,. we return the 
-						SessionObjects.findOne({
-							'uid' : user.uid
-						}).sort({created: 'asc'}).exec(function(err, sessionObj) {
-							if(sessionObj == null || err){
-								// handle error
+						sessionHelper = new sessionObjectHelpers({param:"nel"});
+						sessionHelper.addList(user, data, function(err, code){
+							if (err){
+								return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
 							}else{
-								var list = new List();
-								list = listHelpers.convertJson2List(list, data, uid);
-								sessionObj.lists.push(list)
-								sessionObj.completeListsObject.lists.push(data)
-								sessionObj.save(function(err) {
-									if (err) return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
-									console.log('sessionObject successfully updated!');
-								});
+								return res.json(json_api_responses.success(data));
 							}
 						});
-						return res.json(json_api_responses.success(data));
 					}
 				});
 			});
@@ -361,61 +289,42 @@ function deleteList(req, res) { // 41349136
 	var _method = "delete / (delete list)";
 	console.log("IN " + fileName + "-" + _method);
 	
-	var uid = null;
 	var myParams = getParams(req);
 	var list_id = req.body.list_id;
-
 	try{
 		if (req.user){
 			user = req.user;
-			uid = user.uid;
-			name = user.name;
 		}else{
 			throw error_codes.ACCESS_USER_ERROR;
 		}
 		helper = new listHelpers.ListHelper();
+		console.log("TURACO_DEBUG - getUser");
 		helper.getUser(user, function(err, user){
 			if (err){
 				res.json(json_api_responses.error(error_codes.USER_NOT_FOUND_ERROR, err));
 				return;
 			}else{
+				console.log("TURACO_DEBUG - getTwittObjectFromUser");
 				helper.getTwittObjectFromUser(function(err, twit){
 					if (err){
 						res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
 						return;
 					}
+					console.log("TURACO_DEBUG - deleteList");
 					twit.deleteList(user.screen_name, myParams, function(err, data){
 						if (err){
 							return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
 						}else{
+							//update the sessionObject and set value to restore sessions 
 							global.refresSessionObject = true;
-							SessionObjects.findOne({
-								'uid' : user.uid
-							}).sort({created: 'asc'}).exec(function(err, sessionObj) {
-								if(sessionObj == null || err){
-									// handle error
+							sessionHelper = new sessionObjectHelpers({param:"nel"});
+							sessionHelper.removeList(user, list_id, function(err, code){
+								if (err){
+									return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
 								}else{
-									
-									for (index in sessionObj.completeListsObject.lists){
-										if (sessionObj.completeListsObject.lists[index].id == list_id){
-											sessionObj.completeListsObject.lists.splice(index, 1);
-										}
-									}
-									sessionObj.lists = [];
-									for (index in sessionObj.completeListsObject.lists){
-										var item = sessionObj.completeListsObject.lists[index];
-										var list = new List();
-										list = listHelpers.convertJson2List(list, item, uid);
-										sessionObj.lists.push(list);
-									}
-									
-									sessionObj.save(function(err) {
-										if (err) return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
-										console.log('sessionObject successfully updated!');
-									});
+									return res.json(json_api_responses.success(data));
 								}
 							});
-							return res.json(json_api_responses.success(data));
 						}
 					});
 				});
@@ -433,6 +342,8 @@ function deleteAndUnfollow(req, res) {
 	console.log("IN " + fileName + "-" + _method);
 	var uid = null;
 	var myParams = getParams(req);
+	var finalList = null;
+	var finalListOfUsers = [];
 	try{
 		
 		if (req.user){
@@ -462,6 +373,7 @@ function deleteAndUnfollow(req, res) {
 						var list = new List();
 						list = listHelpers.convertJson2List(list, data, uid);
 						list_id = list.id;
+						finalList = data;
 						
 						var created_list_id = data.id; 
 						var cursor = -1;
@@ -488,6 +400,8 @@ function deleteAndUnfollow(req, res) {
 									var numTries = 0;
 									var members2Add = new Array();
 									var usersList = data.users.length;
+									// users to remove from session object.. 
+									finalListOfUsers.push.apply(finalListOfUsers, data.users);
 									data = data.users;		
 									var memebers = "";	
 									for (pos in data){
@@ -514,39 +428,18 @@ function deleteAndUnfollow(req, res) {
 							if (err){
 								return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
 							}else{
+								
+								// list to clone as twitter object
+								// list of users to add to the list and to the friends and to the hashing... 
 								global.refresSessionObject = true;
-								SessionObjects.findOne({
-									'uid' : user.uid
-								}).sort({created: 'asc'}).exec(function(err, sessionObj) {
-									if(sessionObj == null || err){
-										// handle error
+								sessionHelper = new sessionObjectHelpers({param:"nel"});
+								sessionHelper.removeListComplete(user, finalList.id, finalListOfUsers, function(err, code){
+									if (err){
+										return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
 									}else{
-										for (index in sessionObj.completeListsObject.lists){
-											if (sessionObj.completeListsObject.lists[index].id == list_id){
-												var users = sessionObj.completeListsObject.lists[index].list_users;
-												for (j in users){
-												}
-												sessionObj.completeListsObject.lists.splice(index, 1);
-											}
-										}
-										sessionObj.lists = [];
-										for (index in sessionObj.completeListsObject.lists){
-											var item = sessionObj.completeListsObject.lists[index];
-											var list = new List();
-											list = listHelpers.convertJson2List(list, item, uid);
-											sessionObj.lists.push(list);
-										}
-										
-										sessionObj.save(function(err) {
-											if (err) return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
-											console.log('sessionObject successfully updated!');
-										});
+										return res.json(json_api_responses.success(data));
 									}
 								});
-								
-								
-								
-								return res.json(json_api_responses.success(data));
 							}
 						});
 					});
@@ -587,42 +480,23 @@ function updateList(req, res) {
 							}else{
 								/* update the list */
 								global.refresSessionObject = true;
-								SessionObjects.findOne({
-									'uid' : user.uid
-								}).sort({created: 'asc'}).exec(function(err, sessionObj) {
-									if(sessionObj == null || err){
-										// handle error
+								
+								var list_object = {
+										list_id: req.body.list_id, 
+										slug: req.body.slug, 
+										name: req.body.name,
+										mode: req.body.mode,
+										description: req.body.description
+								};
+								
+								sessionHelper = new sessionObjectHelpers({param:"nel"});
+								sessionHelper.updateList(user, list_object, function(err, resp){
+									if (err){
+										return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
 									}else{
-										
-										var list_id = req.body.list_id;
-										var slug = req.body.slug;
-										var name = req.body.name;
-										var mode = req.body.mode;
-										
-										for (index in sessionObj.lists){
-											if (sessionObj.lists[index].id == list_id){
-												sessionObj.lists[index].name = name;
-												sessionObj.lists[index].mode = mode;
-												sessionObj.lists[index].description = description;
-											}
-										}
-										
-										for (index in sessionObj.completeListsObject.lists){
-											if (sessionObj.completeListsObject.lists[index].id != list_id){
-												sessionObj.completeListsObject.lists[index].name = name;
-												sessionObj.completeListsObject.lists[index].mode = mode;
-												sessionObj.completeListsObject.lists[index].description = description;
-											}
-										}
-										
-										sessionObj.save(function(err) {
-											if (err) return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
-											console.log('sessionObject successfully updated!');
-										});
+										return res.json(json_api_responses.success(data));
 									}
 								});
-								
-								return res.json(json_api_responses.success(data));
 							}
 						});
 					}
@@ -637,11 +511,10 @@ function updateList(req, res) {
 module.exports.updateList = updateList;
 
 function subscribe(req, res) {
-	var _method = "post / (subscribeMe to a list)";
+	var _method = "subscribe";
 	console.log("IN " + fileName + "-" + _method);
 	var uid = req.body.uid;
 	var myParams = getParams(req); 
-	
 	try{
 		if (req.user){
 			user = req.user;
@@ -654,23 +527,23 @@ function subscribe(req, res) {
 		helper = new listHelpers.ListHelper();
 		helper.getUser(user, function(err, user){
 			if (err){
-				res.json(json_api_responses.error(error_codes.USER_NOT_FOUND_ERROR, err));
-				return;
+				return res.json(json_api_responses.error(error_codes.USER_NOT_FOUND_ERROR, err));
 			}
 			helper.getTwittObjectFromUser(function(err, twit){
 				if (err){
-					res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
-					return;
+					return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
 				}
 				twit.subscribeme2List(myParams, function(err, data){
-					if (err){
-						console.log(err);
-						res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
-						return;
-					}else{
-						res.json(json_api_responses.success(data));
-						return;
-					}
+					
+					global.refresSessionObject = true;
+					sessionHelper = new sessionObjectHelpers({param:"nel"});
+					sessionHelper.addList(user, data, function(err, code){
+						if (err){
+							return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
+						}else{
+							return res.json(json_api_responses.success(data));
+						}
+					});
 				});
 			});
 		});
@@ -682,11 +555,11 @@ function subscribe(req, res) {
 module.exports.subscribe = subscribe;
 
 function unsubscribe(req, res) {
-	var _method = "post / (UN subscribeMe to a list)";
+	var _method = "unsubscribe";
 	console.log("IN " + fileName + "-" + _method);
 	var uid = req.body.uid;
 	var myParams = getParams(req); 
-	
+	var list_id = req.body.list_id;
 	try{
 		if (req.user){
 			user = req.user;
@@ -707,14 +580,18 @@ function unsubscribe(req, res) {
 					return;
 				}
 				twit.unsubscribeme2List(myParams, function(err, data){
-					if (err){
-						console.log(err);
-						res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
-						return;
-					}else{
-						res.json(json_api_responses.success(data));
-						return;
-					}
+
+					global.refresSessionObject = true;
+					sessionHelper = new sessionObjectHelpers({param:"nel"});
+					sessionHelper.removeList(user, list_id, function(err, code){
+						if (err){
+							return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
+						}else{
+							return res.json(json_api_responses.success(data));
+						}
+					});
+					
+					
 				});
 			});
 		});
@@ -777,9 +654,10 @@ function cloneList(req, res){
 	console.log("IN " + fileName + "-" + _method);
 	var uid = null;
 	var list_id = null;
+	var finalList = null;
+	var finalListOfUsers = [];
 	var myParams = getParams(req);
 	try{
-		
 		if (req.user){
 			user = req.user;
 			uid = user.uid;
@@ -809,10 +687,24 @@ function cloneList(req, res){
 							res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
 							return;
 						}
-						var created_list_id = data.id; 
+						finalList = data;
+						var created_list_id = data.id;
+						var created_list = data;
 						var cursor = -1;
+						var complete_list_users = [];
 						async.whilst(
 						    function () {
+						    	if (cursor == 0){
+									global.refresSessionObject = true;
+									sessionHelper = new sessionObjectHelpers({param:"nel"});
+									sessionHelper.addListFollow(user, finalList, finalListOfUsers, function(err, code){
+										if (err){
+											return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
+										}else{
+											return res.json(json_api_responses.string_success("Success"));
+										}
+									});
+						    	}
 						    	return cursor != 0; 
 						    },
 						    function (callback) {
@@ -825,57 +717,46 @@ function cloneList(req, res){
 								var self = this;
 								twit.getListMemebers(list_id, params, function(err, data){
 									if (err){
-										res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
-										return;
+										return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
 									}
 									cursor = data.next_cursor;
 									var usersWithError = new Array();
 									var numTries = 0;
 									var members2Add = new Array();
 									var usersList = data.users.length;
-									data = data.users;		
-									var memebers = "";	
+									data = data.users;	
+									finalListOfUsers.push.apply(finalListOfUsers, data.users);
+									var memebers = "";
 									for (pos in data){
-										(function(item){
-											numTries++;
-											var user2FollowId = item.id;
-											twit.createFriendship(user2FollowId, function(err, data){
-												if (err){
-													usersWithError.push(err);
-												}else{
-													members2Add.push(user2FollowId);
-												}
-												if (numTries == usersList){
-													(function (members2Add){
-														var i, j, temparray, chunk = 100;
-														for (i=0, j = members2Add.length; i < j; i+=chunk) {
-														    temparray = members2Add.slice(i, i+chunk);
-														    var ids = temparray.toString();
-														    
-														    twit.subscribeMemebers2List(created_list_id, ids, function(err, data){
-														    	if (err){
-														    		return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
-														    	}else{
-														    		var gatherInfoInstance = new loginGatherInfoUser();
-																	gatherInfoInstance.getAll(req.user, req.session, function(err, data){
-																		if (err){
-																			console.log("TURACO_DEBUG - error gettin the user basic information " );
-																		}else{
-																			console.log("TURACO_DEBUG - user information gather complete." );
-																		}
-																	});
-																	
-														    		return res.json(json_api_responses.string_success("Success "));
-														    	}
-														    });
-														}
-													})(members2Add);
-												}
-											});
-											
-										})(data[pos]);
+										var item = data[pos]
+										numTries++;
+										var user2FollowId = item.id;
+										complete_list_users.push(item);
+										twit.createFriendship(user2FollowId, function(err, data){
+											if (err){
+												usersWithError.push(err);
+											}else{
+												members2Add.push(user2FollowId);
+											}
+											if (numTries == usersList){
+												(function (members2Add){
+													var i, j, temparray, chunk = 100;
+													for (i=0, j = members2Add.length; i < j; i+=chunk) {
+													    temparray = members2Add.slice(i, i+chunk);
+													    var ids = temparray.toString();
+													    
+													    twit.subscribeMemebers2List(created_list_id, ids, function(err, data){
+													    	if (err){
+													    		return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
+													    	}else{
+													    		callback(null, cursor);
+													    	}
+													    });
+													}
+												})(members2Add);
+											}
+										});
 									}
-									callback(null, cursor);
 								});
 						    },
 						    function (err) {
@@ -897,10 +778,10 @@ function cloneList(req, res){
 module.exports.cloneList = cloneList;
 
 function cloneNoFollow(req, res){
-	var _method = "cloneNoFollow";
+	var _method = "cloneList";
 	console.log("IN " + fileName + "-" + _method);
 	var uid = null;
-	var list_id = req.body.list_id;
+	var list_id = null;
 	var myParams = getParams(req);
 	try{
 		if (req.user){
@@ -910,29 +791,42 @@ function cloneNoFollow(req, res){
 		}else{
 			throw error_codes.ACCESS_USER_ERROR;
 		}
+		
 		helper = new listHelpers.ListHelper();
 		helper.getUser(user, function(err, user){
 			if (err){
 				return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
 			}
 			helper.getTwittObjectFromUser(function(err, twit){
-				var list = new List();
 				twit.getList(uid, myParams, function(err, data){
 					if (err){
 						return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
 					}
 					var list_member_count = data.member_count;
+					var list = new List();
 					list = listHelpers.convertJson2List(list, data, uid);
-					list_id = list.id; 
-					// create list;
+					list_id = list.id;
 					twit.createList(user.screen_name, list.name, {mode: list.mode, description: list.description}, function(err, data){
 						if (err){
 							return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
 						}
-						var created_list_id = data.id; 
+						var created_list_id = data.id;
+						var created_list = data;
 						var cursor = -1;
+						var complete_list_users = [];
 						async.whilst(
 							function () {
+								if (cursor == 0){
+									global.refresSessionObject = true;
+									sessionHelper = new sessionObjectHelpers({param:"nel"});
+									sessionHelper.addList(user, created_list, complete_list_users, function(err, code){
+										if (err){
+											return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
+										}else{
+											return res.json(json_api_responses.string_success("Success"));
+										}
+									});
+								}
 								return cursor != 0; 
 							},
 							function (callback) {
@@ -953,40 +847,31 @@ function cloneNoFollow(req, res){
 									var members2Add = new Array();
 									var usersList = data.users.length;
 									data = data.users;		
-									var memebers = "";	
+									var memebers = "";
 									for (pos in data){
-										(function(item){
-											numTries++;
-											var user2FollowId = item.id;
-											members2Add.push(user2FollowId);
-										})(data[pos]);
+										var item = data[pos]
+										numTries++;
+										var user2FollowId = item.id;
+										complete_list_users.push(item);
+										members2Add.push(user2FollowId);
+										if (numTries == usersList){
+											(function (members2Add){
+												var i, j, temparray, chunk = 100;
+												for (i=0, j = members2Add.length; i < j; i+=chunk) {
+													temparray = members2Add.slice(i, i+chunk);
+													var ids = temparray.toString();
+													
+													twit.subscribeMemebers2List(created_list_id, ids, function(err, data){
+														if (err){
+															return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
+														}else{
+															callback(null, cursor);
+														}
+													});
+												}
+											})(members2Add);
+										}
 									}
-									if (numTries == usersList){
-										(function (members2Add){
-											var i, j, temparray, chunk = 100;
-											for (i=0, j = members2Add.length; i < j; i+=chunk) {
-												temparray = members2Add.slice(i, i+chunk);
-												var ids = temparray.toString();
-												twit.subscribeMemebers2List(created_list_id, ids, function(err, data){
-													if (err){
-														return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
-													}else{
-														var gatherInfoInstance = new loginGatherInfoUser();
-														gatherInfoInstance.getAll(req.user, req.session, function(err, data){
-															if (err){
-																console.log("TURACO_DEBUG - error gettin the user basic information " );
-															}else{
-																console.log("TURACO_DEBUG - user information gather complete." );
-															}
-														});
-														
-														return res.json(json_api_responses.string_success("Success "));
-													}
-												});
-											}
-										})(members2Add);
-									}
-									callback(null, cursor);
 								});
 							},
 							function (err) {
@@ -1024,19 +909,27 @@ function membersCreateAll(req, res){
 		helper = new listHelpers.ListHelper();
 		helper.getUser(user, function(err, user){
 			if (err){
-				res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
-				return;
+				return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
 			}
 			helper.getTwittObjectFromUser(function(err, twit){
+				if (err){
+					return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
+				}
 				twit.subscribeMemebers2List(list_id, users_list, function(err, data){
 					if (err){
 						return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
 					}else{
-						
-						return res.json(json_api_responses.string_success("Success"));
+						global.refresSessionObject = true;
+						sessionHelper = new sessionObjectHelpers({param:"nel"});
+						sessionHelper.membersCreateAll(user, list_id, users_list, function(err, code){
+							if (err){
+								return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
+							}else{
+								return res.json(json_api_responses.string_success("Success"));
+							}
+						});
 					}
 				});
-				
 			});
 		});
 	}catch(ex){
@@ -1045,6 +938,57 @@ function membersCreateAll(req, res){
 	}
 }
 module.exports.membersCreateAll = membersCreateAll;
+
+function membersDestroyAll(req, res){
+	var _method = "membersDestroyAll";
+	console.log("IN " + fileName + "-" + _method);
+	var uid = null;
+	var list_id = req.body.list_id;
+	var users_list = req.body.users_list
+	var myParams = getParams(req);
+	/*add validation...? */
+	try{
+		if (req.user){
+			user = req.user;
+		}else{
+			throw error_codes.ACCESS_USER_ERROR;
+		}
+		helper = new listHelpers.ListHelper();
+		console.log("TURACO_DEBUG - getUser");
+		helper.getUser(user, function(err, user){
+			if (err){
+				return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
+			}
+			console.log("TURACO_DEBUG - getTwittObjectFromUser");
+			helper.getTwittObjectFromUser(function(err, twit){
+				if (err){
+					return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
+				}
+				console.log("TURACO_DEBUG - destroyListMembers: " + list_id + " -- " + users_list);
+				twit.destroyListMembers(list_id, users_list, function(err, data){
+					if (err){
+						return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
+					}else{
+						console.log("TURACO_DEBUG - refresSessionObject");
+						global.refresSessionObject = true;
+						sessionHelper = new sessionObjectHelpers({param:"nel"});
+						sessionHelper.listRefreshUsers(user, list_id, twit, function(err, data){
+							if (err){
+								return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
+							}else{
+								return res.json(json_api_responses.string_success("Success"));
+							}
+						});
+					}
+				});
+			});
+		});
+	}catch(ex){
+		res.json(json_api_responses.error(ex, null));
+		return;
+	}
+}
+module.exports.membersDestroyAll = membersDestroyAll;
 
 /*
  * get the list of users 
@@ -1065,55 +1009,78 @@ function getListUsers(req, res) {
 			throw error_codes.ACCESS_USER_ERROR;
 		}
 		
-		helper = new listHelpers.ListHelper();
-		helper.getUser(user, function(err, user){
-			if (err){
-				console.error("Error getting the logged user from the database");
-				res.json(json_api_responses.error(error_codes.USER_NOT_FOUND_ERROR, err));
-				return;
+		global.refresSessionObject = true;
+		SessionObjects.findOne({
+			'uid' : user.uid
+		}).sort({created: 'desc'}).exec(function(err, sessionObj) {
+			if(sessionObj == null || err){
+				continueProcess(err);
+			}else{
+				var list = null;
+				for (i in sessionObj.lists){
+					if (sessionObj.completeListsObject.lists[i].id == list_id){
+						list = sessionObj.completeListsObject.lists[i];
+					}
+				}
+				if (list != null){
+					result.users = list.list_users
+					return res.json(json_api_responses.success(result));
+				}else{
+					continueProcess(err);
+				}
 			}
-			helper.getTwittObjectFromUser(function(err, twit){
+		});
+		
+		function continueProcess(err){
+			helper = new listHelpers.ListHelper();
+			helper.getUser(user, function(err, user){
 				if (err){
-					res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
+					console.error("Error getting the logged user from the database");
+					res.json(json_api_responses.error(error_codes.USER_NOT_FOUND_ERROR, err));
 					return;
 				}
-				
-				var cursor = -1;
-				var users = [];
-				async.whilst(
-					function () {
-						if (cursor == 0){
-							result.users = users;
-							res.json(json_api_responses.success(result));
-						}
-						return cursor != 0; 
-					},
-					function (callback) {
-						var params = {cursor : cursor};
-						params.count = 4999;
-						var self = this;
-						twit.getListMembers(list_id, params, function(err, data){
-							if (err){
-								res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
-								return;
-							}
-							cursor = data.next_cursor;
-							var usersWithError = new Array();
-							var numErr = 0;
-							var numTries = 0;
-							users.push.apply(users, data.users);
-							callback(null, cursor);
-						});
-					},
-					function (err) {
-						if (err){
-							console.log("err: " + err)
-						}
+				helper.getTwittObjectFromUser(function(err, twit){
+					if (err){
+						res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
+						return;
 					}
-				);
-				
+					var cursor = -1;
+					var users = [];
+					async.whilst(
+						function () {
+							if (cursor == 0){
+								result.users = users;
+								res.json(json_api_responses.success(result));
+							}
+							return cursor != 0; 
+						},
+						function (callback) {
+							var params = {cursor : cursor};
+							params.count = 4999;
+							var self = this;
+							twit.getListMembers(list_id, params, function(err, data){
+								if (err){
+									res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
+									return;
+								}
+								cursor = data.next_cursor;
+								var usersWithError = new Array();
+								var numErr = 0;
+								var numTries = 0;
+								users.push.apply(users, data.users);
+								callback(null, cursor);
+							});
+						},
+						function (err) {
+							if (err){
+								console.log("err: " + err)
+							}
+						}
+					);
+					
+				});
 			});
-		});
+		}
 	}catch(ex){
 		res.json(json_api_responses.error(ex));
 		return;

@@ -47,9 +47,9 @@
 				div(style='border-bottom:1px solid #999; clear:both;', ng-repeat="user in filtered | startFrom:(currentPage-1)*itemsPerPage | limitTo:itemsPerPage")
 					div(style='float:left; margin-top: 10px; max-width: 750px;')
 						.stream-item-header
+							span(style='float: left; padding-right: 10px; margin-top: 15px;')
+								input(type='checkbox', ng-checked='isSelected(user)', ng-click='userSelected(user)')
 							a.account-group(href='#', ng-click='userSelected(user)')
-								span(style='float: left; padding-right: 10px; margin-top: 15px;')
-									input(type='checkbox', ng-checked="user.checked")
 								| &#x9;&#x9;&#x9;&#x9;&#x9;
 								img.avatar(src='{{user.profile_image_url}}', alt='', style='float: left; margin-top: 3px; padding-right:10px;')
 								| &#x9;&#x9;
@@ -65,13 +65,13 @@
 					| &#x9;&#x9;
 					div(style='float: right; margin-top:10px')
 						.btn-group.pull-right
-							button.btn.btn-default.btn-sm(type='button') Unfollow
+							a.btn.btn-default.btn-sm(type='button', ng-disabled="isFollowing(user)", ng-click='unfowlloUser(user)') Unfollow
 							| &#x9;&#x9;&#x9;
 							| &#x9;&#x9;&#x9;&#x9;
-							button.btn.btn-default.btn-sm(type='button') Remove
+							a.btn.btn-default.btn-sm(type='button') Remove
 							| &#x9;&#x9;&#x9;
 							| &#x9;&#x9;&#x9;&#x9;
-							button.btn.btn-default.btn-sm(type='button') Open
+							a.btn.btn-default.btn-sm(type='button', href='https://twitter.com/{{user.screen_name}}', target='_blank') Open
 					| &#x9;&#x9;
 					div(style='clear:both;')
 		pagination.pagination-sm(total-items='totalItems',items-per-page='itemsPerPage', ng-model='currentPage', ng-change='pageChanged()',  max-size='maxSize', boundary-links='true' num-pages='numPages')

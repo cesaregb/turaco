@@ -116,6 +116,7 @@ function convertJson2List(list, item, uid){
 	return list;
 }
 module.exports.convertJson2List = convertJson2List;
+
 function getParams(req){
 	var uid = req.body.uid;
 	var list_id = req.body.list_id;

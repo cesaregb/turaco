@@ -1,14 +1,14 @@
 #containerUsers.container(style='block;')
-	.alert.alert-danger(role='alert')
+	.alert.alert-danger(role='alert', ng-show="error")
 		span.glyphicon.glyphicon-exclamation-sign(aria-hidden='true')
 		span.sr-only Error:
-		| Enter a valid email address
+		|  {{error_message}}
 	div.alert.alert-info(ng-show="loading") Loading
 	.row.col-md-12(style='padding-bottom:10px;')
 		.btn-group.col-lg-3.left-search-box
 			.input-group
 				span.input-group-addon
-					input(type='checkbox')
+					input(type='checkbox', checked='true', disabled='')
 					|  All
 				input.form-control.input-sm(type='text', placeholder='@account', ng-model="search.screen_name")
 				span.input-group-btn
@@ -18,23 +18,23 @@
 			a#btnAssignAccnts2List.btn.btn-default.btn-sm(type='button', href='/lists/index')
 				span.glyphicon.glyphicon-th-list
 				| &#x9;&#x9;&#x9;&#x9;&#x9;&#x9;List
-			button#btnBackLists.btn.btn-default.btn-sm(type='button')
+			button#btnBackLists.btn.btn-default.btn-sm(type='button', ng-click='removeUsers()')
 				span.glyphicon.glyphicon-remove
 				| &#x9;&#x9;&#x9;&#x9;&#x9;&#x9;Remove Selected
-			button.btn.btn-default.btn-sm(type='button')
+			button.btn.btn-default.btn-sm(type='button', href='#', ng-click="open()")
 				span.glyphicon.glyphicon-file
 				| &#x9;&#x9;&#x9;&#x9;&#x9;&#x9;Copy
 	.row.col-md-12
 		.panel.panel-default
 			.panel-heading.clearfix
-				h4.panel-title.pull-left(style='padding-top: 7.5px;') List members 
+				h4.panel-title.pull-left(style='padding-top: 7.5px;') List Name: {{listName}} 
 			.panel-body
 				div(style='border-bottom:1px solid #999; clear:both;', ng-repeat="user in users | filter:search")
 					div(style='float:left; margin-top: 10px; max-width: 750px;')
 						.stream-item-header
-							a.account-group(href='https://twitter.com/{{user.screen_name}}', target='_blank')
-								span(style='float: left; padding-right: 10px; margin-top: 15px;')
-									input(type='checkbox')
+							span(style='float: left; padding-right: 10px; margin-top: 15px;')
+								input(type='checkbox', ng-checked='isSelected(user)', ng-click='userSelected(user)')
+							a.account-group(href='#', ng-click='userSelected(user)')
 								| &#x9;&#x9;&#x9;&#x9;&#x9;
 								img.avatar(src='{{user.profile_image_url}}', alt='', style='float: left; margin-top: 3px; padding-right:10px;')
 								| &#x9;&#x9;
@@ -50,13 +50,41 @@
 					| &#x9;&#x9;
 					div(style='float: right; margin-top:10px')
 						.btn-group.pull-right
-							button.btn.btn-default.btn-sm(type='button') Unfollow
+							a.btn.btn-default.btn-sm(type='button', ng-disabled="isFollowing(user)", ng-click='unfowlloUser(user)') Unfollow
 							| &#x9;&#x9;&#x9;
 							| &#x9;&#x9;&#x9;&#x9;
-							button.btn.btn-default.btn-sm(type='button') Remove
+							a.btn.btn-default.btn-sm(type='button', ng-click='removeUser(user)') Remove
 							| &#x9;&#x9;&#x9;
 							| &#x9;&#x9;&#x9;&#x9;
-							button.btn.btn-default.btn-sm(type='button') Open
+							a.btn.btn-default.btn-sm(type='button', href='https://twitter.com/{{user.screen_name}}', target='_blank') Open
 					| &#x9;&#x9;
 					div(style='clear:both;')
+	// POP-UP!!  
+	script(type='text/ng-template', id='modalListContainer.html')
+		.modal-header
+			h3.modal-title User's List
+		|         
+		.modal-body
+			table.table.table-hover
+				thead
+					tr
+						th Name
+						th Mode
+						th Own List
+						th Members
+						th Description
+				tbody
+					tr(ng-repeat="list in lists")
+						td 
+							a(href='#', ng-click='selected.list = list' ) {{list.name}}
+						td {{list.mode}}
+						td {{list.own_list}}
+						td {{list.member_count}}
+						td {{list.description}}
+			b SELECTED: {{ selected.list.name }}
+		|         
+		.modal-footer
+			button.btn.btn-primary(ng-click='ok()') OK
+			|             
+			button.btn.btn-warning(ng-click='cancel()') Cancel
 			
