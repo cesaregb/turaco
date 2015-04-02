@@ -68,7 +68,7 @@ function isFunctionA(object) {
 
 ListHelper.prototype.getTwittObjectFromUser = function (user, callback){
 	var _method = "getTwittObjectFromUser()";
-	console.log("IN " + fileName + "-"+ _method);
+	console.log("IN " + fileName + " - "+ _method);
 	if (isFunctionA(user) ){
 		callback = user;
 		user = this.user;
@@ -104,6 +104,7 @@ function convertJson2List(list, item, uid){
 	}
 	list.name = item.name;
 	list.member_count = item.member_count;
+	list.uri = item.uri;
 	list.mode = item.mode;
 	list.description = item.description;
 	list.full_name = item.full_name;

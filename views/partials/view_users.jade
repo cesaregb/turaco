@@ -3,7 +3,8 @@
 		span.glyphicon.glyphicon-exclamation-sign(aria-hidden='true')
 		span.sr-only Error:
 		|  {{error_message}}
-	div.alert.alert-info(ng-show="loading") Loading
+	div.alert.alert-info(ng-show="info") {{info_message}}
+	div.alert.alert-info(data-loading) Loading...
 	.row.col-md-12(style='padding-bottom:10px;')
 		.btn-group.col-lg-3.left-search-box
 			.input-group

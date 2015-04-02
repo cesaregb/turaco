@@ -59,6 +59,7 @@ app.set('views', path.join(__dirname, 'views'))
 	.use(passport.session());
 
 app.use(express.static(path.join(__dirname, 'public')));
+app.disable('etag');
 
 app.use(function (req, res, next) {
     req.root = req.protocol + '://' + req.get('host') + '/';
@@ -70,20 +71,18 @@ app.use(function(req, res, next) {
 		res.locals.jsonType = true;
 		if (!req.accepts('json')){
 			res.locals.jsonType = false;
-			console.log("Application specified to accept json");
 		}
 		res.contentType('application/json');
 	}
 	
 	var session = req.session;
 	
-	function checkLoadData(user, callback ){
+	function checkLoadData(user, callback){
 		if (global.refresSessionObject){
 			session.user_lists = null;
 			session.usersListHash = null;
 			session.completeListsObject = null;
 			session.friends = null;
-			
 			SessionObjects.findOne({
 				'uid' : user.uid
 			}).sort({created: 'desc'}).exec(function(err, sessionObj) {
@@ -93,14 +92,15 @@ app.use(function(req, res, next) {
 					var gatherInfoInstance = new loginGatherInfoUser();
 					gatherInfoInstance.getAll(req.user, req.session, function(err, data){
 						if (err){
-							console.log("TURACO_DEBUG - error gettin the user basic information " );
+							console.log("TURACO_DEBUG - ERROR in gatherInfoInstance.getAll " );
 						}else{
-							console.log("TURACO_DEBUG - user information gather complete." );
+							global.userInfoLoaded = true;
+							console.log("TURACO_DEBUG - Success gatherInfoInstance.getAll" );
 						}
 						callback(err);
 					});
 				}else{
-					console.log("TURACO_DEBUG - Loading the updated information to session...");
+					global.userInfoLoaded = true;
 					session.friends = sessionObj.friends;
 					session.usersListHash = sessionObj.usersListHash; 
 					session.completeListsObject = sessionObj.completeListsObject;
@@ -108,7 +108,6 @@ app.use(function(req, res, next) {
 					callback(null);				
 				}
 			});
-			
 		}else{
 			callback(null);
 		}
@@ -127,9 +126,10 @@ app.use(function(req, res, next) {
 		}
 	}else{// dev mode 
 		if (req.session.user == null){
-//				var id = "36063580"; //cesar
-			var id = "1710981037";
-			User.findOne({"uid": id}, function(err, u){ 
+			global.refresSessionObject = true;
+			var id = "36063580"; //cesar
+//			var id = "1710981037";
+			User.findOne({"uid": id}, function(err, u){
 				req.user = u;
 				req.session.user = u;
 				checkLoadData(req.session.user, function(err){
@@ -141,7 +141,6 @@ app.use(function(req, res, next) {
 				
 			});
 		}else{
-			console.log("Getting TURACO USER from session.")
 			req.user = req.session.user;
 			checkLoadData(req.session.user, function(err){
 				if (err){

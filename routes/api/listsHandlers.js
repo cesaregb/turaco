@@ -28,9 +28,9 @@ var pathString = "/api/lists";
  * get lists by user
  * query twitter api with the provided user. 
  * */
-function getListByUser(req, res) {
+function getListByUser(req, res){
 	var _method = "getListByUser";
-	console.log("IN " + fileName + "-" + _method);
+	console.log("IN " + fileName + " - " + _method);
 	try{
 		var session = req.session;
 		var screen_name = req.params.screen_name;
@@ -79,7 +79,7 @@ module.exports.getListByUser = getListByUser;
  * */
 function getUsersListFunction(req, res) {
 	var _method = "getUsersListFunction";
-	console.log("IN " + fileName + "-" + _method);
+	console.log("IN " + fileName + " - " + _method);
 	var session = req.session;
 	var user = null;
 	var uid = null;
@@ -91,7 +91,7 @@ function getUsersListFunction(req, res) {
 			response.timestamp = Date.now; 
 			response.items = session.user_lists;
 			return res.json(json_api_responses.success(response));
-		}else{ 
+		}else{
 			SessionObjects.findOne({
 				'uid' : user.uid
 			}).sort({created: 'desc'}).exec(function(err, sessionObj) {
@@ -122,11 +122,10 @@ function getUsersListFunction(req, res) {
 					var gatherInfoInstance = new loginGatherInfoUser();
 					gatherInfoInstance.getAll(req.user, req.session, function(err, data){
 						if (err){
-							console.log("TURACO_DEBUG - error gettin the user basic information " );
+							console.log("TURACO_DEBUG - ERROR in gatherInfoInstance.getAll " );
 						}else{
-							console.log("TURACO_DEBUG - user information gather complete." );
+							console.log("TURACO_DEBUG - Success gatherInfoInstance.getAll" );
 						}
-						
 					});
 					
 				}else{
@@ -232,7 +231,7 @@ module.exports.getListsUsers = getListsUsers;
 
 function createList (req, res) {
 	var _method = "createList";
-	console.log("IN " + fileName + "-" + _method);
+	console.log("IN " + fileName + " - " + _method);
 	try{
 		var myParams = getParams(req);
 		var uid = null;
@@ -285,12 +284,11 @@ module.exports.createList = createList;
  * delete list 
  * note you dont have to remove existing users is not unfollowing anyone. 
  * */
-function deleteList(req, res) { // 41349136
-	var _method = "delete / (delete list)";
-	console.log("IN " + fileName + "-" + _method);
-	
+function deleteList(req, res) {
+	var _method = "deleteList";
+	console.log("IN " + fileName + " - " + _method);
 	var myParams = getParams(req);
-	var list_id = req.body.list_id;
+	var list_id = req.params.list_id;
 	try{
 		if (req.user){
 			user = req.user;
@@ -298,19 +296,19 @@ function deleteList(req, res) { // 41349136
 			throw error_codes.ACCESS_USER_ERROR;
 		}
 		helper = new listHelpers.ListHelper();
-		console.log("TURACO_DEBUG - getUser");
 		helper.getUser(user, function(err, user){
 			if (err){
 				res.json(json_api_responses.error(error_codes.USER_NOT_FOUND_ERROR, err));
 				return;
 			}else{
-				console.log("TURACO_DEBUG - getTwittObjectFromUser");
 				helper.getTwittObjectFromUser(function(err, twit){
 					if (err){
 						res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
 						return;
 					}
-					console.log("TURACO_DEBUG - deleteList");
+					myParams.owner = user.screen_name;
+					myParams.list_id = list_id;
+					console.log("TURACO_DEBUG - myParams: " + JSON.stringify(myParams));
 					twit.deleteList(user.screen_name, myParams, function(err, data){
 						if (err){
 							return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
@@ -337,9 +335,9 @@ function deleteList(req, res) { // 41349136
 }
 module.exports.deleteList = deleteList;
 
-function deleteAndUnfollow(req, res) { 
+function deleteAndUnfollow(req, res) {
 	var _method = "deleteAndUnfollow";
-	console.log("IN " + fileName + "-" + _method);
+	console.log("IN " + fileName + " - " + _method);
 	var uid = null;
 	var myParams = getParams(req);
 	var finalList = null;
@@ -456,7 +454,7 @@ module.exports.deleteAndUnfollow = deleteAndUnfollow;
 
 function updateList(req, res) {
 	var _method = "updateList";
-	console.log("IN " + fileName + "-" + _method);
+	console.log("IN " + fileName + " - " + _method);
 	var myParams = getParams(req);
 	try{
 		if (req.user){
@@ -512,7 +510,7 @@ module.exports.updateList = updateList;
 
 function subscribe(req, res) {
 	var _method = "subscribe";
-	console.log("IN " + fileName + "-" + _method);
+	console.log("IN " + fileName + " - " + _method);
 	var uid = req.body.uid;
 	var myParams = getParams(req); 
 	try{
@@ -556,7 +554,7 @@ module.exports.subscribe = subscribe;
 
 function unsubscribe(req, res) {
 	var _method = "unsubscribe";
-	console.log("IN " + fileName + "-" + _method);
+	console.log("IN " + fileName + " - " + _method);
 	var uid = req.body.uid;
 	var myParams = getParams(req); 
 	var list_id = req.body.list_id;
@@ -604,7 +602,7 @@ module.exports.unsubscribe = unsubscribe;
 
 function getSubscriptions(req, res) {
 	var _method = "getSubscriptions";
-	console.log("IN " + fileName + "-" + _method);
+	console.log("IN " + fileName + " - " + _method);
 
 	var uid = null;
 	var myParams = {};
@@ -651,7 +649,7 @@ module.exports.getSubscriptions = getSubscriptions;
 
 function cloneList(req, res){
 	var _method = "cloneList";
-	console.log("IN " + fileName + "-" + _method);
+	console.log("IN " + fileName + " - " + _method);
 	var uid = null;
 	var list_id = null;
 	var finalList = null;
@@ -779,7 +777,7 @@ module.exports.cloneList = cloneList;
 
 function cloneNoFollow(req, res){
 	var _method = "cloneList";
-	console.log("IN " + fileName + "-" + _method);
+	console.log("IN " + fileName + " - " + _method);
 	var uid = null;
 	var list_id = null;
 	var myParams = getParams(req);
@@ -894,7 +892,7 @@ module.exports.cloneNoFollow = cloneNoFollow;
 
 function membersCreateAll(req, res){
 	var _method = "membersCreateAll";
-	console.log("IN " + fileName + "-" + _method);
+	console.log("IN " + fileName + " - " + _method);
 	var uid = null;
 	var list_id = req.body.list_id;
 	var users_list = req.body.users_list
@@ -921,7 +919,7 @@ function membersCreateAll(req, res){
 					}else{
 						global.refresSessionObject = true;
 						sessionHelper = new sessionObjectHelpers({param:"nel"});
-						sessionHelper.membersCreateAll(user, list_id, users_list, function(err, code){
+						sessionHelper.membersCreateAll(user, list_id, users_list, twit, function(err, code){
 							if (err){
 								return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
 							}else{
@@ -941,7 +939,7 @@ module.exports.membersCreateAll = membersCreateAll;
 
 function membersDestroyAll(req, res){
 	var _method = "membersDestroyAll";
-	console.log("IN " + fileName + "-" + _method);
+	console.log("IN " + fileName + " - " + _method);
 	var uid = null;
 	var list_id = req.body.list_id;
 	var users_list = req.body.users_list
@@ -954,25 +952,21 @@ function membersDestroyAll(req, res){
 			throw error_codes.ACCESS_USER_ERROR;
 		}
 		helper = new listHelpers.ListHelper();
-		console.log("TURACO_DEBUG - getUser");
 		helper.getUser(user, function(err, user){
 			if (err){
 				return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
 			}
-			console.log("TURACO_DEBUG - getTwittObjectFromUser");
 			helper.getTwittObjectFromUser(function(err, twit){
 				if (err){
 					return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
 				}
-				console.log("TURACO_DEBUG - destroyListMembers: " + list_id + " -- " + users_list);
 				twit.destroyListMembers(list_id, users_list, function(err, data){
 					if (err){
 						return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
 					}else{
-						console.log("TURACO_DEBUG - refresSessionObject");
 						global.refresSessionObject = true;
 						sessionHelper = new sessionObjectHelpers({param:"nel"});
-						sessionHelper.listRefreshUsers(user, list_id, twit, function(err, data){
+						sessionHelper.listRefreshUsers(user, list_id, users_list, twit, function(err, data){
 							if (err){
 								return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
 							}else{
@@ -995,7 +989,7 @@ module.exports.membersDestroyAll = membersDestroyAll;
  * */
 function getListUsers(req, res) {
 	var _method = "getListUsers";
-	console.log("IN " + fileName + "-" + _method);
+	console.log("IN " + fileName + " - " + _method);
 	var session = req.session;
 	var list_id = req.params.list_id;
 	var user = null;
@@ -1036,8 +1030,7 @@ function getListUsers(req, res) {
 			helper.getUser(user, function(err, user){
 				if (err){
 					console.error("Error getting the logged user from the database");
-					res.json(json_api_responses.error(error_codes.USER_NOT_FOUND_ERROR, err));
-					return;
+					return res.json(json_api_responses.error(error_codes.USER_NOT_FOUND_ERROR, err));
 				}
 				helper.getTwittObjectFromUser(function(err, twit){
 					if (err){
@@ -1105,6 +1098,7 @@ function getParams(req){
 			description		: description,
 			owner_screen_name:owner_screen_name,
 			owner_id		: owner_id
-	}; 
+	};
+	
 	return myParams; 
 }

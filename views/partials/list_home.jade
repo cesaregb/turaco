@@ -3,7 +3,8 @@
 		span.glyphicon.glyphicon-exclamation-sign(aria-hidden='true')
 		span.sr-only Error:
 		|  {{error_message}}
-	div.alert.alert-info(ng-show="loading") Loading
+	div.alert.alert-info(ng-show="info") {{info_message}}
+	div.alert.alert-info(data-loading) Loading...
 	.row.col-md-12(style='padding-bottom:10px;')
 		.btn-group.pull-right
 			a.btn.btn-default.btn-sm(href='/lists/add_list', type='button')
@@ -36,3 +37,22 @@
 							td {{list.member_count}}
 							td {{list.description}}
 							td
+								.btn-group.pull-right
+									a.btn.btn-default.btn-sm(type='button', href='/lists/edit_list/{{list.id}}') Edit
+									| &#x9;&#x9;&#x9;
+									| &#x9;&#x9;&#x9;&#x9;
+									a.btn.btn-default.btn-sm(type='button', ng-click='openConfirmModal(list)') Delete
+									| &#x9;&#x9;&#x9;
+									| &#x9;&#x9;&#x9;&#x9;
+									a.btn.btn-default.btn-sm(type='button', href='https://twitter.com{{list.uri}}', target='_blank') Open
+	script(type='text/ng-template', id='modalConfirmContainer.html')
+		.modal-header
+			h3.modal-title Confirm
+		|         
+		.modal-body
+			{{modal_message_confirm}}
+		|         
+		.modal-footer
+			button.btn.btn-primary(ng-click='ok()') OK
+			|             
+			button.btn.btn-warning(ng-click='cancel()') Cancel

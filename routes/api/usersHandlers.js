@@ -5,6 +5,7 @@ var turacoError = require('../../config/error_codes');
 var json_api_responses = require('../../config/responses')();
 var error_codes = turacoError.error_codes;
 var listHelpers = require('../../utils/list_helpers');
+var TwitterCommonObjectHelpers = require('../../utils/twitterCommonObject_helpers');
 var twitter = require('ntwitter');
 var User = require('../../app/models/user');
 var List = require('../../app/models/list');
@@ -18,7 +19,7 @@ var pathString = "/api/users";
 /* *********Request function ********** */
 function getUserFromSession(req, res) {
 	var _method = "getUserFromSession";
-	console.log("IN " + fileName + "-" + _method);
+	console.log("IN " + fileName + " - " + _method);
 	if (req.user){
 		user = req.user;
 		var twit = twitterController(user.token, user.tokenSecret);
@@ -44,7 +45,7 @@ module.exports.getUserFromSession = getUserFromSession;
 
 function getTwitterUser(req, res) {
 	var _method = "getTwitterUser";
-	console.log("IN " + fileName + "-" + _method);
+	console.log("IN " + fileName + " - " + _method);
 	if (req.user){
 		var uid = req.params.uid;
 		user = req.user;
@@ -355,7 +356,7 @@ module.exports.getFilteredFriends = getFilteredFriends;
 
 function searchUser(req, res) {
 	var _method = "searchUser";
-	console.log("IN " + fileName + "-" + _method);
+	console.log("IN " + fileName + " - " + _method);
 	var search = req.params.search;
 	var session = req.session;
 	var user = null;
@@ -395,6 +396,198 @@ function searchUser(req, res) {
 	}
 }
 module.exports.searchUser = searchUser;
+
+/*
+ * get the loged user closes trends...
+ * */
+function getTrendsPlace(req, res) {
+	var _method = "getTrendsPlace";
+	console.log("IN " + fileName + " - " + _method);
+	var place_id = req.params.id;
+	var params = {id : place_id};
+	var session = req.session;
+	var user = null;
+	if (req.user){
+		user = req.user;
+	}else{
+		return res.json(json_api_responses.error(error_codes.ACCESS_USER_ERROR, err));
+	}
+	helper = new listHelpers.ListHelper();
+	helper.getUser(user, function(err, user){
+		if (err){
+			return res.json(json_api_responses.error(error_codes.USER_NOT_FOUND_ERROR, err));
+		}
+		helper.getTwittObjectFromUser(function(err, twit){
+			if (err){
+				return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
+			}
+			twit.getTrendsPlace(params, function(err, data){
+				if (err){
+					return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
+				}else{
+					var finalObject = data;
+					result = {};
+					if (data.length > 0 ){
+						//which one should be selected!! 
+						finalObject = data[0];
+					}
+					result.trends_info = finalObject;
+					return res.json(json_api_responses.success(result));
+				}
+			});
+		});
+	});
+}
+module.exports.getTrendsPlace = getTrendsPlace;
+
+/*
+ * get the loged user closes trends...
+ * */
+function getSavedSearches(req, res) {
+	var _method = "getSavedSearches";
+	console.log("IN " + fileName + " - " + _method);
+	var place_id = req.params.id;
+	var params = {id : place_id};
+	var session = req.session;
+	var user = null;
+	if (req.user){
+		user = req.user;
+	}else{
+		return res.json(json_api_responses.error(error_codes.ACCESS_USER_ERROR, err));
+	}
+	helper = new listHelpers.ListHelper();
+	helper.getUser(user, function(err, user){
+		if (err){
+			return res.json(json_api_responses.error(error_codes.USER_NOT_FOUND_ERROR, err));
+		}
+		helper.getTwittObjectFromUser(function(err, twit){
+			if (err){
+				return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
+			}
+			twit.getSavedSearches(params, function(err, data){
+				if (err){
+					return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
+				}else{
+					return res.json(json_api_responses.success(data));
+				}
+			});
+		});
+	});
+}
+module.exports.getSavedSearches = getSavedSearches;
+
+
+function getTrendsClosest(req, res) {
+	var _method = "getTrendsClosest";
+	console.log("IN " + fileName + " - " + _method);
+	var lat = req.params.lat;
+	var long = req.params.long;
+	var params = {lat : lat, long: long};
+	var session = req.session;
+	var user = null;
+	if (req.user){
+		user = req.user;
+	}else{
+		return res.json(json_api_responses.error(error_codes.ACCESS_USER_ERROR, err));
+	}
+	helper = new listHelpers.ListHelper();
+	var twit = null;
+	var result = {};
+	async.waterfall([
+		function(callback){
+			helper.getUser(user, callback);
+		},
+		function(user, callback){
+			helper.getTwittObjectFromUser(callback);
+		},
+		function(_twit, user, callback){
+			twit = _twit;
+			twit.getTrendsClosest(params, callback);
+		},
+		function(data, rate_limit, callback){
+			if (typeof rate_limit == "function"){
+				callback = rate_limit;
+			}
+			var finalObject = data;
+			if (data.length > 0 ){
+				//which one should be selected!! 
+				finalObject = data[0];
+			}
+			woeid = finalObject.woeid;
+			result.place = finalObject;
+			params = {id: woeid};
+			twit.getTrendsPlace(params, callback);
+		},
+		function(data, rate_limit, callback){
+			if (typeof rate_limit == "function"){
+				callback = rate_limit;
+			}
+			var finalObject = data;
+			if (data.length > 0 ){
+				//which one should be selected!! 
+				finalObject = data[0];
+			}
+			result.trends_info = finalObject;
+			callback(null, result)
+			
+		}], function (err, result) {
+			if (err){ 
+				console.log("TURACO_DEBUG - Error on the waterfall: " + err); 
+				return res.json(json_api_responses.error(err));
+			}
+			return res.json(json_api_responses.success(result));
+		}
+	);
+}
+module.exports.getTrendsClosest = getTrendsClosest;
+
+function getTrendsAvailable(req, res) {
+	var _method = "getTrendsAvailable";
+	console.log("IN " + fileName + " - " + _method);
+	var place_id = req.params.id;
+	var params = {};
+	var session = req.session;
+	var user = null;
+	if (req.user){
+		user = req.user;
+	}else{
+		console.log("TURACO_DEBUG - getting values form database ");
+		return res.json(json_api_responses.error(error_codes.ACCESS_USER_ERROR, err));
+	}
+	var twitterCommonObjectHelpers = new TwitterCommonObjectHelpers();
+	twitterCommonObjectHelpers.initialize({autoCreate : true}, function(err, twitterCommonObjects, isNew){
+		if (!isNew ){ // if today we have brought the lists 
+			return res.json(json_api_responses.success(twitterCommonObjects.trendsAvailable));
+		}else{
+			helper = new listHelpers.ListHelper();
+			helper.getUser(user, function(err, user){
+				if (err){
+					return res.json(json_api_responses.error(error_codes.USER_NOT_FOUND_ERROR, err));
+				}
+				helper.getTwittObjectFromUser(function(err, twit){
+					if (err){
+						return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
+					}
+					twit.getTrendsAvailable(params, function(err, data){ //getting trends from database... 
+						if (err){
+							return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
+						}else{
+							//save information ....
+							twitterCommonObjectHelpers.saveTrendsAvailable(data, function(err, result){
+								if (err){
+									return res.json(json_api_responses.error(err));
+								}else{
+									return res.json(json_api_responses.success(data));
+								}
+							});
+						}
+					});
+				});
+			});
+		}
+	});
+}
+module.exports.getTrendsAvailable = getTrendsAvailable;
 
 function getParams(req){
 	var uid = req.body.uid;

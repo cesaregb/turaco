@@ -21,7 +21,7 @@ router.put('/', handler.createList);
 /*
  * Delete a list 
  * */
-router.delete('/', handler.deleteList);
+router.delete('/:list_id', handler.deleteList);
 
 /*
  * Delete a list and unfollow all the users from that list. 

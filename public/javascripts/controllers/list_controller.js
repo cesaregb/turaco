@@ -1,16 +1,45 @@
-define(['./module', './message_helper',  './accounts_helper', './list_manageListUsersController'], function (module) {
+define(['./module', './message_helper',  './accounts_helper', './list_manageListUsersController'],
+function (module) {
 	module.controller('listController', ['$scope', 'listFactory', 'userFactory', '$location', '$routeParams', 'filterFilter', '$modal',
-	function ($scope, listFactory, userFactory, $location, $routeParams, filterFilter, $modal) {
+	function ($scope, listFactory, userFactory, $location, $routeParams, filterFilter, $modal, $rootScope) {
 		createMessageHelper($scope, null);
-
 		function init(){
 			var path = $location.$$path; // get the path for initialization per page.
-			if (path == '/lists/index'){
+			if (path == '/lists'){
 				/*SHOW LISTS INIT PAGE*/
 				createGetListsByLoggedUser($scope, listFactory, null);
+				crateConfirmModal($scope, $modal, null);
+				var varAction = $routeParams.action;
 				if ($scope.lists == null || $scope.refresh){
 					$scope.getListsByLoggedUser();
 				}
+				//DISABLED TO AVOID REPETING A MESSAGE THAT MAY NO BE APPLICABLE.
+				if (varAction != null && varAction != "undefined" && false) {
+					$scope.$emit('AJAX_SUCCESS');
+				}
+
+				$scope.openConfirmModal = function(list){
+					var message = "Are you sure you want to delete list: " + list.name + " ?";
+					$scope.open_modal(message, function(err, response){
+						if(!err){
+							$scope.refresh = true;
+
+							listFactory.deleteList(list).success(function (response){
+								var result = response;
+								if (result.type == "SUCCESS"){
+									$scope.getListsByLoggedUser();
+									$scope.$emit('AJAX_SUCCESS');
+								}else {
+									$scope.$emit('ERROR_SHOW');
+								}
+							}).error(function (error) {
+								$scope.$emit('ERROR_SHOW');
+							});
+						}
+					});
+				};
+
+
 			}else if(path.indexOf("lists/view_users") > 0){
 				/* VIEW LIST USERS... */
 				var list_id = $routeParams.list_id;
@@ -24,46 +53,69 @@ define(['./module', './message_helper',  './accounts_helper', './list_manageList
 				$scope.list.mode = "public";
 				$scope.saveList = function(){
 					$scope.refresh = true;
-					$scope.$emit('LOAD')
-					listFactory.saveList($scope.list).success(function (response) {
-						$scope.$emit('UNLOAD')
+
+					listFactory.saveList($scope.list).success(function (response){
+
 						var result = response;
 						if (result.type == "SUCCESS"){
-							$location.path('/lists/index')
-						}
+							$location.path('/lists/index').search({action: 'true'});
+						}else{$scope.$emit('ERROR_SHOW');}
 					}).error(function (error) {
-						$scope.$emit('UNLOAD')
-						console.log("Error on the service: " + error);
-						$scope.status = 'Unable to load lists data: ' + error.message;
+						$scope.$emit('ERROR_SHOW');
 					});
-				}
-			}else{
+				};
+			}else if(path.indexOf("lists/edit_list") > 0){
+				var list_id = $routeParams.list_id;
+				//get the list and load values to
 
+				var listsByLoggedUserCallback = function(err, result){
+					var lists = result.data.items;
+					for (var index in lists){
+						if (lists[index].id == list_id){
+							// assigning values to the form... for editing...
+							$scope.list = lists[index];
+						}
+					}
+				};
+				createGetListsByLoggedUser($scope, listFactory, function(err, res){
+					$scope.getListsByLoggedUser(listsByLoggedUserCallback);
+				});
+
+				$scope.saveList = function(){
+					$scope.refresh = true;
+
+					listFactory.updateList($scope.list).success(function (response){
+
+						var result = response;
+						if (result.type == "SUCCESS"){
+							$location.path('/lists/index').search({action: 'true'});
+						}else{$scope.$emit('ERROR_SHOW');}
+					}).error(function (error) {
+						$scope.$emit('ERROR_SHOW');
+					});
+				};
+
+			}else{
+				//PLACE HOLDER FOR A URL PATTERN DIDNT MATCHED..
 			}
 		}
 
 		init();
 
 		$scope.refreshList = function(){
-			$scope.$emit('LOAD');
 			listFactory.getUserLists().success(function (response) {
-				$scope.$emit('UNLOAD')
 				var result = response;
 				if (result.type == "SUCCESS"){
 					$scope.lists = result.data.items;
-				}
+				}else{$scope.$emit('ERROR_SHOW');}
 			}).error(function (error) {
-				$scope.$emit('UNLOAD')
-				console.log("Error on the service: " + error);
-				$scope.status = 'Unable to load lists data: ' + error.message;
+				$scope.$emit('ERROR_SHOW');
 			});
 		};
 
 		$scope.openDialog = function(){
 			$dialog.dialog({}).open('<div>this is the modal</div>');
-		}
-
-
+		};
 
 	}]);
 });

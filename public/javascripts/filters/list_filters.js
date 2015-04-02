@@ -1,7 +1,8 @@
 
 define(['./module'], function (module) {
     'use strict';
-	module.filter('typeFilter', function () {
+
+   module.filter('typeFilter', function () {
 		if (true){
 			return function (input, scope) {
 				console.log("TURACO_DEBUG - input: " );
@@ -18,14 +19,14 @@ define(['./module'], function (module) {
 				}
 				$scope.friends = users;
 				return users;
-				
+
 			};
 		}else{
 			console.log("entro en else");
 			return function () {return;};
 		}
     });
-	
+
 	module.filter('startFrom', function () {
 		return function(input, start) {
 	        if(input) {
@@ -33,7 +34,38 @@ define(['./module'], function (module) {
 	            return input.slice(start);
 	        }
 	        return [];
-	    }
+	    };
 	});
-});
 
+
+   module.filter('propsFilter', function() {
+      return function(items, props) {
+         var out = [];
+
+         if (angular.isArray(items)) {
+            items.forEach(function(item) {
+               var itemMatches = false;
+
+               var keys = Object.keys(props);
+               for (var i = 0; i < keys.length; i++) {
+                  var prop = keys[i];
+                  var text = props[prop].toLowerCase();
+                  if (item[prop].toString().toLowerCase().indexOf(text) !== -1) {
+                     itemMatches = true;
+                     break;
+                  }
+               }
+
+               if (itemMatches) {
+                  out.push(item);
+               }
+            });
+         } else {
+            // Let the output be the input untouched
+            out = items;
+         }
+
+         return out;
+      }
+   });
+});

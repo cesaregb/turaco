@@ -12,6 +12,7 @@ router.get('/partials/:name', function(req, res) {
 });
 
 router.get('*', function(req, res) {
+	console.log("TURACO_DEBUG - within node router for lists");
 	if (req.session.user == null){
 		res.redirect('/');
 	}

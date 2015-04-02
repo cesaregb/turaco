@@ -10,6 +10,7 @@ var listSchema = mongoose.Schema({
 	member_count	: { type: Number, min: 0 },
 	mode			: String,
 	description		: String,
+	uri				: String,
 	full_name		: String,
 	user			: {
 		id			: { type: Number, min: 0 },
@@ -17,7 +18,9 @@ var listSchema = mongoose.Schema({
 		screen_name	: String
 	},
 	created			: {type: Date, "default": Date.now},
+	twiter_list		: Object,
 	active			: { type: Number, min: 0 }
+	
 });
 
 module.exports = mongoose.model('List', listSchema);

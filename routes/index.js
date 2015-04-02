@@ -11,25 +11,53 @@ var loginGatherInfoUser = require('../lib/loginGatherInfoUser');
 var router = express.Router();
 
 router.get('/', function(req, res) {
+console.log("TURACO_DEBUG - within node router for lists");
 	if (req.user == null){
 		console.log('**** User not loggeed');
 		res.render('index', { title: 'Turaco', login_status: false});
 	}else{
+		console.log("TURACO_DEBUG - user existing");
 		if (!global.userInfoLoaded){
 			var session = req.session;
 			var gatherInfoInstance = new loginGatherInfoUser();
 			gatherInfoInstance.getAll(req.user, req.session, function(err, data){
 				if (err){
-					console.log("TURACO_DEBUG - error gettin the user basic information " );
+					console.log("TURACO_DEBUG - ERROR in gatherInfoInstance.getAll " );
 				}else{
-					console.log("TURACO_DEBUG - user information gather complete.");
+					global.userInfoLoaded = true;
+					console.log("TURACO_DEBUG - Success gatherInfoInstance.getAll" );
 				}
-				console.log('**** User loggeed: ' + req.user.username);
-				res.render('index', { title: 'Turaco', login_status: true, "user" : req.user });
+				res.render('index_logged', { title: 'Turaco', login_status: true, "user" : req.user });
 			});
+		}else{
+			res.render('index_logged', { title: 'Turaco', login_status: true, "user" : req.user });
 		}
-//		console.log('**** User loggeed: ' + req.user.username);
-//		res.render('index', { title: 'Turaco', login_status: true, "user" : req.user });
+	}
+});
+
+router.get('/home', function(req, res) {
+	console.log("TURACO_DEBUG - within node router for lists");
+	
+	if (req.user == null){
+		console.log('**** User not loggeed');
+		res.render('index', { title: 'Turaco', login_status: false});
+	}else{
+		console.log("TURACO_DEBUG - user existing");
+		if (!global.userInfoLoaded){
+			var session = req.session;
+			var gatherInfoInstance = new loginGatherInfoUser();
+			gatherInfoInstance.getAll(req.user, req.session, function(err, data){
+				if (err){
+					console.log("TURACO_DEBUG - ERROR in gatherInfoInstance.getAll " );
+				}else{
+					global.userInfoLoaded = true;
+					console.log("TURACO_DEBUG - Success gatherInfoInstance.getAll" );
+				}
+				res.render('index_logged', { title: 'Turaco', login_status: true, "user" : req.user });
+			});
+		}else{
+			res.render('index_logged', { title: 'Turaco', login_status: true, "user" : req.user });
+		}
 	}
 });
 

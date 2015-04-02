@@ -1,9 +1,10 @@
 #containerLists.container
-	alert.alert-danger(role='alert', ng-show="error")
+	.alert.alert-danger(role='alert', ng-show="error")
 		span.glyphicon.glyphicon-exclamation-sign(aria-hidden='true')
 		span.sr-only Error:
 		|  {{error_message}}
-	div.alert.alert-info(ng-show="loading") Loading
+	div.alert.alert-info(ng-show="info") {{info_message}}
+	div.alert.alert-info(data-loading) Loading...
 	div.row
 		.col-md-2.col-md-offset-5 Add List
 		.col-md-2.col-md-offset-1(style='padding-bottom:10px;')
@@ -34,7 +35,7 @@
 								input(type='radio', name='privacy', value='private', ng-model="list.mode") 
 								| private
 					.col-md-offset-8
-						button.btn.btn-default(type='button', data-dismiss='modal') Cancel
+						a.btn.btn-default(type='button', data-dismiss='modal', href='/lists/index') Cancel
 						button.btn.btn-primary(type='button', ng-click="saveList() ") Save 
 //					.form-group
 //						label.control-label.col-xs-2(for='list-category') Category

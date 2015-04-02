@@ -1,11 +1,8 @@
 /**
-* build helper for account management.
+* build helper for checkbox handling..
 */
 function createCheckboxHandlers($scope, callback){
 	var fnName = "createCheckboxHandlers";
-	/*
-	* select users for assigning.. basic logic..
-	* */
 	$scope.userSelected = function(user){
 		user.checked = !user.checked;
 		console.log("TURACO_DEBUG - addig or removing user. " + user.checked);
@@ -14,35 +11,34 @@ function createCheckboxHandlers($scope, callback){
 		}else{
 			delete $scope.usersArray[user.screen_name];
 		}
-		/*
-		* add user to a hashkind of, to be able to add it or remove it quickly...
-		* */
-	}
+	};
 
 	$scope.isSelected = function(user){
 		return ($scope.usersArray[user.screen_name] != null);
-	}
+	};
 
 	$scope.isFollowing = function(user){
 		return !user.following;
-	}
-
-	function getSelectedIds(callback){
-		var user_id_list = "";
-		for (var i in $scope.usersArray) {
-			if ($scope.usersArray.hasOwnProperty(i)) {
-				user_id_list += $scope.usersArray[i].id + ",";
-			}
-		}
-		user_id_list = user_id_list.substring(0, (user_id_list.length - 1 ));
-		callback(null, user_id_list);
-	}
+	};
 
 	if (callback != null){ callback(null, fnName) }
 }
 
+function getSelectedIds(array, callback){
+	var user_id_list = "";
+	for (var i in array) {
+		if (array.hasOwnProperty(i)) {
+			user_id_list += array[i].id + ",";
+		}
+	}
+	user_id_list = user_id_list.substring(0, (user_id_list.length - 1 ));
+	callback(null, user_id_list);
+}
 
-function crateListModal($scope, callback){
+/*
+	create the Fn to create the Modal (show / hide)
+*/
+function crateListModal($scope, $modal, callback){
 	var fnName = "crateListModal";
 	//open modal window for selecting the list to add
 	$scope.open = function (size) {
@@ -59,58 +55,86 @@ function crateListModal($scope, callback){
 		});
 
 		modalInstance.result.then(function (selectedItem) {
-			console.log("TURACO_DEBUG - callback from modal: " + JSON.stringify(selectedItem));
-			$scope.assignUsers2List(selectedItem);
+			var getListsByLoggedUserCallback = null;
+			if (typeof $scope.getListsByLoggedUser == "function"){
+				// this updates the users on the list, then we update the scope with the proper list in case of needed...
+				getListsByLoggedUserCallback = function(err, res){
+					if (!err)
+						$scope.getListsByLoggedUser();
+				};
+			}
+			$scope.assignUsers2List(selectedItem, getListsByLoggedUserCallback);
 		}, function () {
 			console.log('Modal dismissed at: ' + new Date());
 		});
 	};
 
-	if (callback != null){ callback(null, fnName) }
+	if (callback != null){ callback(null, fnName); }
 }
 
+/*
+	Create Fn to call ajax call to "assign users" to lists
+*/
 function createAssignUser2List($scope, listFactory, callback){
 	var fnName = "createAssignUser2List";
 	/*
 	* assign user to lists
 	* */
-	$scope.assignUsers2List = function(_list){
+	$scope.assignUsers2List = function(_list, assignUsers2ListCallback){
 		$scope.refresh = true;
 		var assignList = null;
-		console.log("TURACO_DEBUG - list: " + JSON.stringify(_list));
 		if (_list != null && _list != "undefined"){
 			assignList = _list;
+		}else{
+			assignList = $scope.list_selected;
 		}
-		if (false){
-			/* call the service */
-			if (typeof getSelectedIds === "function"){
-				getSelectedIds(function(err, user_id_list){
-					user_id_list = user_id_list.substring(0, (user_id_list.length - 1 ));
-					console.log("TURACO_DEBUG - within assignUsers2List \n list: " + $scope.list_selected + "\n users: " + user_id_list);
 
-					/*call service to add items to the list.. */
-					$scope.$emit('LOAD');
-					listFactory.membersCreateAll($scope.list_selected.id, user_id_list).success(function (response) {
-						$scope.$emit('UNLOAD')
+		/* call the service */
+		if (typeof getSelectedIds === "function"){
+			getSelectedIds($scope.usersArray, function(err, user_id_list){
+				user_id_list = user_id_list.substring(0, (user_id_list.length - 1 ));
+				/*call service to add items to the list.. */
+				var validation_error = false;
+				//Validate
+				var error = null;
+				var result = null;
+				if (assignList == null || assignList == ""){
+					validation_error = true;
+					$scope.error_message = "No list selected";
+					error = $scope.error_message;
+					$scope.$emit('ERROR_SHOW');
+				}
+				if (user_id_list == null || user_id_list == "" || user_id_list.length == 0){
+					validation_error = true;
+					$scope.error_message = "No users selected";
+					error = $scope.error_message;
+					$scope.$emit('ERROR_SHOW');
+				}
+				if (!validation_error){
+					listFactory.membersCreateAll(assignList.id, user_id_list).success(function (response) {
 						var result = response;
 						if (result.type == "SUCCESS"){
-							$scope.$emit('ERROR_HIDE');
+							$scope.$emit('AJAX_SUCCESS');
 							/*call get the lists again.. */
-							$scope.loadUserLists();
+							result = response;
 						}else{
-							console.log("Error on the service: " + response);
+							error = "Error on the service";
+							$scope.$emit('ERROR_SHOW');
 						}
-					}).error(function (error) {
-						$scope.$emit('UNLOAD')
-						console.log("Error on the service: " + error);
-						$scope.status = 'Unable to load lists data: ' + error.message;
+					}).error(function (_error) {
+						error = _error;
+						$scope.$emit('ERROR_SHOW');
 					});
-				});
-			}else{
-				console.log("TURACO_DEBUG - getSelectedIds NOT DECLARED");
-			}
+				}
+				if (typeof assignUsers2ListCallback == "function"){
+					assignUsers2ListCallback(error, result);
+				}
+			});
+		}else{
+			$scope.$emit('ERROR_SHOW');
+			console.log("TURACO_DEBUG - getSelectedIds NOT DECLARED");
 		}
-	}
+	};
 
 	if (callback != null){ callback(null, fnName) }
 }
@@ -121,42 +145,34 @@ function createGetListsByLoggedUser($scope, listFactory, callback){
 	* get user lists
 	* */
 	$scope.getListsByLoggedUser = function(listsByLoggedUserCallback){
-		$scope.$emit('LOAD')
 		listFactory.getListsByLoggedUser().success(function (response) {
-			$scope.$emit('UNLOAD')
 			var result = response;
 			var error = null;
 			if (result.type == "SUCCESS"){
-				$scope.$emit('ERROR_HIDE');
 				$scope.lists = result.data.items;
 			}else{
-				error = "Error on the service: "
-				console.log("Error on the service: " + response);
+				error = "Error on the service: ";
+				$scope.$emit('ERROR_SHOW');
 			}
-			if (listsByLoggedUserCallback != null){listsByLoggedUserCallback(error, response);}
+			if (listsByLoggedUserCallback != null){ listsByLoggedUserCallback(error, response); }
 		}).error(function (error) {
-			$scope.$emit('UNLOAD')
-			console.log("Error on the service: " + error);
-			$scope.error_message = 'Unable to load lists data: ' + error.message;
-			if (listsByLoggedUserCallback != null){listsByLoggedUserCallback(error, null);}
+			$scope.$emit('ERROR_SHOW');
+			if (listsByLoggedUserCallback != null){ listsByLoggedUserCallback(error, null); }
 		});
-	}
+	};
 
-	if (callback != null){ callback(null, fnName) }
+	if (callback != null){ callback(null, fnName); }
 }
 
-function createGetUserFriends($scope, userFactory, callback){
+function createGetUserFriends($scope, userFactory, filterFilter, callback){
 	var fnName = "createGetUserFriends";
 	/*
 	* get user friends
 	* */
 	$scope.getUserFriends = function() {
-		$scope.$emit('LOAD');
 		userFactory.getUserFriends().success(function (response) {
-			$scope.$emit('UNLOAD')
 			var result = response;
 			if (result.type == "SUCCESS"){
-				$scope.$emit('ERROR_HIDE');
 				$scope.friends_count = result.data.friends_count;
 				if (parseInt(result.data.friends_count) > 1000){
 					$scope.warning_not_all_friends = true;
@@ -169,37 +185,62 @@ function createGetUserFriends($scope, userFactory, callback){
 				}
 			}else{
 				$scope.$emit('ERROR_SHOW');
-				console.log("Error on the service: " + response);
 			}
 		}).error(function(error, status, header, config) {
-			$scope.$emit('ERROR_SHOW'); $scope.$emit('UNLOAD');
-			console.log("Error on the service: " + error);
-			$scope.error_message = 'Unable to load lists data: ' + error.message;
+			$scope.$emit('ERROR_SHOW');
 		});
+	};
+
+	if (callback != null){ callback(null, fnName); }
+}
+
+function createGetListUsers($scope, listFactory, callback){
+	var fnName = "createGetListUsers";
+	$scope.getListUsers = function(list_id){
+		if (list_id == null ||  list_id == ""){
+			$scope.error_message = "No list selected";
+			$scope.$emit('ERROR_SHOW');
+		}else{
+			listFactory.getListUsers(list_id).success(function (response) {
+				var result = response;
+				if (result.type == "SUCCESS"){
+					$scope.users = result.data.users;
+				}else{
+					$scope.$emit('ERROR_SHOW');
+				}
+			}).error(function (error) {
+				$scope.$emit('ERROR_SHOW');
+			});
+		}
 	};
 
 	if (callback != null){ callback(null, fnName) }
 }
 
-function createGetUserFriends($scope, listFactory, callback){
-	var fnName = "createGetUserFriends";
-	$scope.getListUsers = function(list_id){
-		$scope.$emit('LOAD');
-		listFactory.getListUsers(list_id).success(function (response) {
-			$scope.$emit('UNLOAD')
-			var result = response;
-			if (result.type == "SUCCESS"){
-				$scope.$emit('ERROR_HIDE');
-				$scope.users = result.data.users;
-			}else{
-				$scope.$emit('ERROR_SHOW');
+function crateConfirmModal($scope, $modal, callback){
+	var fnName = "crateConfirmModal";
+	//open modal window for selecting the list to add
+	$scope.open_modal = function (modal_message_confirm, modalCallback) {
+		size = 'sm';
+		var modalInstance = $modal.open({
+			templateUrl: 'modalConfirmContainer.html',
+			controller: 'modalConfirmContainer',
+			size: size,
+			resolve: {
+				modal_message_confirm: function () {
+					return modal_message_confirm;
+				}
 			}
-		}).error(function (error) {
-			$scope.$emit('ERROR_SHOW');
-			$scope.$emit('UNLOAD')
-			console.log("Error on the service: " + error);
 		});
-	}
+
+		modalInstance.result.then(function (response) {
+			if (response){
+				modalCallback(null, response);
+			}else modalCallback(response);
+		}, function () {
+			console.log('Confirm Modal dismissed at: ' + new Date());
+		});
+	};
 
 	if (callback != null){ callback(null, fnName) }
 }
