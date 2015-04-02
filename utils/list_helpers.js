@@ -79,13 +79,20 @@ ListHelper.prototype.getTwittObjectFromUser = function (user, callback){
 			callback("Error not user getTwittObjectFromUser", null, null);
 		}else{
 			twit = twitterController(user.token, user.tokenSecret);
-			twit.verifyCredentials(function(err, data) {
-				if (err){
-					callback(err, null, null);
-				}else{
-					callback(null, twit, user);
-				}
-			});
+			console.log("TURACO_DEBUG - global.verify_credentials: " + global.verify_credentials);
+			if (global.verify_credentials != true){
+				// if the session havent been verified! ...
+				twit.verifyCredentials(function(err, data) {
+					if (err){
+						callback(err, null, null);
+					}else{
+						global.verify_credentials = true;
+						callback(null, twit, user);
+					}
+				});
+			}else{
+				callback(null, twit, user);
+			}
 		}
 	}catch(ex){
 		callback(error_codes.SERVICE_ERROR, twit, user);

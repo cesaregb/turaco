@@ -32,7 +32,7 @@ function (module) {
             createGetListsByLoggedUser($scope, listFactory, null);
 
             $scope.getTrendsPlace = function(woeid, callback){
-               //userFactory.getTrendsPlace(woeid).success(handleTrendsReponse).error($scope.handleErrorResponse);
+               userFactory.getTrendsPlace(woeid).success(handleTrendsReponse).error($scope.handleErrorResponse);
             };
 
             $scope.getTrendsByLocation = function(lat, long){
@@ -126,6 +126,7 @@ function (module) {
             $scope.selectedPlace = null; // red.
 
             $scope.searchChanged = function (value) {
+               console.log("TURACO_DEBUG - searchChanged: " + JSON.stringify(value) );
                var woeid = value.woeid;
                $scope.getTrendsPlace(woeid);
             };

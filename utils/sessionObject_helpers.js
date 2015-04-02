@@ -1,5 +1,6 @@
 /**
  * List helpers
+ * DATABASE HELPERS RELATED.
  */
 var express = require('express');
 var listHelpers = require('./list_helpers');
@@ -562,4 +563,29 @@ SessionObjectHelper.prototype.membersCreateAll = function(user, list_id, users_l
 }
 
 
-
+/*
+ * GETTERS
+ * */ 
+/*
+ * remove list YES USERS
+ * */
+SessionObjectHelper.prototype.getSavedSearches = function(user, callback){
+	var _method = "getSavedSearches()";
+	console.log("IN " + fileName + " - "+ _method);
+	if(user == null ){
+		return callback("invalid params");
+	}
+	this.user = user;
+	var sessionObjectHelper = this;
+	SessionObjects.findOne({
+		'uid' : user.uid
+	}).sort({created: 'desc'}).exec(function(err, sessionObj) {
+		if(sessionObj == null || err){
+			var _err = (err)?err:"Object sessionObj not found";
+			return callback(_err);
+		}else{
+			var savedSearches = sessionObj.savedSearches;
+			callback(null, savedSearches);
+		}
+	});
+}

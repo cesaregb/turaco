@@ -8,7 +8,8 @@ var sessionObjects = mongoose.Schema({
 	lists			: Object,
 	friends			: Object,
 	usersListHash			: Object,
-	completeListsObject		: Object
+	completeListsObject		: Object,
+	savedSearches			: Object
 });
 
 module.exports = mongoose.model('SessionObjects', sessionObjects);

@@ -119,12 +119,9 @@ function createAssignUser2List($scope, listFactory, callback){
 							result = response;
 						}else{
 							error = "Error on the service";
-							$scope.$emit('ERROR_SHOW');
+							$scope.handleErrorResponse(response);
 						}
-					}).error(function (_error) {
-						error = _error;
-						$scope.$emit('ERROR_SHOW');
-					});
+					}).error($scope.handleErrorResponse);
 				}
 				if (typeof assignUsers2ListCallback == "function"){
 					assignUsers2ListCallback(error, result);
@@ -152,11 +149,11 @@ function createGetListsByLoggedUser($scope, listFactory, callback){
 				$scope.lists = result.data.items;
 			}else{
 				error = "Error on the service: ";
-				$scope.$emit('ERROR_SHOW');
+				$scope.handleErrorResponse(response);
 			}
 			if (listsByLoggedUserCallback != null){ listsByLoggedUserCallback(error, response); }
 		}).error(function (error) {
-			$scope.$emit('ERROR_SHOW');
+			$scope.handleErrorResponse(error);
 			if (listsByLoggedUserCallback != null){ listsByLoggedUserCallback(error, null); }
 		});
 	};
@@ -184,11 +181,9 @@ function createGetUserFriends($scope, userFactory, filterFilter, callback){
 					$scope.showSearchButton = true;
 				}
 			}else{
-				$scope.$emit('ERROR_SHOW');
+				$scope.handleErrorResponse(response);
 			}
-		}).error(function(error, status, header, config) {
-			$scope.$emit('ERROR_SHOW');
-		});
+		}).error($scope.handleErrorResponse);
 	};
 
 	if (callback != null){ callback(null, fnName); }
@@ -206,11 +201,9 @@ function createGetListUsers($scope, listFactory, callback){
 				if (result.type == "SUCCESS"){
 					$scope.users = result.data.users;
 				}else{
-					$scope.$emit('ERROR_SHOW');
+					$scope.handleErrorResponse(response);
 				}
-			}).error(function (error) {
-				$scope.$emit('ERROR_SHOW');
-			});
+			}).error($scope.handleErrorResponse);
 		}
 	};
 

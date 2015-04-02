@@ -40,10 +40,10 @@ global.warn = "03";
 
 var globalTunnel = require('global-tunnel');
 //globalTunnel.initialize();
-globalTunnel.initialize({
-	host : 'www-proxy.us.oracle.com',
-	port : 80
-});
+//globalTunnel.initialize({
+//	host : 'www-proxy.us.oracle.com',
+//	port : 80
+//});
 
 
 app.set('views', path.join(__dirname, 'views'))
@@ -77,12 +77,15 @@ app.use(function(req, res, next) {
 	
 	var session = req.session;
 	
+//	global.verify_credentials = session.verify_credentials;
+	
 	function checkLoadData(user, callback){
 		if (global.refresSessionObject){
 			session.user_lists = null;
 			session.usersListHash = null;
 			session.completeListsObject = null;
 			session.friends = null;
+			session.savedSearches = null;
 			SessionObjects.findOne({
 				'uid' : user.uid
 			}).sort({created: 'desc'}).exec(function(err, sessionObj) {
@@ -105,6 +108,7 @@ app.use(function(req, res, next) {
 					session.usersListHash = sessionObj.usersListHash; 
 					session.completeListsObject = sessionObj.completeListsObject;
 					session.user_lists = sessionObj.lists; 
+					session.savedSearches = sessionObj.savedSearches; 
 					callback(null);				
 				}
 			});
@@ -192,6 +196,7 @@ app.use(function(err, req, res, next) {
  * session.completeListsObject 	= { [hash<uid, boolean>] }
  * session.friends 				= {friends_count, users: []}
  * global.refresSessionObject	= true||false
+ * global.savedSearches			= []
  * */
 
 module.exports = app;

@@ -35,7 +35,6 @@ TwitterCommonObjectstHelper.prototype.initialize = function(options, callback){
 	var lastWeek = new Date(today.getTime()-1000*60*60*24*7);
 	var from = "" + (lastWeek.getMonth() + 1) + "," + lastWeek.getDate() + "," + lastWeek.getFullYear();
 	var to = "" + (today.getMonth() + 1) + "," + today.getDate() + "," + today.getFullYear();
-	console.log("TURACO_DEBUG - from: " + from + " \n to: " + to);
 	TwitterCommonObjects.findOne({
 		created : {"$gte": lastWeek, "$lte": today }
 	}).sort({created: 'desc'}).exec(function(err, twitterCommonObjects) {

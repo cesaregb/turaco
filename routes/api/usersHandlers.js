@@ -4,12 +4,20 @@ var twitterController = require('../../config/TwitterController');
 var turacoError = require('../../config/error_codes');
 var json_api_responses = require('../../config/responses')();
 var error_codes = turacoError.error_codes;
+
+//Helpers
 var listHelpers = require('../../utils/list_helpers');
+var sessionObjectHelpers = require('../../utils/sessionObject_helpers'); 
 var TwitterCommonObjectHelpers = require('../../utils/twitterCommonObject_helpers');
+
 var twitter = require('ntwitter');
+
+
+//Models
 var User = require('../../app/models/user');
 var List = require('../../app/models/list');
 var SessionObjects = require('../../app/models/sessionObjects');
+
 var async = require("async");
 var loginGatherInfoUser = require('../../lib/loginGatherInfoUser');
 
@@ -246,6 +254,7 @@ function getAllFriends(req, res) {
 				session.usersListHash = sessionObj.usersListHash; 
 				session.completeListsObject = sessionObj.completeListsObject;
 				session.user_lists = sessionObj.lists; 
+				session.savedSearches = sessionObj.savedSearches; 
 				return res.json(json_api_responses.success(sessionObj.friends));
 			}
 		});
@@ -447,9 +456,14 @@ function getSavedSearches(req, res) {
 	var _method = "getSavedSearches";
 	console.log("IN " + fileName + " - " + _method);
 	var place_id = req.params.id;
-	var params = {id : place_id};
+	var params = {};
 	var session = req.session;
 	var user = null;
+	if (session.savedSearches != null) {
+		console.log("TURACO_DEBUG - getting saved search from session");
+		return res.json(json_api_responses.success(session.savedSearches));
+	}
+	
 	if (req.user){
 		user = req.user;
 	}else{
@@ -464,11 +478,27 @@ function getSavedSearches(req, res) {
 			if (err){
 				return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
 			}
-			twit.getSavedSearches(params, function(err, data){
-				if (err){
-					return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
+			
+			sessionHelper = new sessionObjectHelpers({param:"nel"});
+			sessionHelper.getSavedSearches(user, function(err, _savedSearches){
+				if (err || _savedSearches == null){
+					twit.getSavedSearches(params, function(err, data){
+						if (err){
+							return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
+						}else{
+							var result = [];
+							for (var i in data){
+								var search = data[i];
+								var query = search.query; 
+								var updated_query = query.substring(1, query.length);
+								search.updated_query = updated_query;
+								result.push(search);
+							}
+							return res.json(json_api_responses.success(result));
+						}
+					});
 				}else{
-					return res.json(json_api_responses.success(data));
+					return res.json(json_api_responses.success(_savedSearches));
 				}
 			});
 		});

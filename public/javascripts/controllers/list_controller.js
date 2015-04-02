@@ -30,11 +30,9 @@ function (module) {
 									$scope.getListsByLoggedUser();
 									$scope.$emit('AJAX_SUCCESS');
 								}else {
-									$scope.$emit('ERROR_SHOW');
+									$scope.handleErrorResponse(response);
 								}
-							}).error(function (error) {
-								$scope.$emit('ERROR_SHOW');
-							});
+							}).error($scope.handleErrorResponse);
 						}
 					});
 				};
@@ -55,14 +53,11 @@ function (module) {
 					$scope.refresh = true;
 
 					listFactory.saveList($scope.list).success(function (response){
-
 						var result = response;
 						if (result.type == "SUCCESS"){
 							$location.path('/lists/index').search({action: 'true'});
-						}else{$scope.$emit('ERROR_SHOW');}
-					}).error(function (error) {
-						$scope.$emit('ERROR_SHOW');
-					});
+						}else{$scope.handleErrorResponse(response);}
+					}).error($scope.handleErrorResponse);
 				};
 			}else if(path.indexOf("lists/edit_list") > 0){
 				var list_id = $routeParams.list_id;
@@ -85,14 +80,11 @@ function (module) {
 					$scope.refresh = true;
 
 					listFactory.updateList($scope.list).success(function (response){
-
 						var result = response;
 						if (result.type == "SUCCESS"){
 							$location.path('/lists/index').search({action: 'true'});
-						}else{$scope.$emit('ERROR_SHOW');}
-					}).error(function (error) {
-						$scope.$emit('ERROR_SHOW');
-					});
+						}else{$scope.handleErrorResponse(response);}
+					}).error($scope.handleErrorResponse);
 				};
 
 			}else{
@@ -107,10 +99,8 @@ function (module) {
 				var result = response;
 				if (result.type == "SUCCESS"){
 					$scope.lists = result.data.items;
-				}else{$scope.$emit('ERROR_SHOW');}
-			}).error(function (error) {
-				$scope.$emit('ERROR_SHOW');
-			});
+				}else{$scope.handleErrorResponse(response);}
+			}).error($scope.handleErrorResponse);
 		};
 
 		$scope.openDialog = function(){

@@ -23,7 +23,7 @@ JsonResponse.prototype.init = function (){
 }
 
 JsonResponse.prototype.success = function (_data){
-	console.log("TURACO_DEBUG - RESPONSE success: ");
+	console.log("RESPONSE success");
 	this.init();
 	this.body.type = TYPE_SUCCESS;
 	this.body.message = TYPE_SUCCESS;
@@ -32,7 +32,7 @@ JsonResponse.prototype.success = function (_data){
 }
 
 JsonResponse.prototype.string_success = function (_message){
-	console.log("TURACO_DEBUG - RESPONSE success: " + _message);
+	console.log("RESPONSE success: " + _message);
 	this.init();
 	this.body.type = TYPE_SUCCESS;
 	this.body.message = _message;
@@ -40,7 +40,7 @@ JsonResponse.prototype.string_success = function (_message){
 }
 
 JsonResponse.prototype.error = function (_code, err){
-	console.log("TURACO_DEBUG - RESPONSE error: " + err);
+	console.log("RESPONSE error: " + err);
 	this.init();
 	if( Object.prototype.toString.call( _code ) === '[object Object]' ) {
 		this.body.type = TYPE_ERROR;
@@ -55,7 +55,7 @@ JsonResponse.prototype.error = function (_code, err){
 }
 
 JsonResponse.prototype.string_error = function (_message){
-	console.log("TURACO_DEBUG - RESPONSE error: " + _message);
+	console.log("RESPONSE error: " + _message);
 	this.init();
 	this.body.type = TYPE_ERROR;
 	this.body.message = _message;

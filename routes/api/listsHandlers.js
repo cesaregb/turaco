@@ -131,6 +131,7 @@ function getUsersListFunction(req, res) {
 				}else{
 					session.friends = sessionObj.friends;
 					session.usersListHash = sessionObj.usersListHash; 
+					session.savedSearches = sessionObj.savedSearches; 
 					session.completeListsObject = sessionObj.completeListsObject;
 					session.user_lists = sessionObj.lists; 
 					
