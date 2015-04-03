@@ -2,36 +2,46 @@ var express = require('express');
 var	passport = require('passport'); 
 var	util = require('util');
 var expressSession = require('express-session');
-var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
 
+//express helpers 
 var path = require('path');
 var favicon = require('static-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
+//databse configuration
+var mongoose = require('mongoose');
 var configDB = require('./config/database');
 var passportConfig = require('./config/passport');
-
 mongoose.connect(configDB.url);
-var proxy = require('express-http-proxy');
+
 passportConfig(passport);
 
+//routes helpers 
 var routes = require('./routes/index');
-var routesLists = require('./routes/lists');
 var routesListsApi = require('./routes/api/listsApi');
 var routesUsersApi = require('./routes/api/usersApi');
+
+//modules
 var User = require('./app/models/user');
 var List = require('./app/models/list');
 var SessionObjects = require('./app/models/sessionObjects');
+
+//twitter api helper
+var loginGatherInfoUser = require('./lib/loginGatherInfoUser');
 var twitterController = require('./config/TwitterController');
 
-var loginGatherInfoUser = require('./lib/loginGatherInfoUser');
+//response helpsers
+var json_api_responses = require('./config/responses')(); //TODO integrate me with turaco errors
+var turacoError = require('./config/error_codes'); //TODO ADD MORE CODES
+var error_codes = turacoError.error_codes; //TODO WTF
 
 var app = express();
 
-global.dev_mode = true;
+var fileName = "app.js";
+
+global.dev_mode = false;
 global.userInfoLoaded = false;
 global.success = "01";
 global.error = "02";
@@ -44,7 +54,6 @@ var globalTunnel = require('global-tunnel');
 //	host : 'www-proxy.us.oracle.com',
 //	port : 80
 //});
-
 
 app.set('views', path.join(__dirname, 'views'))
 	.set('view engine', 'jade')
@@ -67,6 +76,7 @@ app.use(function (req, res, next) {
 });
 
 app.use(function(req, res, next) {
+	// This is for the api calls 
 	if (req.url.indexOf("api") > 0){
 		res.locals.jsonType = true;
 		if (!req.accepts('json')){
@@ -75,11 +85,7 @@ app.use(function(req, res, next) {
 		res.contentType('application/json');
 	}
 	
-	var session = req.session;
-	
-//	global.verify_credentials = session.verify_credentials;
-	
-	function checkLoadData(user, callback){
+	function checkLoadData(user, session, callback){
 		if (global.refresSessionObject){
 			session.user_lists = null;
 			session.usersListHash = null;
@@ -90,9 +96,8 @@ app.use(function(req, res, next) {
 				'uid' : user.uid
 			}).sort({created: 'desc'}).exec(function(err, sessionObj) {
 				if(sessionObj == null || err){
-					console.log("TURACO_DEBUG - Error loading information from database when user exists...");
-					console.log("Loading it from the services.. this takes some time... ");
 					var gatherInfoInstance = new loginGatherInfoUser();
+					console.log("TURACO_DEBUG - calling GET_ALL from app.js");
 					gatherInfoInstance.getAll(req.user, req.session, function(err, data){
 						if (err){
 							console.log("TURACO_DEBUG - ERROR in gatherInfoInstance.getAll " );
@@ -117,11 +122,12 @@ app.use(function(req, res, next) {
 		}
 	}
 	
+	var session = req.session;
 	if (!global.dev_mode){
-		if (req.session.user == null){
+		if (session.user == null){
 			next();
 		}else{
-			checkLoadData(req.session.user, function(err){
+			checkLoadData(session.user, session, function(err){
 				if (err){
 					console.log("TURACO_DEBUG - ERROR checkLoadData ");
 				}
@@ -129,14 +135,14 @@ app.use(function(req, res, next) {
 			});
 		}
 	}else{// dev mode 
-		if (req.session.user == null){
+		if (session.user == null){
 			global.refresSessionObject = true;
 			var id = "36063580"; //cesar
 //			var id = "1710981037";
 			User.findOne({"uid": id}, function(err, u){
 				req.user = u;
-				req.session.user = u;
-				checkLoadData(req.session.user, function(err){
+				session.user = u;
+				checkLoadData(session.user, session, function(err){
 					if (err){
 						console.log("TURACO_DEBUG - ERROR checkLoadData ");
 					}
@@ -145,8 +151,8 @@ app.use(function(req, res, next) {
 				
 			});
 		}else{
-			req.user = req.session.user;
-			checkLoadData(req.session.user, function(err){
+			req.user = session.user;
+			checkLoadData(session.user, session, function(err){
 				if (err){
 					console.log("TURACO_DEBUG - ERROR checkLoadData ");
 				}
@@ -158,9 +164,23 @@ app.use(function(req, res, next) {
 
 /***** Views */
 app.use('/', routes);
-app.use('/lists', routesLists);
+//app.use('/list', routesLists);
 
 /***** Services */
+function requireAuthenticationAPI(req, res, next) {
+	var _method = "requireAuthenticationAPI";
+	console.log("IN " + fileName + " - " + _method);
+
+	
+	if (req.isAuthenticated()) {
+		return next();
+	}else{
+		return res.json(json_api_responses.error(error_codes.USER_NOT_FOUND_ERROR));
+	}
+}
+
+app.all('/api/*', requireAuthenticationAPI);
+
 app.use('/api/lists', routesListsApi);
 app.use('/api/users', routesUsersApi);
 
@@ -171,8 +191,10 @@ app.use(function(req, res, next) {
 	next(err);
 });
 
+console.log("TURACO_DEBUG - app.get('env'): " + app.get('env'));
 if (app.get('env') === 'development') {
 	app.locals.pretty = true;
+	
 	app.use(function(err, req, res, next) {
 		res.status(err.status || 500);
 		res.render('error', {
@@ -183,9 +205,10 @@ if (app.get('env') === 'development') {
 }
 
 app.use(function(err, req, res, next) {
+	
 	res.status(err.status || 500);
 	res.render('error', {
-		message : err.message,
+		message : "Something went wrong..",
 		error : {}
 	});
 });

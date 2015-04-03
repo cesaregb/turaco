@@ -4,7 +4,7 @@ define([
 	return app.config([ '$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) {
 //		console.log("loading routes");
 		var urlBase = '/';
-		var urlListBase = '/lists/partials/';
+		var urlListBase = '/partials/';
 		$routeProvider.when('/lists/index', {
 			templateUrl: urlListBase + 'list_home',
 			controller: 'listController'

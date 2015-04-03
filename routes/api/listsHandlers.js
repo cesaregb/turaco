@@ -120,6 +120,7 @@ function getUsersListFunction(req, res) {
 					 * get the starting information... and save it to the database. 
 					 * */
 					var gatherInfoInstance = new loginGatherInfoUser();
+					console.log("TURACO_DEBUG - calling GET_ALL from listHandlers.js");
 					gatherInfoInstance.getAll(req.user, req.session, function(err, data){
 						if (err){
 							console.log("TURACO_DEBUG - ERROR in gatherInfoInstance.getAll " );
@@ -144,7 +145,7 @@ function getUsersListFunction(req, res) {
 		}
 	}else{
 		console.error("User not logged. ");
-		return res.json(json_api_responses.error(error_codes.USER_NOT_FOUND_ERROR, err));
+		return res.json(json_api_responses.string_error(error_codes.USER_NOT_FOUND_ERROR));
 	}
 }
 module.exports.getUsersListFunction = getUsersListFunction;
@@ -248,13 +249,11 @@ function createList (req, res) {
 		helper = new listHelpers.ListHelper();
 		helper.getUser(user, function(err, user){
 			if (err){
-				res.json(json_api_responses.error(error_codes.USER_NOT_FOUND_ERROR, err));
-				return;
+				return res.json(json_api_responses.error(error_codes.USER_NOT_FOUND_ERROR, err));
 			}
 			helper.getTwittObjectFromUser(function(err, twit){
 				if (err){
-					res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
-					return;
+					return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
 				}
 				twit.createList(user.screen_name, list_name, myParams, function(err, data){
 					if (err){ return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
@@ -275,8 +274,7 @@ function createList (req, res) {
 			
 		});
 	}catch(ex){
-		res.json(json_api_responses.error(ex, null));
-		return;
+		return res.json(json_api_responses.error(ex, null));
 	}	
 }
 module.exports.createList = createList;

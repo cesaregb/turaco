@@ -25,6 +25,7 @@ var fileName = "userHandlers.js";
 var pathString = "/api/users";
 
 /* *********Request function ********** */
+
 function getUserFromSession(req, res) {
 	var _method = "getUserFromSession";
 	console.log("IN " + fileName + " - " + _method);
@@ -239,7 +240,7 @@ function getAllFriends(req, res) {
 					res.json(json_api_responses.success(data));
 					return;
 				});
-				
+				console.log("TURACO_DEBUG - calling GET_ALL from userHandlers.js")
 				var gatherInfoInstance = new loginGatherInfoUser();
 				gatherInfoInstance.getAll(req.user, req.session, function(err, data){
 					if (err){

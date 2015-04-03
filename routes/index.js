@@ -6,19 +6,28 @@ var twitterController = require('../config/TwitterController');
 var listHelpers = require('../utils/list_helpers');
 var User = require('../app/models/user');
 var List = require('../app/models/list');
+var SessionObjects = require('../app/models/sessionObjects');
 var loginGatherInfoUser = require('../lib/loginGatherInfoUser');
+
+var fileName = "routes/index.js";
 
 var router = express.Router();
 
 router.get('/', function(req, res) {
-console.log("TURACO_DEBUG - within node router for lists");
+	console.log("TURACO_DEBUG - ROUTES /");
+	if (req.isAuthenticated()) {
+		res.redirect('/home')
+	}else{
+		res.render('index', { title: 'Turaco', login_status: false});
+	}
+});
+
+router.get('/home', ensureAuthenticated, function(req, res) {
+	console.log("TURACO_DEBUG - ROUTES /home");
 	if (req.user == null){
-		console.log('**** User not loggeed');
 		res.render('index', { title: 'Turaco', login_status: false});
 	}else{
-		console.log("TURACO_DEBUG - user existing");
 		if (!global.userInfoLoaded){
-			var session = req.session;
 			var gatherInfoInstance = new loginGatherInfoUser();
 			gatherInfoInstance.getAll(req.user, req.session, function(err, data){
 				if (err){
@@ -35,31 +44,37 @@ console.log("TURACO_DEBUG - within node router for lists");
 	}
 });
 
-router.get('/home', function(req, res) {
-	console.log("TURACO_DEBUG - within node router for lists");
-	
-	if (req.user == null){
-		console.log('**** User not loggeed');
-		res.render('index', { title: 'Turaco', login_status: false});
-	}else{
-		console.log("TURACO_DEBUG - user existing");
-		if (!global.userInfoLoaded){
-			var session = req.session;
-			var gatherInfoInstance = new loginGatherInfoUser();
-			gatherInfoInstance.getAll(req.user, req.session, function(err, data){
-				if (err){
-					console.log("TURACO_DEBUG - ERROR in gatherInfoInstance.getAll " );
-				}else{
-					global.userInfoLoaded = true;
-					console.log("TURACO_DEBUG - Success gatherInfoInstance.getAll" );
-				}
-				res.render('index_logged', { title: 'Turaco', login_status: true, "user" : req.user });
-			});
+router.get('/reload_user', ensureAuthenticated, function(req, res) {
+	console.log("TURACO_DEBUG - ROUTES /reload_user");
+	console.log("TURACO_DEBUG - calling GET_ALL from index.js and reload_user ");
+	var gatherInfoInstance = new loginGatherInfoUser();
+	gatherInfoInstance.getAll(req.user, req.session, function(err, data){
+		if (err){
+			console.log("TURACO_DEBUG - ERROR in gatherInfoInstance.getAll " );
 		}else{
-			res.render('index_logged', { title: 'Turaco', login_status: true, "user" : req.user });
+			global.userInfoLoaded = true;
+			console.log("TURACO_DEBUG - Success gatherInfoInstance.getAll" );
 		}
-	}
+		res.render('index_logged', { title: 'Turaco', login_status: true, "user" : req.user });
+	});
 });
+
+router.get('/partials/:name', function(req, res) {
+	console.log("TURACO_DEBUG - ROUTES /partials/:name");
+	var name = req.params.name;
+	res.render('partials/' + name);
+});
+
+router.get('/lists/*', ensureAuthenticated, function(req, res) {
+	console.log("TURACO_DEBUG - ROUTES /list/*");
+	res.render('index_logged', { title: 'Turaco', login_status: true, "user" : req.user });
+});
+
+router.get('/lists', ensureAuthenticated, function(req, res) {
+	console.log("TURACO_DEBUG - ROUTES /list/*");
+	res.render('index_logged', { title: 'Turaco', login_status: true, "user" : req.user });
+});
+
 
 // ************************************* 
 router.get('/account', ensureAuthenticated, function(req, res) {
@@ -86,16 +101,43 @@ router.get('/auth/twitter/callback', passport.authenticate('twitter', {
 	console.log("TURACO_DEBUG - user successfuly loged ");
 	console.log("TURACO_DEBUG - getting basic information into session ");
 	var user = req.user;
+	var session = req.session;
+	session.user = req.user; 
 	/* load initial information */
-	var gatherInfoInstance = new loginGatherInfoUser();
-	gatherInfoInstance.getAll(user, req.session, function(err, data){
-		if (err){
-			console.log("TURACO_DEBUG - error getting initial information from twitter authentication.. ");
-		}
-		global.userInfoLoaded = true;
-		res.redirect('/');
-	});
+	var today = new Date();
+	var yesterday = new Date(today.getTime()-1000*60*60*24*1)
 	
+	session.user_lists = null;
+	session.usersListHash = null;
+	session.completeListsObject = null;
+	session.friends = null;
+	session.savedSearches = null;
+	SessionObjects.findOne({
+		'uid' : user.uid,
+		created : {"$gte": today }
+	}).sort({created: 'desc'}).exec(function(err, sessionObj) {
+		if(sessionObj == null || err){
+			var gatherInfoInstance = new loginGatherInfoUser();
+			console.log("TURACO_DEBUG - calling GET_ALL from routes index.js after passport");
+			gatherInfoInstance.getAll(req.user, req.session, function(err, data){
+				if (err){
+					console.log("TURACO_DEBUG - ERROR in gatherInfoInstance.getAll " );
+				}else{
+					global.userInfoLoaded = true;
+					console.log("TURACO_DEBUG - Success gatherInfoInstance.getAll" );
+				}
+				res.redirect('/');
+			});
+		}else{
+			global.userInfoLoaded = true;
+			session.friends = sessionObj.friends;
+			session.usersListHash = sessionObj.usersListHash; 
+			session.completeListsObject = sessionObj.completeListsObject;
+			session.user_lists = sessionObj.lists; 
+			session.savedSearches = sessionObj.savedSearches; 
+			res.redirect('/');		
+		}
+	});
 });
 
 router.get('/logout', function(req, res) {
@@ -105,10 +147,13 @@ router.get('/logout', function(req, res) {
 });
 
 function ensureAuthenticated(req, res, next) {
+	var _method = "ensureAuthenticated";
+	console.log("IN " + fileName + " - " + _method);
+	
 	if (req.isAuthenticated()) {
 		return next();
 	}
-	res.redirect('/login')
+	res.redirect('/')
 }
 
 module.exports = router;

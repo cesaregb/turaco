@@ -15,14 +15,13 @@ passportConfig = function(passport) {
 			done(err, user);
 		});
 	});
-
+	var twittSettings = 
 	passport.use(new TwitterStrategy({
 		consumerKey : configAppCredentials.TWITTER_CONSUMER_KEY,
 		consumerSecret : configAppCredentials.TWITTER_CONSUMER_SECRET,
-		callbackURL : "http://127.0.0.1:3000/auth/twitter/callback"
+		callbackURL : configAppCredentials.CALLBACK_URL
 	}, function(token, tokenSecret, profile, done) {
 		process.nextTick(function() {
-			console.log("Profile: " + JSON.stringify(profile));
 			var user = new User();
 			user.provider = "twitter";
 			user.token = token;
@@ -41,7 +40,6 @@ passportConfig = function(passport) {
 					List.remove({uid: profile.id}, function(err) {
 						if (!err){console.log("Lists deleted. ");}else{	console.log("error deleting lists: " + err);}
 					});
-					console.log("User deleted... ");
 					user.save(function(err) {
 						if(err) { throw err; }
 						done(null, user);

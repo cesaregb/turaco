@@ -6,33 +6,32 @@ nav.navbar.navbar-inverse.navbar-fixed-top(role='navigation')
 				span.icon-bar
 				span.icon-bar
 				span.icon-bar
-			a.navbar-brand(href='/home', target='_self') Turaco
+			//a.navbar-brand(href='/home', target='_self') Turaco
+			a.navbar-brand(href='/home') Turaco
 		#bs-example-navbar-collapse-1.collapse.navbar-collapse
 			ul.nav.navbar-nav.navbar-right
-				li(class=(topnav_section===1 ? 'active' : ''))
-					a(href='/lists', target='_self') Lists
-				li(class=(topnav_section===2 ? 'active' : ''))
-					a(href='/accounts') Accounts
+				if (login_status)
+					li(class=(topnav_section===1 ? 'active' : ''))
+						a(href='/lists') Lists
+					li(class=(topnav_section===2 ? 'active' : ''))
+						a(href='/copy_list') Copy List
 				li.dropdown
 					a.dropdown-toggle(href='#', data-toggle='dropdown')
-						| Other Pages
+						| Other Stuff
 						b.caret
 					ul.dropdown-menu
 						li
-							a(href='full-width') Full Width Page
+							a(href='/home') About us
 						li
-							a(href='sidebar') Sidebar Page
+							a(href='/home') FAQ
 						li
-							a(href='faq') FAQ
-						li
-							a(href='404') 404
-						li
-							a(href='pricing') Pricing Table
+							a(href='/home') Remove your self
+						if (login_status)
+							li
+								a(href='/reload_user', target='_self') Reload your session
 				li
 					if (!login_status)
 						a(href='/auth/twitter') Login
 					else
-						a(href='/lists') #{user.screen_name}
-				if (login_status)
-					li
 						a(href='/logout') Logout
+						//a(href='/lists') #{user.screen_name}

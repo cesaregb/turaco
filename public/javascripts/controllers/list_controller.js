@@ -55,7 +55,9 @@ function (module) {
 					listFactory.saveList($scope.list).success(function (response){
 						var result = response;
 						if (result.type == "SUCCESS"){
-							$location.path('/lists/index').search({action: 'true'});
+							//$location.path('/lists/index').search({action: 'true'});
+							$location.path('/lists/index');
+							$location.replace();
 						}else{$scope.handleErrorResponse(response);}
 					}).error($scope.handleErrorResponse);
 				};
@@ -82,7 +84,9 @@ function (module) {
 					listFactory.updateList($scope.list).success(function (response){
 						var result = response;
 						if (result.type == "SUCCESS"){
-							$location.path('/lists/index').search({action: 'true'});
+							$location.path('/lists/index');
+							$location.replace();
+
 						}else{$scope.handleErrorResponse(response);}
 					}).error($scope.handleErrorResponse);
 				};
