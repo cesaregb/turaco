@@ -42,13 +42,13 @@ function usersFriendsListsController($scope, userFactory, listFactory, filterFil
 	};
 
 	$scope.$watch('search', function(term) {
+		$scope.term = term;
 		if ($scope.typeFilter != null && $scope.typeFilter > 0){
 			var typeFilter = ($scope.typeFilte == 2);
 			$scope.filtered = filterFilter($scope.friends, {screen_name: term, inList: typeFilter});
 		}else{
 			$scope.filtered = filterFilter($scope.friends, {screen_name: term});
 		}
-		$scope.filtered = filterFilter($scope.friends, {screen_name: term});
 		if ($scope.filtered != null ){
 			$scope.totalItems = $scope.filtered.length;
 		}
@@ -77,47 +77,10 @@ function usersFriendsListsController($scope, userFactory, listFactory, filterFil
 					$scope.filtered = filterFilter($scope.friends, {screen_name: ""});
 					$scope.totalItems = $scope.filtered.length;
 				}else{
-					$scope.$emit('ERROR_SHOW');
+					$scope.handleErrorResponse(response);
 				}
-			}).error(function(error, status, header, config) {
-				$scope.$emit('ERROR_SHOW');
-			});
+			}).error($scope.handleErrorResponse);
 		}
-	};
-
-
-	/*
-	* called a service to get the users by a filter but the filter is being made on the angular side
-	* DEPRECATED */
-	$scope.getFilteredFriends = function(type){
-		var filter = "";
-		if (parseInt(type) === 0){ // 0 or false  = unlisted (this value is matched on the backend as well)
-			filter = "/byUnlisted";
-		}else{
-			filter = "/byListed";
-		}
-
-		userFactory.getUserFriendsFilter(filter).success(function (response) {
-
-			var result = response;
-			if (result.type == "SUCCESS"){
-				$scope.friends_count = result.data.friends_count;
-				if (parseInt(result.data.friends_count) > 1000){
-					$scope.warning_not_all_friends = true;
-				}
-				$scope.friends = result.data.users;
-				$scope.filtered = filterFilter($scope.friends, {screen_name: ""});
-				$scope.totalItems = $scope.filtered.length;
-				if ($scope.totalItems > 25000){
-					$scope.showSearchButton = true;
-				}
-			}else{
-				$scope.$emit('ERROR_SHOW');
-			}
-		}).error(function(error, status, header, config) {
-			$scope.$emit('ERROR_SHOW');
-		});
-
 	};
 
 	/*
@@ -125,14 +88,14 @@ function usersFriendsListsController($scope, userFactory, listFactory, filterFil
 	* */
 	$scope.filteredFriends = function(type){
 		$scope.typeFilter = parseInt(type);
-		var typeFilter = null;
-		if (parseInt(type) == 1){
-			typeFilter = false;
-		}else if (parseInt(type) == 2){
-			typeFilter = true;
+		if ($scope.typeFilter == 0){
+			$scope.filtered = $scope.friends;
+		}else if ($scope.typeFilter == 1){
+			$scope.filtered = filterFilter($scope.friends, {inList: false});
+		}else if ($scope.typeFilter == 2){
+			$scope.filtered = filterFilter($scope.friends, {inList: true});
 		}
 
-		$scope.filtered = filterFilter($scope.friends, {inList: typeFilter});
 		if ($scope.filtered != null ){
 			$scope.totalItems = $scope.filtered.length;
 		}
@@ -140,11 +103,10 @@ function usersFriendsListsController($scope, userFactory, listFactory, filterFil
 	$scope.usersArray = {};
 
 	$scope.handleAddUsers = function(list){
-		console.log("TURACO_DEBUG - IN handleAddUsers");
 		$scope.assignUsers2List(list, function(err, resp){
 			if (!err){
-				console.log("TURACO_DEBUG - within callback and no error! ");
 				$scope.getListsByLoggedUser();
+				$scope.getUserFriends();
 			}
 		});
 	};
@@ -190,11 +152,9 @@ function viewListUsersController(list_id, $scope, listFactory, $modal){
 				/*call get the lists again.. */
 				$scope.getListUsers();
 			}else{
-				$scope.$emit('ERROR_SHOW');
+				$scope.handleErrorResponse(response);
 			}
-		}).error(function (error) {
-			$scope.$emit('ERROR_SHOW');
-		});
+		}).error($scope.handleErrorResponse);
 	};
 
 	$scope.removeUsers = function(_list){
@@ -227,11 +187,9 @@ function viewListUsersController(list_id, $scope, listFactory, $modal){
 							/*call get the lists again.. */
 							$scope.getListUsers(list_id);
 						}else{
-							$scope.$emit('ERROR_SHOW');
+							$scope.handleErrorResponse(response);
 						}
-					}).error(function (error) {
-						$scope.$emit('ERROR_SHOW');
-					});
+					}).error($scope.handleErrorResponse);
 				}
 			});
 		};

@@ -251,11 +251,6 @@ function getAllFriends(req, res) {
 					
 				});
 			}else{
-				session.friends = sessionObj.friends;
-				session.usersListHash = sessionObj.usersListHash; 
-				session.completeListsObject = sessionObj.completeListsObject;
-				session.user_lists = sessionObj.lists; 
-				session.savedSearches = sessionObj.savedSearches; 
 				return res.json(json_api_responses.success(sessionObj.friends));
 			}
 		});
@@ -263,38 +258,6 @@ function getAllFriends(req, res) {
 }
 
 module.exports.getAllFriends = getAllFriends;
-/*
- * DEPRECATED
- * */
-function getAllFriends2(req, res) {
-	var _method = "get /friends_list_1 (get USERS)";
-	console.log("IN " + fileName + " - " + _method);
-	var session = req.session;
-	var response = {};
-	var myParams = getParams(req);
-	/* 
-	 * Check if response is on session already... 
-	 * what would be the response if we offer pagination?? 
-	 * */
-	if (session.user_friends_response != null ) {
-		res.json(json_api_responses.success(session.user_friends_response));
-		return;
-	}
-	getAllFriendsAPI(session, session.user, function(err, data){ //get users from Twitter api 
-		if (err){
-			res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
-			return;
-		}
-		
-		session.user_friends_response = data;
-		res.json(json_api_responses.success(data));
-		return;
-	});
-}
-module.exports.getAllFriends2 = getAllFriends2;
-/*
- * END DEPRECATED
- * */
 
 /*
  * Iterate thru the users comparing it with the hash. 

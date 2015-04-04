@@ -55,7 +55,7 @@ router.get('/reload_user', ensureAuthenticated, function(req, res) {
 			global.userInfoLoaded = true;
 			console.log("TURACO_DEBUG - Success gatherInfoInstance.getAll" );
 		}
-		res.render('index_logged', { title: 'Turaco', login_status: true, "user" : req.user });
+		res.redirect('/home');
 	});
 });
 
@@ -114,7 +114,7 @@ router.get('/auth/twitter/callback', passport.authenticate('twitter', {
 	session.savedSearches = null;
 	SessionObjects.findOne({
 		'uid' : user.uid,
-		created : {"$gte": today }
+		created : {"$gte": yesterday }
 	}).sort({created: 'desc'}).exec(function(err, sessionObj) {
 		if(sessionObj == null || err){
 			var gatherInfoInstance = new loginGatherInfoUser();

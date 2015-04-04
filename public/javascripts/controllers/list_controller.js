@@ -6,7 +6,6 @@ function (module) {
 		function init(){
 			var path = $location.$$path; // get the path for initialization per page.
 			if (path == '/lists'){
-				/*SHOW LISTS INIT PAGE*/
 				createGetListsByLoggedUser($scope, listFactory, null);
 				crateConfirmModal($scope, $modal, null);
 				var varAction = $routeParams.action;
@@ -20,10 +19,12 @@ function (module) {
 
 				$scope.openConfirmModal = function(list){
 					var message = "Are you sure you want to delete list: " + list.name + " ?";
+					if(!list.own_list){
+						message = "Are you sure you want to unsubscribe from list: " + list.name + " ?";
+					}
 					$scope.open_modal(message, function(err, response){
 						if(!err){
 							$scope.refresh = true;
-
 							listFactory.deleteList(list).success(function (response){
 								var result = response;
 								if (result.type == "SUCCESS"){
@@ -37,6 +38,9 @@ function (module) {
 					});
 				};
 
+				$scope.isListOwner = function(list){
+					return !list.own_list;
+				};
 
 			}else if(path.indexOf("lists/view_users") > 0){
 				/* VIEW LIST USERS... */

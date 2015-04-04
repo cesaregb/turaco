@@ -31,6 +31,7 @@ var pathString = "/api/lists";
 function getListByUser(req, res){
 	var _method = "getListByUser";
 	console.log("IN " + fileName + " - " + _method);
+	var uid = req.session.user.uid;
 	try{
 		var session = req.session;
 		var screen_name = req.params.screen_name;

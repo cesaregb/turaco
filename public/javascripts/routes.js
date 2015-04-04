@@ -6,8 +6,7 @@ define([
 		var urlBase = '/';
 		var urlListBase = '/partials/';
 		$routeProvider.when('/lists/index', {
-			templateUrl: urlListBase + 'list_home',
-			controller: 'listController'
+         redirectTo: '/lists'
 		}).when('/lists', {
 			templateUrl: urlListBase + 'list_home',
 			controller: 'listController'

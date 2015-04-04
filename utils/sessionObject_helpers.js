@@ -46,31 +46,18 @@ SessionObjectHelper.prototype.refreshListsUsersObj = function(sessionObj, callba
 	console.log("IN " + fileName + " - "+ _method);
 	//refresh lists with the sessionObj.completeListsObject.lists
 	sessionObj.lists = [];
+	var uid = sessionObj.uid;
 	for (index in sessionObj.completeListsObject.lists){
 		var item = sessionObj.completeListsObject.lists[index];
 		var list = new List();
-		var uid = (this.user != null )? this.user.uid:"placeholder";s
 		list = SessionObjectHelpers.convertJson2List(list, item, uid);
 		sessionObj.lists.push(list);
 	}
 	
 	
 	var complete_users = sessionObj.friends.complete_users;
-	var users = [];
-	var twitter_users = [];
-	for (var property in complete_users) {
-	    if (complete_users.hasOwnProperty(property)) {
-	    	twitter_users.push(complete_users[property]);
-	    	var turaco_user = {};
-    		turaco_user.id = complete_users[property].id;
-    		turaco_user.name = complete_users[property].name;
-    		turaco_user.screen_name = complete_users[property].screen_name;
-    		turaco_user.description = complete_users[property].description;
-    		turaco_user.profile_image_url = complete_users[property].profile_image_url;
-	    	users.push(turaco_user);
-	    }
-	}
-	sessionObj.friends.twitter_users = twitter_users;
+	var users = createUserArrayFromJsonTwitObj(complete_users, null);
+	
 	sessionObj.friends.users = users;
 	
 	
@@ -93,10 +80,10 @@ SessionObjectHelper.prototype.refreshListsObject = function(sessionObj, user, ca
 	var _method = "refreshListsObject()";
 	console.log("IN " + fileName + " - "+ _method);
 	sessionObj.lists = [];
+	var uid = sessionObj.uid;
 	for (index in sessionObj.completeListsObject.lists){
 		var item = sessionObj.completeListsObject.lists[index];
 		var list = new List();
-		var uid = (this.user != null )? this.user.uid:"placeholder";
 		list = listHelpers.convertJson2List(list, item, uid);
 		sessionObj.lists.push(list);
 	}
@@ -302,7 +289,6 @@ SessionObjectHelper.prototype.addListFollow = function(user, list, twitter_users
 			var _err = (err)?err:"Object sessionObj not found";
 			return callback(_err);
 		}else{
-			
 			var turaco_list = new List();
 			turaco_list = listHelpers.convertJson2List(turaco_list, list, user.uid);
 			sessionObj.lists.push(turaco_list);
@@ -321,6 +307,7 @@ SessionObjectHelper.prototype.addListFollow = function(user, list, twitter_users
 					turaco_user.name = json_user.name;
 					turaco_user.screen_name = json_user.screen_name;
 					turaco_user.description = json_user.description;
+					turaco_user.following = json_user.following;
 					turaco_user.profile_image_url = json_user.profile_image_url;
 					sessionObj.friends.complete_users[json_user.id] = json_user;
 					sessionObj.friends.twitter_users.push(twitter_users[index]);
@@ -510,24 +497,28 @@ SessionObjectHelper.prototype.membersCreateAll = function(user, list_id, users_l
 								// and remove the existing users to avoid duplicate;
 								
 								var user = twitter_users[i];
+								//initialize list_user_hash of the list if not setted...
 								if(sessionObj.completeListsObject.lists[index].list_users_hash == null){
 									sessionObj.completeListsObject.lists[index].list_users_hash = {};
 								}
 								
+								
 								if (sessionObj.completeListsObject.lists[index].list_users_hash[user.id] == null
 										|| sessionObj.completeListsObject.lists[index].list_users_hash[user.id] == false) {
-									// if user not found on existing we add it.. 
+									// if user not found on existing user list of the LIST we add it.. AVOID DUPLICATES...
 									validated_twitter_users.push(twitter_users[i]);
 									sessionObj.completeListsObject.lists[index].list_users_hash[user.id] = true;
 								}
 							}
 							
+							//initialize the list of users in case the list was empty before adding these users.
 							if (sessionObj.completeListsObject.lists[index].list_users == null
 									|| typeof sessionObj.completeListsObject.lists[index].list_users == "undefined") {
 								
 								sessionObj.completeListsObject.lists[index].list_users = []; 
 							}
 							
+							//add the selected users to the array... 
 							sessionObj.completeListsObject.lists[index].list_users.push.apply(
 									sessionObj.completeListsObject.lists[index].list_users, 
 									validated_twitter_users);
@@ -537,6 +528,7 @@ SessionObjectHelper.prototype.membersCreateAll = function(user, list_id, users_l
 						}
 					}
 					
+					//update the member count...
 					for ( index in sessionObj.lists){
 						if(sessionObj.lists[index].id == list_id){
 							sessionObj.lists[index].member_count = memeber_count; 
@@ -544,14 +536,21 @@ SessionObjectHelper.prototype.membersCreateAll = function(user, list_id, users_l
 					}
 					
 					var userArray = users_list.split(",");
+					// validate if the 
 					for (pos in userArray){
-						if (sessionObj.friends.complete_users[userArray[pos]] != null){
-							sessionObj.usersListHash[userArray[pos].id] = true;
+						sessionObj.usersListHash[userArray[pos].id] = true;
+						if (sessionObj.friends.complete_users[userArray[pos] != null]) {
+							sessionObj.friends.complete_users[userArray[pos]].following = true;
 						}
 					}
 					
+					var complete_users = sessionObj.friends.complete_users;
+					var users = createUserArrayFromJsonTwitObj(complete_users, null);
+					sessionObj.friends.users = users;
+					
 					sessionObj.markModified('lists');
 					sessionObj.markModified('completeListsObject.lists');
+					sessionObj.markModified('friends');
 					sessionObj.markModified('usersListHash');
 					sessionObj.save(function(err) {
 						return callback(err, global.success);
@@ -562,6 +561,28 @@ SessionObjectHelper.prototype.membersCreateAll = function(user, list_id, users_l
 	});
 }
 
+
+function createUserArrayFromJsonTwitObj(complete_users, callback){
+	var users = [];
+	for (var property in complete_users) {
+	    if (complete_users.hasOwnProperty(property)) {
+	    	var turaco_user = {};
+    		turaco_user.id = complete_users[property].id;
+    		turaco_user.name = complete_users[property].name;
+    		turaco_user.screen_name = complete_users[property].screen_name;
+    		turaco_user.following = complete_users[property].following;
+    		turaco_user.description = complete_users[property].description;
+    		turaco_user.profile_image_url = complete_users[property].profile_image_url;
+	    	users.push(turaco_user);
+	    }
+	}
+	if (typeof(callback) == "function"){
+		callback(null, users);
+	}
+	return users;
+}
+
+SessionObjectHelper.prototype.createUserArrayFromJsonTwitObj = createUserArrayFromJsonTwitObj;
 
 /*
  * GETTERS

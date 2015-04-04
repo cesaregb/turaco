@@ -5,7 +5,6 @@ function createCheckboxHandlers($scope, callback){
 	var fnName = "createCheckboxHandlers";
 	$scope.userSelected = function(user){
 		user.checked = !user.checked;
-		console.log("TURACO_DEBUG - addig or removing user. " + user.checked);
 		if (user.checked){
 			$scope.usersArray[user.screen_name] = user;
 		}else{
@@ -59,13 +58,15 @@ function crateListModal($scope, $modal, callback){
 			if (typeof $scope.getListsByLoggedUser == "function"){
 				// this updates the users on the list, then we update the scope with the proper list in case of needed...
 				getListsByLoggedUserCallback = function(err, res){
-					if (!err)
+					if (!err){
 						$scope.getListsByLoggedUser();
+						$scope.getUserFriends();
+					}
 				};
 			}
 			$scope.assignUsers2List(selectedItem, getListsByLoggedUserCallback);
 		}, function () {
-			console.log('Modal dismissed at: ' + new Date());
+			//console.log('Modal dismissed at: ' + new Date());
 		});
 	};
 
@@ -116,16 +117,22 @@ function createAssignUser2List($scope, listFactory, callback){
 						if (result.type == "SUCCESS"){
 							$scope.$emit('AJAX_SUCCESS');
 							/*call get the lists again.. */
-							result = response;
+							if (typeof assignUsers2ListCallback == "function"){
+								assignUsers2ListCallback(null, result);
+							}
 						}else{
-							error = "Error on the service";
+							if (typeof assignUsers2ListCallback == "function"){
+								assignUsers2ListCallback("Error on the service", response);
+							}
 							$scope.handleErrorResponse(response);
 						}
 					}).error($scope.handleErrorResponse);
+				}else{
+					if (typeof assignUsers2ListCallback == "function"){
+						assignUsers2ListCallback(error, null);
+					}
 				}
-				if (typeof assignUsers2ListCallback == "function"){
-					assignUsers2ListCallback(error, result);
-				}
+
 			});
 		}else{
 			$scope.$emit('ERROR_SHOW');
@@ -174,8 +181,20 @@ function createGetUserFriends($scope, userFactory, filterFilter, callback){
 				if (parseInt(result.data.friends_count) > 1000){
 					$scope.warning_not_all_friends = true;
 				}
+				console.log("TURACO_DEBUG - Getting users from service");
 				$scope.friends = result.data.users;
-				$scope.filtered = filterFilter($scope.friends, {screen_name: ""});
+
+				if($scope.term == null || $scope.term == "undefined"){
+					$scope.term = "";
+				}
+
+				if ($scope.typeFilter != null && $scope.typeFilter > 0){
+					var typeFilter = ($scope.typeFilte == 2);
+					$scope.filtered = filterFilter($scope.friends, {screen_name: $scope.term, inList: typeFilter});
+				}else{
+					$scope.filtered = filterFilter($scope.friends, {screen_name: $scope.term});
+				}
+
 				$scope.totalItems = $scope.filtered.length;
 				if ($scope.totalItems > 25000){
 					$scope.showSearchButton = true;
@@ -214,11 +233,9 @@ function crateConfirmModal($scope, $modal, callback){
 	var fnName = "crateConfirmModal";
 	//open modal window for selecting the list to add
 	$scope.open_modal = function (modal_message_confirm, modalCallback) {
-		size = 'sm';
 		var modalInstance = $modal.open({
 			templateUrl: 'modalConfirmContainer.html',
 			controller: 'modalConfirmContainer',
-			size: size,
 			resolve: {
 				modal_message_confirm: function () {
 					return modal_message_confirm;
@@ -231,7 +248,7 @@ function crateConfirmModal($scope, $modal, callback){
 				modalCallback(null, response);
 			}else modalCallback(response);
 		}, function () {
-			console.log('Confirm Modal dismissed at: ' + new Date());
+			//console.log('Confirm Modal dismissed at: ' + new Date());
 		});
 	};
 

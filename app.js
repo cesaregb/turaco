@@ -170,9 +170,7 @@ app.use('/', routes);
 function requireAuthenticationAPI(req, res, next) {
 	var _method = "requireAuthenticationAPI";
 	console.log("IN " + fileName + " - " + _method);
-
-	
-	if (req.isAuthenticated()) {
+	if (req.session.user != null) {
 		return next();
 	}else{
 		return res.json(json_api_responses.error(error_codes.USER_NOT_FOUND_ERROR));
@@ -215,6 +213,7 @@ app.use(function(err, req, res, next) {
 
 /*
  * session.user_lists 			= [] 
+ *	all the users that are in lists!! 
  * session.usersListHash 		= {lists: []}
  * session.completeListsObject 	= { [hash<uid, boolean>] }
  * session.friends 				= {friends_count, users: []}
