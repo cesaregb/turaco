@@ -50,6 +50,7 @@ global.warn = "03";
 
 var globalTunnel = require('global-tunnel');
 //globalTunnel.initialize();
+
 //globalTunnel.initialize({
 //	host : 'www-proxy.us.oracle.com',
 //	port : 80
@@ -223,3 +224,22 @@ app.use(function(err, req, res, next) {
 
 module.exports = app;
 
+/*
+ * 
+db.sessionobjects.find();
+db.sessionobjects.find({'completeListsObject.lists.name':"Test", 'completeListsObject.lists.list_users.screen_name':"Trevornoah"}, {"completeListsObject.lists.$" : 1});
+db.sessionobjects.find({'completeListsObject.lists.name':"Test"}, {"completeListsObject.lists.$" : 1});
+db.sessionobjects.find({'friends.users.screen_name':"Shevlis"}, {"friends.users.$" : 1});
+db.sessionobjects.find({"friends.complete_users": {$exists : "13348"}}, {"friends.complete_users" : 1});
+var myCursor = db.sessionobjects.find(null, {"friends.complete_users" : 1});
+var myDocument = myCursor.hasNext() ? myCursor.next() : null;
+if (myDocument) {
+    var hashedList = myDocument.friends.complete_users;
+    for (var i in hashedList) {
+        if (hashedList.hasOwnProperty(i) && i == "13348" ) {
+            print(i + " == " + tojson(hashedList[i]));
+        }
+    }
+}
+ * 
+ */

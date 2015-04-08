@@ -151,87 +151,6 @@ function getUsersListFunction(req, res) {
 }
 module.exports.getUsersListFunction = getUsersListFunction;
 
-/*
- * helper function.. duplicated with the gather information
- * */
-function getListsUsers(twit, lists, session, user){
-	// iterar las listas.. con async... 
-	var usersListHash = {};
-	var completeListsObject = {};
-	completeListsObject.lists = [];
-	
-	async.forEach(lists, function(list, callback) {
-		var completeObjectList = list;
-		var usersList = [];
-		var parentCallback = callback;
-		var cursor = -1;
-		async.whilst(
-			function () {
-				if(cursor == 0){
-					completeObjectList.users = usersList;
-					completeListsObject.lists.push(completeObjectList);
-					parentCallback();
-				}
-				return cursor != 0; 
-			},
-			function (callback) {
-				var params = {cursor : cursor};
-				params.count = 5000;
-				var self = this;
-				twit.getListMembers(list.id, params, function(err, data){
-					if (err){
-						callback(err);
-					}
-					cursor = data.next_cursor;
-					usersList.push.apply(usersList, data.users);
-					for (pos in usersList){ // iterate thru the list to hash the existing users.. for latter validation... 
-						(function(item){
-							usersListHash[item.id] = true;
-						})(usersList[pos]);
-					}
-					callback(null, cursor);
-				});
-			},
-			function (err) {
-				if (err){
-					parentCallback(err);
-				}
-			}
-		);
-	}, function(err) {
-		if (err == null){
-			for (index in completeListsObject.lists){
-				var list = completeListsObject.lists[index];
-			}
-			var sessionObject = new SessionObjects();
-			sessionObject.uid = user.uid; 
-			sessionObject.session_id = "non_existing"; 
-			sessionObject.usersListHash = usersListHash; 
-			sessionObject.completeListsObject = completeListsObject; 
-			sessionObject.save(function(err){
-				if (err){
-					console.log("TURACO_DEBUG - ERROR SAVING SESSION OBJECT ");
-				}else{
-					console.log("TURACO_DEBUG - Session saved.");
-				}
-			})
-			if (false){
-				SessionObjects.remove({uid: profile.id}, function(err) {
-					if(err) {
-						console.log("error deleting item: " + err);
-					}else{
-						console.log("TURACO_DEBUG - all the sessions from the suer were delted... ");
-					}
-				});
-			}
-		}else{
-			console.log("TURACO_DEBUG - Error on the async task... ");
-		}
-	});
-}
-module.exports.getListsUsers = getListsUsers;
-
-
 function createList (req, res) {
 	var _method = "createList";
 	console.log("IN " + fileName + " - " + _method);
@@ -256,17 +175,17 @@ function createList (req, res) {
 				if (err){
 					return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
 				}
-				twit.createList(user.screen_name, list_name, myParams, function(err, data){
+				twit.createList(user.screen_name, list_name, myParams, function(err, newListData){
 					if (err){ return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
 					}else{
 						//update the sessionObject and set value to restore sessions 
 						global.refresSessionObject = true;
 						sessionHelper = new sessionObjectHelpers({param:"nel"});
-						sessionHelper.addList(user, data, function(err, code){
+						sessionHelper.addList(user, newListData, function(err, code){
 							if (err){
 								return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
 							}else{
-								return res.json(json_api_responses.success(data));
+								return res.json(json_api_responses.success(newListData));
 							}
 						});
 					}
@@ -531,15 +450,15 @@ function subscribe(req, res) {
 				if (err){
 					return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
 				}
-				twit.subscribeme2List(myParams, function(err, data){
+				twit.subscribeme2List(myParams, function(err, subscribeListData){
 					
 					global.refresSessionObject = true;
 					sessionHelper = new sessionObjectHelpers({param:"nel"});
-					sessionHelper.addList(user, data, function(err, code){
+					sessionHelper.addList(user, subscribeListData, function(err, code){
 						if (err){
 							return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
 						}else{
-							return res.json(json_api_responses.success(data));
+							return res.json(json_api_responses.success(subscribeListData));
 						}
 					});
 				});
@@ -913,6 +832,8 @@ function membersCreateAll(req, res){
 				if (err){
 					return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
 				}
+				console.log("TURACO_DEBUG - list_id: " + list_id);
+				console.log("TURACO_DEBUG - users_list: " + users_list);
 				twit.subscribeMemebers2List(list_id, users_list, function(err, data){
 					if (err){
 						return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));

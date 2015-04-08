@@ -29,7 +29,7 @@ function (module) {
 
       listDataFactory.membersCreateAll = function (list_id, users_list) {
          var params = {users_list: users_list, list_id: list_id};
-         console.log("TURACO_DEBUG - AJAX REQUEST membersCreateAll: " + urlBase + "members_create_all" + "\n params: " + JSON.stringify(params));
+         console.log("TURACO_DEBUG - AJAX REQUEST membersCreateAll: " + urlBase + "/members_create_all" + "\n params: " + JSON.stringify(params));
          return $http.post(urlBase + "/members_create_all", params);
       };
 

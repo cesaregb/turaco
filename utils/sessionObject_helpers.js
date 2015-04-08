@@ -64,31 +64,7 @@ SessionObjectHelper.prototype.refreshListsUsersObj = function(sessionObj, callba
 	sessionObj.markModified('lists');
 	sessionObj.markModified('completeListsObject.lists');
 	sessionObj.markModified('friends');
-	sessionObj.markModified('userListHash');
-	
-	sessionObj.save(function(err) {
-		callback(err, global.success);
-	});
-}
-
-/*
- * require that:
- * sessionObj.completeListsObject.lists 
- * be complete.. 
- * */
-SessionObjectHelper.prototype.refreshListsObject = function(sessionObj, user, callback){
-	var _method = "refreshListsObject()";
-	console.log("IN " + fileName + " - "+ _method);
-	sessionObj.lists = [];
-	var uid = sessionObj.uid;
-	for (index in sessionObj.completeListsObject.lists){
-		var item = sessionObj.completeListsObject.lists[index];
-		var list = new List();
-		list = listHelpers.convertJson2List(list, item, uid);
-		sessionObj.lists.push(list);
-	}
-	sessionObj.markModified('lists');
-	sessionObj.markModified('completeListsObject.lists');
+	sessionObj.markModified('usersListHash');
 	
 	sessionObj.save(function(err) {
 		callback(err, global.success);
@@ -115,12 +91,22 @@ SessionObjectHelper.prototype.addList = function(user, list, users, callback){
 			var _err = (err)?err:"Object sessionObj not found";
 			return callback(_err);
 		}else{
+			
 			var turaco_list = new List();
 			turaco_list = listHelpers.convertJson2List(turaco_list, list, user.uid);
+			//get the list 
 			sessionObj.lists.push(turaco_list);
+			
 			if (users != null){
+				//if users are sent we add the users information.  
 				list.list_users = users;
+				var list_users_hash = {};
+				for (var i in users){
+					list_users_hash[users[i].id] = true;
+				}
+				list.list_users_hash = list_users_hash;
 			}
+			
 			sessionObj.completeListsObject.lists.push(list);
 			sessionObj.markModified('lists');
 			sessionObj.markModified('completeListsObject.lists');
@@ -132,7 +118,7 @@ SessionObjectHelper.prototype.addList = function(user, list, users, callback){
 }
 
 /*
- * remove list NO USERA
+ * remove list NO UNFOLLOW Users just remove them from local references!! 
  * */
 SessionObjectHelper.prototype.removeList = function(user, list_id, callback){
 	var _method = "removeList()";
@@ -149,17 +135,42 @@ SessionObjectHelper.prototype.removeList = function(user, list_id, callback){
 			var _err = (err)?err:"Object sessionObj not found";
 			return callback(_err);
 		}else{
+			
 			for (index in sessionObj.completeListsObject.lists){
 				if (sessionObj.completeListsObject.lists[index].id == list_id){
+					var thisListUsers = sessionObj.completeListsObject.lists[index].list_users; 
+
+					//decrease the usersListHash
+					for (var i in thisListUsers){
+						if (usersListHash[thisListUsers[i].id] != null && usersListHash[thisListUsers[i].id] > 0) {
+							usersListHash[thisListUsers[i].id] = usersListHash[thisListUsers[i].id] - 1;
+						}
+						//remove user flag for inList 
+						if (usersListHash[thisListUsers[i].id] == null || usersListHash[thisListUsers[i].id] == 0){
+							sessionObj.friends.complete_users[thisListUsers[i].id].inList = false;
+						}
+					}
 					sessionObj.completeListsObject.lists.splice(index, 1);
 				}
 			}
 			
-			// restore friends arrays 
-			// restore lists 
-			sessionObjectHelper.refreshListsObject(sessionObj, user, function(err, resp){
-				return callback(err, resp);
+			//clear list object to "re-build"
+			sessionObj.lists = [];
+			var uid = sessionObj.uid;
+			for (index in sessionObj.completeListsObject.lists){
+				var item = sessionObj.completeListsObject.lists[index];
+				var list = new List();
+				list = listHelpers.convertJson2List(list, item, uid);
+				sessionObj.lists.push(list);
+			}
+			sessionObj.markModified('lists');
+			sessionObj.markModified('friends');
+			sessionObj.markModified('completeListsObject.lists');
+			
+			sessionObj.save(function(err) {
+				callback(err, global.success);
 			});
+			
 		}
 	});
 }
@@ -194,8 +205,8 @@ SessionObjectHelper.prototype.removeListComplete = function(user, list_id, listU
 				if (sessionObj.completeListsObject.friends.complete_users[userId] != null){
 					delete sessionObj.completeListsObject.friends.complete_users[userId];
 				}
-				if (sessionObj.userListHash[userId] != null && sessionObj.userListHash[userId]){
-					sessionObj.userListHash[userId] = false;
+				if (sessionObj.usersListHash[userId] != null && sessionObj.usersListHash[userId] > 0){
+					sessionObj.usersListHash[userId] = sessionObj.usersListHash[userId] - 1 ;
 				}
 			}
 			
@@ -294,6 +305,11 @@ SessionObjectHelper.prototype.addListFollow = function(user, list, twitter_users
 			sessionObj.lists.push(turaco_list);
 			if (users != null){
 				list.list_users = users;
+				var list_users_hash = {};
+				for (var i in users){
+					list_users_hash[users[i].id] = true;
+				}
+				list.list_users_hash = list_users_hash;
 			}
 			sessionObj.completeListsObject.lists.push(list);
 			
@@ -306,11 +322,12 @@ SessionObjectHelper.prototype.addListFollow = function(user, list, twitter_users
 					turaco_user.id = json_user.id;
 					turaco_user.name = json_user.name;
 					turaco_user.screen_name = json_user.screen_name;
+					json_user.inList = true;
+					turaco_user.inList = true;
 					turaco_user.description = json_user.description;
 					turaco_user.following = json_user.following;
 					turaco_user.profile_image_url = json_user.profile_image_url;
 					sessionObj.friends.complete_users[json_user.id] = json_user;
-					sessionObj.friends.twitter_users.push(twitter_users[index]);
 					sessionObj.friends.users.push(turaco_user);
 				}
 				if (!sessionObj.usersListHash[id]){
@@ -389,28 +406,48 @@ SessionObjectHelper.prototype.listRefreshUsers = function(user, list_id, users_l
 						if (err){
 							return callback(err);
 						}
-						var usersListHash = {};
+						var list_users_hash = {};
 						for(var index in usersList){
 							//getting hashed version..
-							usersListHash[usersList[index].id] = true;
+							list_users_hash[usersList[index].id] = true;
 						}
 						sessionObj.completeListsObject.lists[i].list_users = usersList;
-						sessionObj.completeListsObject.lists[i].list_users_hash = usersListHash;
+						sessionObj.completeListsObject.lists[i].list_users_hash = list_users_hash;
 						sessionObj.completeListsObject.lists[i].member_count = usersList.length;
 						member_count = usersList.length;
 						/*
 						 * remove from the hashinglist the previous user array.
 						 * */
+						var updateFriends = false;
 						var userArray = users_list.split(",");
 						for (pos in userArray){
-							sessionObj.usersListHash[userArray[pos].id] = false;
+							var userId = userArray[pos];
+							if(sessionObj.usersListHash[userId] != null 
+									&& sessionObj.usersListHash[userId] > 0 ){
+								sessionObj.usersListHash[userId] = sessionObj.usersListHash[userId] - 1;
+								
+								if ((sessionObj.usersListHash[userId] == null 
+										|| sessionObj.usersListHash[userId] == 0) 
+										&&  sessionObj.friends.complete_users[userId] != null){
+									updateFriends = true;
+									sessionObj.friends.complete_users[userId].inList = false;
+								}
+							}
 						}
-
+						
 						for (var pos in sessionObj.lists){
 							if (sessionObj.lists[pos].id == list_id){
 								sessionObj.lists[pos].member_count = member_count;
 							}
 						}
+						
+						if (updateFriends){ // if we removed the inList value from at least one friend ... 
+							var complete_users = sessionObj.friends.complete_users;
+							var users = createUserArrayFromJsonTwitObj(complete_users, null);
+							sessionObj.friends.users = users;
+							sessionObj.markModified('friends');
+						}
+
 						//save within the loop but executed only once on id match.
 						sessionObj.markModified('completeListsObject.lists');
 						sessionObj.markModified('lists');
@@ -421,7 +458,6 @@ SessionObjectHelper.prototype.listRefreshUsers = function(user, list_id, users_l
 					});
 				}
 			}
-			
 		}
 	});
 }
@@ -446,7 +482,7 @@ SessionObjectHelper.prototype.membersCreateAll = function(user, list_id, users_l
 	var loopArray = function(chunkArray, loopCallback) {
 		callLookupUser(chunkArrays[x], function(err){
 			if (err){
-				return whilstCallback("Error on the async task... ");
+				return loopCallback("Error on the async task... ");
 			}else{
 				x++;
 				if(x < chunkArrays.length) {
@@ -485,13 +521,13 @@ SessionObjectHelper.prototype.membersCreateAll = function(user, list_id, users_l
 				}else{
 					var memeber_count = 0;
 					
+					var validated_twitter_users = []; 
 					for ( index in sessionObj.completeListsObject.lists){
 						//iterate thru the existing lists... 
 						
 						if(sessionObj.completeListsObject.lists[index].id == list_id){
 							// if we find the updating list.. with the id list_id
 							
-							var validated_twitter_users = []; 
 							for (var i in twitter_users){
 								// iterate thru the users to be aded, 
 								// and remove the existing users to avoid duplicate;
@@ -535,13 +571,12 @@ SessionObjectHelper.prototype.membersCreateAll = function(user, list_id, users_l
 						}
 					}
 					
-					var userArray = users_list.split(",");
 					// validate if the 
-					for (pos in userArray){
-						sessionObj.usersListHash[userArray[pos].id] = true;
-						if (sessionObj.friends.complete_users[userArray[pos] != null]) {
-							sessionObj.friends.complete_users[userArray[pos]].following = true;
-						}
+					for (pos in validated_twitter_users){
+						var userId = validated_twitter_users[pos].id;
+						sessionObj.usersListHash[userId] = (sessionObj.usersListHash[userId] == null) ? 1 : sessionObj.usersListHash[userId] + 1;
+						sessionObj.friends.complete_users[userId] = validated_twitter_users[pos];
+						sessionObj.friends.complete_users[userId].inList = true;
 					}
 					
 					var complete_users = sessionObj.friends.complete_users;
@@ -573,6 +608,7 @@ function createUserArrayFromJsonTwitObj(complete_users, callback){
     		turaco_user.following = complete_users[property].following;
     		turaco_user.description = complete_users[property].description;
     		turaco_user.profile_image_url = complete_users[property].profile_image_url;
+    		turaco_user.inList = complete_users[property].inList;
 	    	users.push(turaco_user);
 	    }
 	}

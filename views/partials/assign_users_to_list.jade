@@ -31,6 +31,18 @@
 								a(href='#', ng-click='filteredFriends(\'1\')') Friends not listed
 							li 
 								a(href='#', ng-click='filteredFriends(\'2\')') Friends listed
+					.btn-group(ng-show="showSearchButton")
+						button.btn.btn-default.btn-sm.dropdown-toggle(type='button', data-toggle='dropdown', aria-expanded='false')
+							| Sort By 
+							span.caret
+						|   
+						ul.dropdown-menu(role='menu')
+							li 
+								a(href='#', ng-click='filteredFriends("name")') Name
+							li 
+								a(href='#', ng-click='filteredFriends("screen_name")') Username
+							li 
+								a(href='#', ng-click='filteredFriends("followers")') # Followers
 		.btn-group.pull-right
 			a#btnAssignAccnts2List.btn.btn-default.btn-sm(type='button', href='/lists/index')
 				span.glyphicon.glyphicon-th-list

@@ -23,11 +23,11 @@ function createCheckboxHandlers($scope, callback){
 	if (callback != null){ callback(null, fnName) }
 }
 
-function getSelectedIds(array, callback){
+function getSelectedIds(usersArray, callback){
 	var user_id_list = "";
-	for (var i in array) {
-		if (array.hasOwnProperty(i)) {
-			user_id_list += array[i].id + ",";
+	for (var i in usersArray) {
+		if (usersArray.hasOwnProperty(i)) {
+			user_id_list += usersArray[i].id + ",";
 		}
 	}
 	user_id_list = user_id_list.substring(0, (user_id_list.length - 1 ));
@@ -37,7 +37,7 @@ function getSelectedIds(array, callback){
 /*
 	create the Fn to create the Modal (show / hide)
 */
-function crateListModal($scope, $modal, callback){
+function crateListModal($scope, $modal, modalActionCallback, callback){
 	var fnName = "crateListModal";
 	//open modal window for selecting the list to add
 	$scope.open = function (size) {
@@ -52,17 +52,27 @@ function crateListModal($scope, $modal, callback){
 				}
 			}
 		});
+		if (callback == null){
+			callback = modalActionCallback;
+			modalActionCallback = null;
+		}
 
 		modalInstance.result.then(function (selectedItem) {
 			var getListsByLoggedUserCallback = null;
-			if (typeof $scope.getListsByLoggedUser == "function"){
-				// this updates the users on the list, then we update the scope with the proper list in case of needed...
-				getListsByLoggedUserCallback = function(err, res){
-					if (!err){
-						$scope.getListsByLoggedUser();
-						$scope.getUserFriends();
-					}
-				};
+			if (modalActionCallback != null
+					&& typeof modalActionCallback == "functoin"){
+						getListsByLoggedUserCallback = modalActionCallback;
+			}else{
+				if (typeof $scope.getListsByLoggedUser == "function"){
+					// this updates the users on the list, then we update the scope with the proper list in case of needed...
+					//PLACE HOLDER IN CASE WE DON SEND A CALLBACK FOR THE COMPLETE ACTION
+					getListsByLoggedUserCallback = function(err, res){
+						if (!err){
+							$scope.getListsByLoggedUser();
+							$scope.getUserFriends();
+						}
+					};
+				}
 			}
 			$scope.assignUsers2List(selectedItem, getListsByLoggedUserCallback);
 		}, function () {
@@ -93,7 +103,6 @@ function createAssignUser2List($scope, listFactory, callback){
 		/* call the service */
 		if (typeof getSelectedIds === "function"){
 			getSelectedIds($scope.usersArray, function(err, user_id_list){
-				user_id_list = user_id_list.substring(0, (user_id_list.length - 1 ));
 				/*call service to add items to the list.. */
 				var validation_error = false;
 				//Validate

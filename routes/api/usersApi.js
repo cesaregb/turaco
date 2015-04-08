@@ -20,15 +20,9 @@ router.get('/by_user/:uid', handler.getTwitterUser);
 router.get('/friends_list', handler.getAllFriends);
 
 /*
- * GET ALL THE FRIENDS FILTERED. 
- * */
-router.get('/friends_list/:filter', handler.getFilteredFriends);
-
-/*
  * Search from the users.... 
  * */
 router.get('/search_user/:search', handler.searchUser);
-
 
 /*
  * Search from the users.... 

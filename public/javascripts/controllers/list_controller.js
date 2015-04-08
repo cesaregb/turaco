@@ -1,4 +1,4 @@
-define(['./module', './message_helper',  './accounts_helper', './list_manageListUsersController'],
+define(['./module', './message_helper',  './accounts_helper', './list_usersFriendsListsController', './list_viewListUsersController'],
 function (module) {
 	module.controller('listController', ['$scope', 'listFactory', 'userFactory', '$location', '$routeParams', 'filterFilter', '$modal',
 	function ($scope, listFactory, userFactory, $location, $routeParams, filterFilter, $modal, $rootScope) {
