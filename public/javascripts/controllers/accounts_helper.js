@@ -69,7 +69,10 @@ function crateListModal($scope, $modal, modalActionCallback, callback){
 					getListsByLoggedUserCallback = function(err, res){
 						if (!err){
 							$scope.getListsByLoggedUser();
-							$scope.getUserFriends();
+							if ($scope.getUserFriends != null
+									&& typeof $scope.getUserFriends == "function"){
+								$scope.getUserFriends();
+							}
 						}
 					};
 				}

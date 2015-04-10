@@ -49,12 +49,11 @@ global.warn = "03";
 
 
 var globalTunnel = require('global-tunnel');
-//globalTunnel.initialize();
-
-//globalTunnel.initialize({
-//	host : 'www-proxy.us.oracle.com',
-//	port : 80
-//});
+globalTunnel.initialize();
+globalTunnel.initialize({
+	host : 'www-proxy.us.oracle.com',
+	port : 80
+});
 
 app.set('views', path.join(__dirname, 'views'))
 	.set('view engine', 'jade')

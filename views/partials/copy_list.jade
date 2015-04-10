@@ -1,0 +1,48 @@
+.container
+	.alert.alert-danger(role='alert', ng-show="error")
+		span.glyphicon.glyphicon-exclamation-sign(aria-hidden='true')
+		span.sr-only Error:
+		|  {{error_message}}
+	div.alert.alert-info(ng-show="info") {{info_message}}
+	div.alert.alert-info(data-loading) Loading...
+	
+	.row.col-md-12
+		div.well.well-sm
+			.input-group.col-lg-4
+				ui-select(ng-model='selectedPlace', theme='bootstrap', ng-disabled='disabled', reset-search-input='false', on-select="searchChanged($item)")
+					ui-select-match(placeholder='Enter a location...') {{$select.selected.name}}
+					| &#x9;
+					ui-select-choices(repeat='place in places | propsFilter: {name: $select.search}')
+						div(ng-bind-html='place.name | highlight: $select.search')
+				.input-group-btn
+					button.btn.btn-default(type='button', ng-click='activateLocation()') 
+						span.glyphicon.glyphicon-map-marker
+	
+	.row
+		.col-md-4
+			.panel.panel-default
+				.panel-heading Trends
+				.panel-body
+					table.table.table-hover
+						tbody
+							tr(ng-repeat="trend in trends")
+								td 
+									a(href='{{trend.url}}', target='_blank') {{trend.name}}
+		.col-md-4
+			.panel.panel-default
+				.panel-heading Lists
+				.panel-body
+					table.table.table-hover
+						tbody
+							tr(ng-repeat="list in lists")
+								td 
+									a(href='https://twitter.com{{list.uri}}', target='_blank') {{list.name}}
+		.col-md-4
+			.panel.panel-default
+				.panel-heading Saved Searches
+				.panel-body
+					table.table.table-hover
+						tbody
+							tr(ng-repeat="search in searches")
+								td 
+									a(href=' https://twitter.com/search?q=%23{{search.updated_query}}&src=tyah', target='_blank') {{search.name}}

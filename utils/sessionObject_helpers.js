@@ -135,18 +135,22 @@ SessionObjectHelper.prototype.removeList = function(user, list_id, callback){
 			var _err = (err)?err:"Object sessionObj not found";
 			return callback(_err);
 		}else{
-			
+			var friendsUpdated = false;
 			for (index in sessionObj.completeListsObject.lists){
 				if (sessionObj.completeListsObject.lists[index].id == list_id){
+					
 					var thisListUsers = sessionObj.completeListsObject.lists[index].list_users; 
 
 					//decrease the usersListHash
 					for (var i in thisListUsers){
-						if (usersListHash[thisListUsers[i].id] != null && usersListHash[thisListUsers[i].id] > 0) {
-							usersListHash[thisListUsers[i].id] = usersListHash[thisListUsers[i].id] - 1;
+						if (sessionObj.usersListHash[thisListUsers[i].id] != null 
+								&& sessionObj.usersListHash[thisListUsers[i].id] > 0) {
+							sessionObj.usersListHash[thisListUsers[i].id] = sessionObj.usersListHash[thisListUsers[i].id] - 1;
 						}
 						//remove user flag for inList 
-						if (usersListHash[thisListUsers[i].id] == null || usersListHash[thisListUsers[i].id] == 0){
+						if (sessionObj.usersListHash[thisListUsers[i].id] == null 
+								|| sessionObj.usersListHash[thisListUsers[i].id] == 0){
+							friendsUpdated = true;
 							sessionObj.friends.complete_users[thisListUsers[i].id].inList = false;
 						}
 					}
@@ -154,6 +158,10 @@ SessionObjectHelper.prototype.removeList = function(user, list_id, callback){
 				}
 			}
 			
+			if (friendsUpdated){
+				var users = createUserArrayFromJsonTwitObj(sessionObj.friends.complete_users, null);
+				sessionObj.friends.users = users;
+			}
 			//clear list object to "re-build"
 			sessionObj.lists = [];
 			var uid = sessionObj.uid;
