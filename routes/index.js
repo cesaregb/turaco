@@ -70,10 +70,14 @@ router.get('/lists/*', ensureAuthenticated, function(req, res) {
 	res.render('index_logged', { title: 'Turaco', login_status: true, "user" : req.user });
 });
 
-router.get('/lists', ensureAuthenticated, function(req, res) {
-	console.log("TURACO_DEBUG - ROUTES /list/*");
+function commonHandler(req, res) {
+	console.log("TURACO_DEBUG - ROUTES commonHandler");
 	res.render('index_logged', { title: 'Turaco', login_status: true, "user" : req.user });
-});
+}
+
+router.get('/lists', ensureAuthenticated, commonHandler);
+router.get('/copy_list', ensureAuthenticated,commonHandler);
+router.get('/view_user_lists', ensureAuthenticated,commonHandler);
 
 
 // ************************************* 

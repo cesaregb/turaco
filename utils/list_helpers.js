@@ -20,6 +20,7 @@ function merge(defaults) {
 	return defaults;
 };
 
+
 function ListHelper(options) {
 	  if (!(this instanceof ListHelper)) return new ListHelper(options);
 	  var defaults = {
@@ -30,6 +31,7 @@ function ListHelper(options) {
 }
 ListHelper.user = null;
 module.exports.ListHelper = ListHelper;
+module.exports.merge = merge;
 
 ListHelper.prototype.getUser = function(_user, uid, callback){
 	var _method = "getUser()";

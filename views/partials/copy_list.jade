@@ -8,41 +8,45 @@
 	
 	.row.col-md-12
 		div.well.well-sm
-			.input-group.col-lg-4
-				ui-select(ng-model='selectedPlace', theme='bootstrap', ng-disabled='disabled', reset-search-input='false', on-select="searchChanged($item)")
-					ui-select-match(placeholder='Enter a location...') {{$select.selected.name}}
-					| &#x9;
-					ui-select-choices(repeat='place in places | propsFilter: {name: $select.search}')
-						div(ng-bind-html='place.name | highlight: $select.search')
+			.input-group
+				input.form-control(placeholder="https://twitter.com/twitterapi/lists/meetup-20100301", , ng-model="listUrl")
 				.input-group-btn
-					button.btn.btn-default(type='button', ng-click='activateLocation()') 
-						span.glyphicon.glyphicon-map-marker
+					button.btn.btn-default(type='button', ng-click='sendListURL()') 
+						span.glyphicon.glyphicon-ok
+						|  Go
 	
 	.row
-		.col-md-4
+		.col-md-8
 			.panel.panel-default
 				.panel-heading Trends
 				.panel-body
-					table.table.table-hover
-						tbody
-							tr(ng-repeat="trend in trends")
-								td 
-									a(href='{{trend.url}}', target='_blank') {{trend.name}}
-		.col-md-4
+					div(style='border-bottom:1px solid #999; clear:both;', ng-repeat="user in searchedListUsers")
+						div(style='float:left; margin-top: 10px; max-width: 750px;')
+							.stream-item-header
+								div.account-group(href='#', ng-click='userSelected(user)')
+									| &#x9;&#x9;&#x9;&#x9;&#x9;
+									img.avatar(src='{{user.profile_image_url}}', alt='', style='float: left; margin-top: 3px; padding-right:10px;')
+									| &#x9;&#x9;
+									| &#x9;&#x9;&#x9;&#x9;&#x9;
+									strong {{user.name}}
+									| &#x9;&#x9;
+									| &#x9;&#x9;&#x9;&#x9;&#x9;
+									span @{{user.screen_name}}
+							| &#x9;
+							| &#x9;&#x9;&#x9;
+							p.bio {{user.description}}
+						| &#x9;
+						div(style='clear:both;')
+		.col-md-3
 			.panel.panel-default
-				.panel-heading Lists
 				.panel-body
-					table.table.table-hover
-						tbody
-							tr(ng-repeat="list in lists")
-								td 
-									a(href='https://twitter.com{{list.uri}}', target='_blank') {{list.name}}
-		.col-md-4
-			.panel.panel-default
-				.panel-heading Saved Searches
-				.panel-body
-					table.table.table-hover
-						tbody
-							tr(ng-repeat="search in searches")
-								td 
-									a(href=' https://twitter.com/search?q=%23{{search.updated_query}}&src=tyah', target='_blank') {{search.name}}
+					.btn-group
+						a.btn.btn-default.btn-sm(type='button', ng-disabled="isListSelected()", ng-click='cloneList()') Clone
+						| &#x9;&#x9;&#x9;
+						| &#x9;&#x9;&#x9;&#x9;
+						a.btn.btn-default.btn-sm(type='button', ng-disabled="isListSelected()", ng-click='subscribeList()') Subscribe
+						| &#x9;&#x9;&#x9;
+						| &#x9;&#x9;&#x9;&#x9;
+						a.btn.btn-default.btn-sm(type='button', ng-disabled="isListSelected()", href='https://twitter.com{{list_info.uri}}', target='_blank') Open
+						| &#x9;&#x9;&#x9;
+						| &#x9;&#x9;&#x9;&#x9;

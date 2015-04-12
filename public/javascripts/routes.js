@@ -25,6 +25,15 @@ define([
       }).when('/lists/edit_category', {
 			templateUrl: urlListBase + 'edit_category',
 			controller: 'listController'
+      }).when('/copy_list/:list_id', {
+         templateUrl: urlListBase + 'copy_list',
+         controller: 'listController'
+      }).when('/copy_list', {
+			templateUrl: urlListBase + 'copy_list',
+			controller: 'listController'
+      }).when('/view_user_lists', {
+			templateUrl: urlListBase + 'view_user_lists',
+			controller: 'listController'
       }).when('/home', {
 			templateUrl: urlListBase + 'home',
 			controller: 'userController'

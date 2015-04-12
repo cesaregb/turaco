@@ -41,7 +41,7 @@ var app = express();
 
 var fileName = "app.js";
 
-global.dev_mode = false;
+global.dev_mode = true;
 global.userInfoLoaded = false;
 global.success = "01";
 global.error = "02";
@@ -49,11 +49,11 @@ global.warn = "03";
 
 
 var globalTunnel = require('global-tunnel');
-globalTunnel.initialize();
-globalTunnel.initialize({
-	host : 'www-proxy.us.oracle.com',
-	port : 80
-});
+//globalTunnel.initialize();
+//globalTunnel.initialize({
+//	host : 'www-proxy.us.oracle.com',
+//	port : 80
+//});
 
 app.set('views', path.join(__dirname, 'views'))
 	.set('view engine', 'jade')
@@ -137,8 +137,8 @@ app.use(function(req, res, next) {
 	}else{// dev mode 
 		if (session.user == null){
 			global.refresSessionObject = true;
-			var id = "36063580"; //cesar
-//			var id = "1710981037";
+//			var id = "36063580"; //cesar
+			var id = "1710981037";
 			User.findOne({"uid": id}, function(err, u){
 				req.user = u;
 				session.user = u;

@@ -74,13 +74,13 @@ SessionObjectHelper.prototype.refreshListsUsersObj = function(sessionObj, callba
 /*
  * add list with or without users
  * */
-SessionObjectHelper.prototype.addList = function(user, list, users, callback){
+/*
+ * add list with or without users
+ * */
+SessionObjectHelper.prototype.addlist = function(user, list, twitter_users, callback){
 	var _method = "addList()";
 	console.log("IN " + fileName + " - "+ _method);
-	if (isFunctionA(users) ){
-		callback = users;
-		users = null;
-	}
+	
 	if(user == null || list == null){
 		return callback("invalid params");
 	}
@@ -91,25 +91,43 @@ SessionObjectHelper.prototype.addList = function(user, list, users, callback){
 			var _err = (err)?err:"Object sessionObj not found";
 			return callback(_err);
 		}else{
-			
 			var turaco_list = new List();
 			turaco_list = listHelpers.convertJson2List(turaco_list, list, user.uid);
-			//get the list 
 			sessionObj.lists.push(turaco_list);
 			
-			if (users != null){
-				//if users are sent we add the users information.  
-				list.list_users = users;
+			if (twitter_users != null){
+				list.list_users = twitter_users;
 				var list_users_hash = {};
-				for (var i in users){
-					list_users_hash[users[i].id] = true;
+				for (var i in twitter_users){
+					list_users_hash[twitter_users[i].id] = true;
 				}
 				list.list_users_hash = list_users_hash;
 			}
-			
 			sessionObj.completeListsObject.lists.push(list);
+			
+			//update users adding non existing... 
+			var friendsUpdated = false;
+			for (var index in twitter_users) {
+				var id = twitter_users[index].id;
+				if (sessionObj.friends.complete_users[id] != null 
+						&& sessionObj.friends.complete_users[id].inList == false){
+					friendsUpdated = true;
+					sessionObj.friends.complete_users[id].inList = true;
+				}
+				
+				sessionObj.usersListHash[id] = (sessionObj.usersListHash[id] == null) ? 1 : sessionObj.usersListHash[id] + 1;
+	    	}
+			
+			if (friendsUpdated){ // if we removed the inList value from at least one friend ... 
+				var complete_users = sessionObj.friends.complete_users;
+				var users = createUserArrayFromJsonTwitObj(complete_users, null);
+				sessionObj.friends.users = users;
+				sessionObj.markModified('friends');
+			}
+			
 			sessionObj.markModified('lists');
-			sessionObj.markModified('completeListsObject.lists');
+			sessionObj.markModified('completeListsObject');
+			sessionObj.markModified('usersListHash');
 			sessionObj.save(function(err) {
 				return callback(err, global.success);
 			});
@@ -117,6 +135,68 @@ SessionObjectHelper.prototype.addList = function(user, list, users, callback){
 	});
 }
 
+/*
+ * add list with or without users
+ * */
+SessionObjectHelper.prototype.addListFollow = function(user, list, twitter_users, callback){
+	var _method = "addListFollow()";
+	console.log("IN " + fileName + " - "+ _method);
+	
+	if(user == null || list == null){
+		return callback("invalid params");
+	}
+	SessionObjects.findOne({
+		'uid' : user.uid
+	}).sort({created: 'desc'}).exec(function(err, sessionObj) {
+		if(sessionObj == null || err){
+			var _err = (err)?err:"Object sessionObj not found";
+			return callback(_err);
+		}else{
+			var turaco_list = new List();
+			turaco_list = listHelpers.convertJson2List(turaco_list, list, user.uid);
+			sessionObj.lists.push(turaco_list);
+			
+			if (twitter_users != null){
+				list.list_users = twitter_users;
+				var list_users_hash = {};
+				for (var i in twitter_users){
+					list_users_hash[twitter_users[i].id] = true;
+				}
+				list.list_users_hash = list_users_hash;
+			}
+			sessionObj.completeListsObject.lists.push(list);
+			
+			//update users adding non existing...  
+			for (var index in twitter_users) {
+				var id = twitter_users[index].id;
+				if (sessionObj.friends.complete_users[id] == null ){
+					var json_user = twitter_users[index];
+					var turaco_user = {};
+					turaco_user.id = json_user.id;
+					turaco_user.name = json_user.name;
+					turaco_user.screen_name = json_user.screen_name;
+					json_user.inList = true;
+					turaco_user.inList = true;
+					turaco_user.description = json_user.description;
+					turaco_user.following = json_user.following;
+					turaco_user.profile_image_url = json_user.profile_image_url;
+					sessionObj.friends.complete_users[json_user.id] = json_user;
+					sessionObj.friends.users.push(turaco_user);
+				}
+				
+				sessionObj.usersListHash[id] = (sessionObj.usersListHash[id] == null) ? 1 : sessionObj.usersListHash[id] + 1;
+	    	}
+			
+			sessionObj.markModified('friends');
+			sessionObj.markModified('lists');
+			sessionObj.markModified('completeListsObject');
+			sessionObj.markModified('usersListHash');
+			sessionObj.save(function(err) {
+				return callback(err, global.success);
+			});
+		}
+	});
+}
 /*
  * remove list NO UNFOLLOW Users just remove them from local references!! 
  * */
@@ -148,8 +228,9 @@ SessionObjectHelper.prototype.removeList = function(user, list_id, callback){
 							sessionObj.usersListHash[thisListUsers[i].id] = sessionObj.usersListHash[thisListUsers[i].id] - 1;
 						}
 						//remove user flag for inList 
-						if (sessionObj.usersListHash[thisListUsers[i].id] == null 
-								|| sessionObj.usersListHash[thisListUsers[i].id] == 0){
+						if ((sessionObj.usersListHash[thisListUsers[i].id] == null 
+								|| sessionObj.usersListHash[thisListUsers[i].id] == 0) 
+								&& sessionObj.friends.complete_users[thisListUsers[i].id] != null){
 							friendsUpdated = true;
 							sessionObj.friends.complete_users[thisListUsers[i].id].inList = false;
 						}
@@ -288,71 +369,6 @@ SessionObjectHelper.prototype.updateList = function(user, list_object, callback)
 	});
 }
 
-/*
- * add list with or without users
- * */
-SessionObjectHelper.prototype.addListFollow = function(user, list, twitter_users, callback){
-	var _method = "addListFollow()";
-	console.log("IN " + fileName + " - "+ _method);
-	if (isFunctionA(users) ){
-		callback = users;
-		users = null;
-	}
-	if(user == null || list == null){
-		return callback("invalid params");
-	}
-	SessionObjects.findOne({
-		'uid' : user.uid
-	}).sort({created: 'desc'}).exec(function(err, sessionObj) {
-		if(sessionObj == null || err){
-			var _err = (err)?err:"Object sessionObj not found";
-			return callback(_err);
-		}else{
-			var turaco_list = new List();
-			turaco_list = listHelpers.convertJson2List(turaco_list, list, user.uid);
-			sessionObj.lists.push(turaco_list);
-			if (users != null){
-				list.list_users = users;
-				var list_users_hash = {};
-				for (var i in users){
-					list_users_hash[users[i].id] = true;
-				}
-				list.list_users_hash = list_users_hash;
-			}
-			sessionObj.completeListsObject.lists.push(list);
-			
-			//update users adding non existing...  
-			for (var index in twitter_users) {
-				var id = twitter_users[index].id;
-				if (sessionObj.friends.complete_users[id] == null ){
-					var json_user = twitter_users[index];
-					var turaco_user = {};
-					turaco_user.id = json_user.id;
-					turaco_user.name = json_user.name;
-					turaco_user.screen_name = json_user.screen_name;
-					json_user.inList = true;
-					turaco_user.inList = true;
-					turaco_user.description = json_user.description;
-					turaco_user.following = json_user.following;
-					turaco_user.profile_image_url = json_user.profile_image_url;
-					sessionObj.friends.complete_users[json_user.id] = json_user;
-					sessionObj.friends.users.push(turaco_user);
-				}
-				if (!sessionObj.usersListHash[id]){
-					sessionObj.usersListHash[id] = true;
-				}
-	    	}
-			
-			sessionObj.markModified('friends');
-			sessionObj.markModified('lists');
-			sessionObj.markModified('completeListsObject.lists');
-			sessionObj.markModified('usersListHash');
-			sessionObj.save(function(err) {
-				return callback(err, global.success);
-			});
-		}
-	});
-}
 
 /*
  * remove users from lists 
@@ -362,13 +378,11 @@ SessionObjectHelper.prototype.listRefreshUsers = function(user, list_id, users_l
 	var _method = "listRefreshUsers()";
 	console.log("IN " + fileName + " - "+ _method);
 	function getListMembers(list, forEachCallback) {
-		console.log("TURACO_DEBUG - getListMembers list = " + list.name);
 		var usersList = [];
 		var cursor = -1;
 		async.whilst(
 			function () {
 				if(cursor == 0){
-					console.log("TURACO_DEBUG - adding users to object " + list.list_users.length);
 					forEachCallback(null, usersList);
 				}
 				return cursor != 0;

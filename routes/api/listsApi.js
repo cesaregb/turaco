@@ -62,7 +62,7 @@ router.post('/clone/no_follow', handler.cloneNoFollow);
 /*
  * Add members to a list (comma separated members...)    
  * */
-router.post('/members_create_all' , handler.membersCreateAll);
+router.post('/members_create_all' , handler.membersCreateAll); 
 
 /*
  * Destroy members to a list (comma separated members...)    
@@ -73,6 +73,11 @@ router.post('/members_destroy_all' , handler.membersDestroyAll);
  *  get users of the lists_id 
  * */
 router.get('/list_users/:list_id', handler.getListUsers);
+
+/*
+ *  get List information by params  
+ * */
+router.get('/list_users_by/:owner_screen_name/:slug', handler.getListInformation);
 
 
 module.exports = router;

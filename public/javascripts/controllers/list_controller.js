@@ -1,7 +1,8 @@
-define(['./module', './message_helper',  './accounts_helper', './list_usersFriendsListsController', './list_viewListUsersController'],
+define(['./module', './message_helper',  './accounts_helper', './list_usersFriendsListsController',
+'./list_viewListUsersController', './list_copyListController'],
 function (module) {
 	module.controller('listController', ['$scope', 'listFactory', 'userFactory', '$location', '$routeParams', 'filterFilter', '$modal',
-	function ($scope, listFactory, userFactory, $location, $routeParams, filterFilter, $modal, $rootScope) {
+	function ($scope, listFactory, userFactory, $location, $routeParams, filterFilter, $modal) {
 		createMessageHelper($scope, null);
 		function init(){
 			var path = $location.$$path; // get the path for initialization per page.
@@ -94,7 +95,11 @@ function (module) {
 						}else{$scope.handleErrorResponse(response);}
 					}).error($scope.handleErrorResponse);
 				};
-
+			}else if(path.indexOf("copy_list") > 0){
+				var list_id = $routeParams.list_id;
+				copyListsController($scope, userFactory, listFactory, filterFilter, $modal, 1, list_id);
+			}else if(path == '/view_user_lists'){
+				copyListsController($scope, userFactory, listFactory, filterFilter, $modal, 2);
 			}else{
 				//PLACE HOLDER FOR A URL PATTERN DIDNT MATCHED..
 			}

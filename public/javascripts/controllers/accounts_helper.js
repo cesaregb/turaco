@@ -185,7 +185,7 @@ function createGetUserFriends($scope, userFactory, filterFilter, callback){
 	/*
 	* get user friends
 	* */
-	$scope.getUserFriends = function() {
+	$scope.getUserFriends = function(getUserFriendsCallback) {
 		userFactory.getUserFriends().success(function (response) {
 			var result = response;
 			if (result.type == "SUCCESS"){

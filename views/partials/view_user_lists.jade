@@ -1,0 +1,47 @@
+.container
+	.alert.alert-danger(role='alert', ng-show="error")
+		span.glyphicon.glyphicon-exclamation-sign(aria-hidden='true')
+		span.sr-only Error:
+		|  {{error_message}}
+	div.alert.alert-info(ng-show="info") {{info_message}}
+	div.alert.alert-info(data-loading) Loading...
+	
+	.row.col-md-12
+		div.well.well-sm
+			.input-group
+				ui-select(ng-model='selectUser', theme='bootstrap', ng-disabled='disabled', reset-search-input='false', on-select="userSearchChanged($item)") 
+					ui-select-match(placeholder='@cesaregb') {{$select.selected.name}}
+					| &#x9;
+					ui-select-choices(repeat='user in friends | propsFilter: {name: $select.search}', refresh="refreshMySearchValue($select.search)" , refresh-delay="0")
+						div(ng-bind-html='user.name | highlight: $select.search')
+				.input-group-btn
+					button.btn.btn-default(type='button', ng-click='searchUser($select.search)') 
+						span.glyphicon.glyphicon-map-marker
+	
+	.row
+		.col-md-12
+			.panel.panel-default
+				.panel-heading Lists
+				.panel-body
+					table.table.table-hover
+						thead
+							tr
+								td Name
+								th Members
+								th Description
+								th
+						tbody
+							tr(ng-repeat="list in lists")
+								td 
+									a(href='/copy_list/{{list.id}}' ) {{list.name}}
+								td {{list.member_count}}
+								td {{list.description}}
+								td
+									.btn-group.pull-right
+										a.btn.btn-default.btn-sm(type='button', ng-click='cloneList(list.id)') Clone
+										| &#x9;&#x9;&#x9;
+										| &#x9;&#x9;&#x9;&#x9;
+										a.btn.btn-default.btn-sm(type='button', ng-click='subscribeList(list.id)') Subscribe
+										| &#x9;&#x9;&#x9;
+										| &#x9;&#x9;&#x9;&#x9;
+										a.btn.btn-default.btn-sm(type='button', href='https://twitter.com{{list.uri}}', target='_blank') Open
