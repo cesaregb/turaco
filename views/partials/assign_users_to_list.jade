@@ -8,7 +8,7 @@
 	div.alert.alert-info(ng-show="warning_not_all_friends") # friends: {{friends_count}}, over 1000, some results may not be included, please use the search tool 
 	
 	.row.col-md-12(style='padding-bottom:10px;')
-		.btn-group.col-lg-3.left-search-box
+		.btn-group.col-lg-5.left-search-box
 			.input-group
 				span.input-group-addon
 					input(type='checkbox', checked='true', disabled='')
@@ -43,6 +43,8 @@
 								a(href='#', ng-click='filteredFriends("screen_name")') Username
 							li 
 								a(href='#', ng-click='filteredFriends("followers")') # Followers
+				span.input-group-addon 
+					| Items: {{totalItems}}
 		.btn-group.pull-right
 			a#btnAssignAccnts2List.btn.btn-default.btn-sm(type='button', href='/lists/index')
 				span.glyphicon.glyphicon-th-list
@@ -60,6 +62,8 @@
 	.row.col-md-12
 		.panel.panel-default
 			.panel-body 
+				div(ng-hide="filtered.length") 
+					Empty
 				div(style='border-bottom:1px solid #999; clear:both;', ng-repeat="user in filtered | startFrom:(currentPage-1)*itemsPerPage | limitTo:itemsPerPage")
 					div(style='float:left; margin-top: 10px; max-width: 750px;')
 						.stream-item-header
@@ -91,6 +95,7 @@
 					| &#x9;&#x9;
 					div(style='clear:both;')
 		pagination.pagination-sm(total-items='totalItems',items-per-page='itemsPerPage', ng-model='currentPage', ng-change='pageChanged()',  max-size='maxSize', boundary-links='true' num-pages='numPages')
+		
 		// POP-UP!!  
 		script(type='text/ng-template', id='modalListContainer.html')
 			.modal-header

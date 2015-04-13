@@ -6,9 +6,9 @@
 	div.alert.alert-info(ng-show="info") {{info_message}}
 	div.alert.alert-info(data-loading) Loading...
 	
-	.row.col-md-12
-		div.well.well-sm
-			.input-group.col-lg-4
+	.row.col-md-12.well.well-sm(style='padding-bottom:10px;')
+		.btn-group.col-lg-5.left-search-box
+			.input-group
 				ui-select(ng-model='selectedPlace', theme='bootstrap', ng-disabled='disabled', reset-search-input='false', on-select="searchChanged($item)")
 					ui-select-match(placeholder='Enter a location...') {{$select.selected.name}}
 					| &#x9;
@@ -17,6 +17,16 @@
 				.input-group-btn
 					button.btn.btn-default(type='button', ng-click='activateLocation()') 
 						span.glyphicon.glyphicon-map-marker
+		.btn-group.pull-right
+			a.btn.btn-default.btn-sm(href='/lists/add_list', type='button')
+				span.glyphicon.glyphicon-th-list
+				|  Lists
+			a.btn.btn-default.btn-sm(href='/view_user_lists', type='button')
+				span.glyphicon.glyphicon-cloud
+				|  User List
+			a.btn.btn-default.btn-sm(href='/lists/assign_users_to_list', type='button')
+				span.glyphicon.glyphicon-transfer
+				|  Following 
 	
 	.row
 		.col-md-4
@@ -25,6 +35,8 @@
 				.panel-body
 					table.table.table-hover
 						tbody
+							tr(ng-hide="tredns.length") 
+								td(collspan="10") Empty
 							tr(ng-repeat="trend in trends")
 								td 
 									a(href='{{trend.url}}', target='_blank') {{trend.name}}
@@ -34,6 +46,8 @@
 				.panel-body
 					table.table.table-hover
 						tbody
+							tr(ng-hide="lists.length") 
+								td(collspan="10") Empty
 							tr(ng-repeat="list in lists")
 								td 
 									a(href='https://twitter.com{{list.uri}}', target='_blank') {{list.name}}
@@ -43,6 +57,8 @@
 				.panel-body
 					table.table.table-hover
 						tbody
+							tr(ng-hide="searches.length") 
+								td(collspan="10") Empty
 							tr(ng-repeat="search in searches")
 								td 
 									a(href=' https://twitter.com/search?q=%23{{search.updated_query}}&src=tyah', target='_blank') {{search.name}}

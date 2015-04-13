@@ -18,12 +18,14 @@
 	.row
 		.col-md-8
 			.panel.panel-default
-				.panel-heading Trends
+				.panel-heading Users
 				.panel-body
+					div(ng-hide="searchedListUsers.length") 
+						Empty
 					div(style='border-bottom:1px solid #999; clear:both;', ng-repeat="user in searchedListUsers")
 						div(style='float:left; margin-top: 10px; max-width: 750px;')
 							.stream-item-header
-								div.account-group(href='#', ng-click='userSelected(user)')
+								div.account-group
 									| &#x9;&#x9;&#x9;&#x9;&#x9;
 									img.avatar(src='{{user.profile_image_url}}', alt='', style='float: left; margin-top: 3px; padding-right:10px;')
 									| &#x9;&#x9;

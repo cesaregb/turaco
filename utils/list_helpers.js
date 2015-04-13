@@ -106,8 +106,6 @@ ListHelper.prototype.getTwittObjectFromUser = function (user, callback){
 function convertJson2List(list, item, uid){
 	list.turaco_user_id = "";
 	list.id = item.id;
-	console.log("TURACO_DEBUG - " + uid + " -- " + item.user.id);
-	
 	if (uid == item.user.id){
 		list.own_list = true; 
 	}else{

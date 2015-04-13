@@ -242,15 +242,23 @@ function createGetListUsers($scope, listFactory, callback){
 }
 
 function crateConfirmModal($scope, $modal, callback){
+
 	var fnName = "crateConfirmModal";
 	//open modal window for selecting the list to add
-	$scope.open_modal = function (modal_message_confirm, modalCallback) {
+	$scope.open_modal = function (modal_message_confirm, is_delete_list, modalCallback) {
+		if (typeof is_delete_list == "function"){
+			modalCallback = is_delete_list;
+			is_delete_list = null;
+		}
 		var modalInstance = $modal.open({
 			templateUrl: 'modalConfirmContainer.html',
 			controller: 'modalConfirmContainer',
 			resolve: {
 				modal_message_confirm: function () {
 					return modal_message_confirm;
+				},
+				is_delete_list : function(){
+					return is_delete_list;
 				}
 			}
 		});

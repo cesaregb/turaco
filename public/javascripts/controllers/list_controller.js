@@ -23,18 +23,39 @@ function (module) {
 					if(!list.own_list){
 						message = "Are you sure you want to unsubscribe from list: " + list.name + " ?";
 					}
-					$scope.open_modal(message, function(err, response){
-						if(!err){
+					$scope.open_modal(message, list.own_list, function(err, response){
+
+						function handleDeleteList(response){
+							var result = response;
+							if (result.type == "SUCCESS"){
+								$scope.getListsByLoggedUser();
+								$scope.$emit('AJAX_SUCCESS');
+							}else {
+								$scope.handleErrorResponse(response);
+							}
+						}
+
+						var unfollowUsers = response.unfollowUsers;
+						if(!err){// dont delete lists while testing ui...
 							$scope.refresh = true;
-							listFactory.deleteList(list).success(function (response){
-								var result = response;
-								if (result.type == "SUCCESS"){
-									$scope.getListsByLoggedUser();
-									$scope.$emit('AJAX_SUCCESS');
-								}else {
-									$scope.handleErrorResponse(response);
+							if (list.own_list) {
+								if (unfollowUsers){
+									listFactory.deleteListAndUnfollow(list).success(handleDeleteList).error($scope.handleErrorResponse);
+								}else{
+									listFactory.deleteList(list).success(handleDeleteList).error($scope.handleErrorResponse);
 								}
-							}).error($scope.handleErrorResponse);
+							}else{
+								console.log("TURACO_DEBUG - unsubscribe");
+								listFactory.unsubscribe(list.id).success(function (response){
+									var result = response;
+									if (result.type == "SUCCESS"){
+										$scope.getListsByLoggedUser();
+										$scope.$emit('AJAX_SUCCESS');
+									}else {
+										$scope.handleErrorResponse(response);
+									}
+								}).error($scope.handleErrorResponse);
+							}
 						}
 					});
 				};

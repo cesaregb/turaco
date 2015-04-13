@@ -79,6 +79,19 @@ function (module) {
          return $http.post(_methodURL, params);
       };
 
+      listDataFactory.deleteListAndUnfollow = function (list) {
+         var _methodURL = urlBase + "/and_unfollow/" + list.id ;
+         console.log("TURACO_DEBUG - AJAX REQUEST subscribeToList: " + _methodURL + "\n params: " + JSON.stringify(list));
+         return $http.delete(_methodURL);
+      };
+
+      listDataFactory.unsubscribe = function (list_id) {
+         var params = {list_id: list_id};
+         var _methodURL = urlBase + "/unsubscribe";
+         console.log("TURACO_DEBUG - AJAX REQUEST unsubscribe: " + _methodURL + "\n params: " + JSON.stringify(params));
+         return $http.post(_methodURL, params);
+      };
+
       return listDataFactory;
    }]);
 });

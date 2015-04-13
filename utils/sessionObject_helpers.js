@@ -50,7 +50,7 @@ SessionObjectHelper.prototype.refreshListsUsersObj = function(sessionObj, callba
 	for (index in sessionObj.completeListsObject.lists){
 		var item = sessionObj.completeListsObject.lists[index];
 		var list = new List();
-		list = SessionObjectHelpers.convertJson2List(list, item, uid);
+		list = listHelpers.convertJson2List(list, item, uid);
 		sessionObj.lists.push(list);
 	}
 	
@@ -59,7 +59,6 @@ SessionObjectHelper.prototype.refreshListsUsersObj = function(sessionObj, callba
 	var users = createUserArrayFromJsonTwitObj(complete_users, null);
 	
 	sessionObj.friends.users = users;
-	
 	
 	sessionObj.markModified('lists');
 	sessionObj.markModified('completeListsObject.lists');
@@ -77,9 +76,14 @@ SessionObjectHelper.prototype.refreshListsUsersObj = function(sessionObj, callba
 /*
  * add list with or without users
  * */
-SessionObjectHelper.prototype.addlist = function(user, list, twitter_users, callback){
+SessionObjectHelper.prototype.addList = function(user, list, twitter_users, callback){
 	var _method = "addList()";
 	console.log("IN " + fileName + " - "+ _method);
+	
+	if (typeof twitter_users == "function"){
+		callback = twitter_users;
+		twitter_users = null;
+	}
 	
 	if(user == null || list == null){
 		return callback("invalid params");
@@ -102,28 +106,27 @@ SessionObjectHelper.prototype.addlist = function(user, list, twitter_users, call
 					list_users_hash[twitter_users[i].id] = true;
 				}
 				list.list_users_hash = list_users_hash;
+				
+				//update users adding non existing... 
+				var friendsUpdated = false;
+				for (var index in twitter_users) {
+					var id = twitter_users[index].id;
+					if (sessionObj.friends.complete_users[id] != null 
+							&& sessionObj.friends.complete_users[id].inList == false){
+						friendsUpdated = true;
+						sessionObj.friends.complete_users[id].inList = true;
+					}
+					
+					sessionObj.usersListHash[id] = (sessionObj.usersListHash[id] == null) ? 1 : sessionObj.usersListHash[id] + 1;
+				}
+				if (friendsUpdated){ // if we removed the inList value from at least one friend ... 
+					var complete_users = sessionObj.friends.complete_users;
+					var users = createUserArrayFromJsonTwitObj(complete_users, null);
+					sessionObj.friends.users = users;
+					sessionObj.markModified('friends');
+				}
 			}
 			sessionObj.completeListsObject.lists.push(list);
-			
-			//update users adding non existing... 
-			var friendsUpdated = false;
-			for (var index in twitter_users) {
-				var id = twitter_users[index].id;
-				if (sessionObj.friends.complete_users[id] != null 
-						&& sessionObj.friends.complete_users[id].inList == false){
-					friendsUpdated = true;
-					sessionObj.friends.complete_users[id].inList = true;
-				}
-				
-				sessionObj.usersListHash[id] = (sessionObj.usersListHash[id] == null) ? 1 : sessionObj.usersListHash[id] + 1;
-	    	}
-			
-			if (friendsUpdated){ // if we removed the inList value from at least one friend ... 
-				var complete_users = sessionObj.friends.complete_users;
-				var users = createUserArrayFromJsonTwitObj(complete_users, null);
-				sessionObj.friends.users = users;
-				sessionObj.markModified('friends');
-			}
 			
 			sessionObj.markModified('lists');
 			sessionObj.markModified('completeListsObject');
@@ -145,6 +148,7 @@ SessionObjectHelper.prototype.addListFollow = function(user, list, twitter_users
 	if(user == null || list == null){
 		return callback("invalid params");
 	}
+	
 	SessionObjects.findOne({
 		'uid' : user.uid
 	}).sort({created: 'desc'}).exec(function(err, sessionObj) {
@@ -153,6 +157,7 @@ SessionObjectHelper.prototype.addListFollow = function(user, list, twitter_users
 			return callback(_err);
 		}else{
 			var turaco_list = new List();
+			list.member_count = twitter_users.length;
 			turaco_list = listHelpers.convertJson2List(turaco_list, list, user.uid);
 			sessionObj.lists.push(turaco_list);
 			
@@ -163,29 +168,27 @@ SessionObjectHelper.prototype.addListFollow = function(user, list, twitter_users
 					list_users_hash[twitter_users[i].id] = true;
 				}
 				list.list_users_hash = list_users_hash;
-			}
-			sessionObj.completeListsObject.lists.push(list);
-			
-			//update users adding non existing...  
-			for (var index in twitter_users) {
-				var id = twitter_users[index].id;
-				if (sessionObj.friends.complete_users[id] == null ){
-					var json_user = twitter_users[index];
-					var turaco_user = {};
-					turaco_user.id = json_user.id;
-					turaco_user.name = json_user.name;
-					turaco_user.screen_name = json_user.screen_name;
-					json_user.inList = true;
-					turaco_user.inList = true;
-					turaco_user.description = json_user.description;
-					turaco_user.following = json_user.following;
-					turaco_user.profile_image_url = json_user.profile_image_url;
-					sessionObj.friends.complete_users[json_user.id] = json_user;
-					sessionObj.friends.users.push(turaco_user);
+
+				//update users adding non existing... 
+				for (var index in twitter_users) {
+					var id = twitter_users[index].id;
+					if (sessionObj.friends.complete_users[id] == null ){
+						var json_user = twitter_users[index];
+						json_user.inList = true;
+						json_user.following = true;
+						sessionObj.friends.complete_users[json_user.id] = json_user;
+					}else{
+						sessionObj.friends.complete_users[id].inList = true;
+					}
+					
+					sessionObj.usersListHash[id] = (sessionObj.usersListHash[id] == null) ? 1 : sessionObj.usersListHash[id] + 1;
 				}
 				
-				sessionObj.usersListHash[id] = (sessionObj.usersListHash[id] == null) ? 1 : sessionObj.usersListHash[id] + 1;
-	    	}
+				var complete_users = sessionObj.friends.complete_users;
+				var users = createUserArrayFromJsonTwitObj(complete_users, null);
+				sessionObj.friends.users = users;
+			}
+			sessionObj.completeListsObject.lists.push(list);
 			
 			sessionObj.markModified('friends');
 			sessionObj.markModified('lists');
@@ -282,17 +285,15 @@ SessionObjectHelper.prototype.removeListComplete = function(user, list_id, listU
 			var _err = (err)?err:"Object sessionObj not found";
 			return callback(_err);
 		}else{
-			
 			for (index in sessionObj.completeListsObject.lists){
 				if (sessionObj.completeListsObject.lists[index].id == list_id){
 					sessionObj.completeListsObject.lists.splice(index, 1);
 				}
 			}
-			
-			for ( index in listUsers){
+			for (index in listUsers){
 				var userId = listUsers[index].id;
-				if (sessionObj.completeListsObject.friends.complete_users[userId] != null){
-					delete sessionObj.completeListsObject.friends.complete_users[userId];
+				if (sessionObj.friends.complete_users[userId] != null){
+					delete sessionObj.friends.complete_users[userId];
 				}
 				if (sessionObj.usersListHash[userId] != null && sessionObj.usersListHash[userId] > 0){
 					sessionObj.usersListHash[userId] = sessionObj.usersListHash[userId] - 1 ;

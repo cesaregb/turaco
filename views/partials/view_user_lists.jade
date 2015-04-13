@@ -6,18 +6,31 @@
 	div.alert.alert-info(ng-show="info") {{info_message}}
 	div.alert.alert-info(data-loading) Loading...
 	
-	.row.col-md-12
-		div.well.well-sm
-			.input-group
-				ui-select(ng-model='selectUser', theme='bootstrap', ng-disabled='disabled', reset-search-input='false', on-select="userSearchChanged($item)") 
-					ui-select-match(placeholder='@cesaregb') {{$select.selected.name}}
-					| &#x9;
-					ui-select-choices(repeat='user in friends | propsFilter: {name: $select.search}', refresh="refreshMySearchValue($select.search)" , refresh-delay="0")
-						div(ng-bind-html='user.name | highlight: $select.search')
-				.input-group-btn
-					button.btn.btn-default(type='button', ng-click='searchUser($select.search)') 
-						span.glyphicon.glyphicon-map-marker
 	
+	row.col-md-12(style='padding-bottom:10px;')
+		.input-group
+			ui-select(ng-model='selectUser', theme='bootstrap', ng-disabled='disabled', reset-search-input='false', on-select="userSearchChanged($item)") 
+				ui-select-match(placeholder='@twitter') {{$select.selected.name}}
+				| &#x9;
+				ui-select-choices(repeat='user in friends | propsFilter: {name: $select.search}', refresh="refreshMySearchValue($select.search)" , refresh-delay="0")
+					div(ng-bind-html='user.name | highlight: $select.search')
+			.input-group-btn
+				button.btn.btn-default(type='button', ng-click='searchUser($select.search)') 
+					span.glyphicon.glyphicon-ok
+		.btn-group.pull-right
+			a.btn.btn-default.btn-sm(href='/lists/add_list', type='button')
+				span.glyphicon.glyphicon-plus
+				|  Add
+			a.btn.btn-default.btn-sm(href='/view_user_lists', type='button')
+				span.glyphicon.glyphicon-cloud
+				|  User List
+			a.btn.btn-default.btn-sm(href='/lists/assign_users_to_list', type='button')
+				span.glyphicon.glyphicon-transfer
+				|  Users
+	
+	
+	.row.col-md-5
+			
 	.row
 		.col-md-12
 			.panel.panel-default
@@ -31,6 +44,8 @@
 								th Description
 								th
 						tbody
+							tr(ng-hide="lists.length") 
+								td(collspan="10") Empty
 							tr(ng-repeat="list in lists")
 								td 
 									a(href='/copy_list/{{list.id}}' ) {{list.name}}

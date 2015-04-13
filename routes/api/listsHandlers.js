@@ -254,10 +254,11 @@ function deleteAndUnfollow(req, res) {
 	console.log("IN " + fileName + " - " + _method);
 	var uid = null;
 	var myParams = getParams(req);
+	var list_id = req.params.list_id;
+	myParams.list_id = list_id;
 	var finalList = null;
 	var finalListOfUsers = [];
 	try{
-		
 		if (req.user){
 			user = req.user;
 			uid = user.uid;
@@ -291,6 +292,23 @@ function deleteAndUnfollow(req, res) {
 						var cursor = -1;
 						async.whilst(
 							function () {
+								if (cursor == 0){
+									twit.deleteList(user.screen_name, myParams, function(err, data){
+										if (err){
+											return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
+										}else{
+											global.refresSessionObject = true;
+											sessionHelper = new sessionObjectHelpers({param:"nel"});
+											sessionHelper.removeListComplete(user, finalList.id, finalListOfUsers, function(err, code){
+												if (err){
+													return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
+												}else{
+													return res.json(json_api_responses.success(data));
+												}
+											});
+										}
+									});
+								}
 								return cursor != 0; 
 							},
 							function (callback) {
@@ -336,26 +354,7 @@ function deleteAndUnfollow(req, res) {
 								}
 							}
 						);
-						twit.deleteList(user.screen_name, myParams, function(err, data){
-							if (err){
-								return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
-							}else{
-								
-								// list to clone as twitter object
-								// list of users to add to the list and to the friends and to the hashing... 
-								global.refresSessionObject = true;
-								sessionHelper = new sessionObjectHelpers({param:"nel"});
-								sessionHelper.removeListComplete(user, finalList.id, finalListOfUsers, function(err, code){
-									if (err){
-										return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
-									}else{
-										return res.json(json_api_responses.success(data));
-									}
-								});
-							}
-						});
 					});
-					
 				})
 			}
 		});
@@ -444,17 +443,24 @@ function subscribe(req, res) {
 			if (err){
 				return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
 			}
-			twit.subscribeme2List(myParams, function(err, subscribeListData){
-				global.refresSessionObject = true;
-				sessionHelper = new sessionObjectHelpers({param:"nel"});
-				sessionHelper.addList(user, subscribeListData, function(err, code){
-					if (err){
-						return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
-					}else{
-						return res.json(json_api_responses.success(subscribeListData));
-					}
-				});
+			getListMembers(null, user, myParams, function(err, result){
+				if (err){
+					return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
+				}else{
+					twit.subscribeme2List( myParams, function(err, subscribeListData){
+						global.refresSessionObject = true;
+						sessionHelper = new sessionObjectHelpers({param:"nel"});
+						sessionHelper.addList(user, result.list_info, result.users, function(err, code){
+							if (err){
+								return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
+							}else{
+								return res.json(json_api_responses.success(subscribeListData));
+							}
+						});
+					});
+				}
 			});
+			
 		});
 	});
 }
@@ -511,10 +517,8 @@ module.exports.unsubscribe = unsubscribe;
 function getSubscriptions(req, res) {
 	var _method = "getSubscriptions";
 	console.log("IN " + fileName + " - " + _method);
-
 	var uid = null;
 	var myParams = {};
-	
 	try{
 		if (req.user){
 			user = req.user;
@@ -631,7 +635,8 @@ function cloneList(req, res){
 									var members2Add = new Array();
 									var usersList = data.users.length;
 									data = data.users;	
-									finalListOfUsers.push.apply(finalListOfUsers, data.users);
+									
+									finalListOfUsers.push.apply(finalListOfUsers, data);
 									var memebers = "";
 									for (pos in data){
 										var item = data[pos]
@@ -644,13 +649,11 @@ function cloneList(req, res){
 											}else{
 												members2Add.push(data.id_str);
 											}
-											console.log("TURACO_DEBUG - condition: " + numTries  + " -- " + usersList + " -- " + members2Add.length);
 											if (numTries == usersList){
 												var i, j, temparray, chunk = 100;
 												for (i=0, j = members2Add.length; i < j; i+=chunk) {
 												    temparray = members2Add.slice(i, i+chunk);
 												    var ids = temparray.toString();
-												    console.log("TURACO_DEBUG - ids: " + ids + " \n created_list_id: " + created_list_id);
 												    twit.subscribeMemebers2List(created_list_id, ids, function(err, data){
 												    	if (err){
 												    		return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
@@ -666,7 +669,7 @@ function cloneList(req, res){
 						    },
 						    function (err) {
 						        if (err){
-						        	console.log("err: " + err)
+						        	return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
 						        }
 						    }
 						);
@@ -682,6 +685,7 @@ function cloneList(req, res){
 }
 module.exports.cloneList = cloneList;
 
+/*not used!!!! */
 function cloneNoFollow(req, res){
 	var _method = "cloneList";
 	console.log("IN " + fileName + " - " + _method);
@@ -896,7 +900,6 @@ module.exports.membersDestroyAll = membersDestroyAll;
 function getListMembers(err, user, defaults, getListMembersCallback){
 	var _method = "getListMembers";
 	console.log("IN " + fileName + " - " + _method);
-	console.log("TURACO_DEBUG - list_id: " + defaults.list_id);
 	helper = new listHelpers.ListHelper();
 	
 	helper.getUser(user, function(err, user){
@@ -913,7 +916,6 @@ function getListMembers(err, user, defaults, getListMembersCallback){
 					return getListMembersCallback(error_codes.SERVICE_ERROR, err);
 				}
 				list_info = data;
-				console.log("TURACO_DEBUG - list obtained: " + data);
 				var result = {};
 				var cursor = -1;
 				var users = [];
@@ -922,7 +924,6 @@ function getListMembers(err, user, defaults, getListMembersCallback){
 						if (cursor == 0){
 							result.users = users;
 							result.list_info = list_info;
-							console.log("TURACO_DEBUG - adding list_info to response: " + (list_info != null));
 							getListMembersCallback(null, result);
 						}
 						return cursor != 0; 

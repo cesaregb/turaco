@@ -65,29 +65,6 @@ function usersFriendsListsController($scope, userFactory, listFactory, filterFil
 	$scope.getListsByLoggedUser();
 
 	/*
-	* DEPRECATED
-	* search for users within the list.. this is not longer used seance uses the filter
-	* */
-	$scope.searchFriends = function(){
-		if ($scope.search != "undefined") {
-			userFactory.serachUserFriends($scope.search).success(function (response) {
-				var result = response;
-				if (result.type == "SUCCESS"){
-
-					$scope.friends_count = result.data.friends_count;
-					if (parseInt(result.data.friends_count) > 1000){
-						$scope.warning_not_all_friends = true;
-					}
-					$scope.friends = result.data;
-					performSearch("");
-				}else{
-					$scope.handleErrorResponse(response);
-				}
-			}).error($scope.handleErrorResponse);
-		}
-	};
-
-	/*
 	* with the existing information filter the lists
 	* */
 	$scope.filteredFriends = function(type){

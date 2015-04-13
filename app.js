@@ -235,6 +235,7 @@ var myDocument = myCursor.hasNext() ? myCursor.next() : null;
 if (myDocument) {
     var hashedList = myDocument.friends.complete_users;
     for (var i in hashedList) {
+        if (hashedList.hasOwnProperty(i) && hashedList[i].screen_name == "VivirGDL" ) {
         if (hashedList.hasOwnProperty(i) && i == "13348" ) {
             print(i + " == " + tojson(hashedList[i]));
         }

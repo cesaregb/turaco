@@ -30,6 +30,8 @@
 			.panel-heading.clearfix
 				h4.panel-title.pull-left(style='padding-top: 7.5px;') List Name: {{listName}} 
 			.panel-body
+				div(ng-hide="users.length") 
+					Empty
 				div(style='border-bottom:1px solid #999; clear:both;', ng-repeat="user in users | filter:search")
 					div(style='float:left; margin-top: 10px; max-width: 750px;')
 						.stream-item-header
