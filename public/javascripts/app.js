@@ -10,5 +10,12 @@ define([ 'ngRoute',
          './controllers/index' ], function(ngRoute) {
 
 	return angular.module('app', ['ngRoute', 'ngSanitize', 'app.controllers', 'app.factories',
-         'app.filters', 'app.directives', 'ui.bootstrap', 'ngGeolocation', 'ui.select' ]);
+         'app.filters', 'app.directives', 'ui.bootstrap', 'ngGeolocation', 'ui.select' ])
+
+
+   .run(['$location', '$rootScope', function($location, $rootScope) {
+            $rootScope.$on('$routeChangeSuccess', function (event, current, previous) {
+               $rootScope.title = current.$$route.title;
+            });
+         }]);
 });

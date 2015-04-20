@@ -81,7 +81,6 @@ ListHelper.prototype.getTwittObjectFromUser = function (user, callback){
 			callback("Error not user getTwittObjectFromUser", null, null);
 		}else{
 			twit = twitterController(user.token, user.tokenSecret);
-			console.log("TURACO_DEBUG - global.verify_credentials: " + global.verify_credentials);
 			if (global.verify_credentials != true){
 				// if the session havent been verified! ...
 				twit.verifyCredentials(function(err, data) {

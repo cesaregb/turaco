@@ -1,10 +1,4 @@
 #containerUsers.container(style='block;')
-	.alert.alert-danger(role='alert', ng-show="error")
-		span.glyphicon.glyphicon-exclamation-sign(aria-hidden='true')
-		span.sr-only Error:
-		|  {{error_message}}
-	div.alert.alert-info(ng-show="info") {{info_message}}
-	div.alert.alert-info(data-loading) Loading...
 	.row.col-md-12(style='padding-bottom:10px;')
 		.btn-group.col-lg-3.left-search-box
 			.input-group
@@ -18,13 +12,13 @@
 		.btn-group.pull-right
 			a#btnAssignAccnts2List.btn.btn-default.btn-sm(type='button', href='/lists/index')
 				span.glyphicon.glyphicon-th-list
-				| &#x9;&#x9;&#x9;&#x9;&#x9;&#x9;List
+				| List
 			button#btnBackLists.btn.btn-default.btn-sm(type='button', ng-click='removeUsers()')
 				span.glyphicon.glyphicon-remove
-				| &#x9;&#x9;&#x9;&#x9;&#x9;&#x9;Remove Selected
+				| Remove Selected
 			button.btn.btn-default.btn-sm(type='button', href='#', ng-click="open()")
 				span.glyphicon.glyphicon-file
-				| &#x9;&#x9;&#x9;&#x9;&#x9;&#x9;Copy
+				| Copy
 	.row.col-md-12
 		.panel.panel-default
 			.panel-heading.clearfix
@@ -38,29 +32,29 @@
 							span(style='float: left; padding-right: 10px; margin-top: 15px;')
 								input(type='checkbox', ng-checked='isSelected(user)', ng-click='userSelected(user)')
 							a.account-group(href='#', ng-click='userSelected(user)')
-								| &#x9;&#x9;&#x9;&#x9;&#x9;
+								| 
 								img.avatar(src='{{user.profile_image_url}}', alt='', style='float: left; margin-top: 3px; padding-right:10px;')
-								| &#x9;&#x9;
-								| &#x9;&#x9;&#x9;&#x9;&#x9;
+								| 
+								| 
 								strong {{user.name}}
-								| &#x9;&#x9;
-								| &#x9;&#x9;&#x9;&#x9;&#x9;
+								| 
+								| 
 								span @{{user.screen_name}}
-						| &#x9;
-						| &#x9;&#x9;&#x9;
+						| 
+						| 
 						p.bio {{user.description}}
-					| &#x9;
-					| &#x9;&#x9;
+					| 
+					| 
 					div(style='float: right; margin-top:10px')
 						.btn-group.pull-right
 							a.btn.btn-default.btn-sm(type='button', ng-disabled="isFollowing(user)", ng-click='unfowlloUser(user)') Unfollow
-							| &#x9;&#x9;&#x9;
-							| &#x9;&#x9;&#x9;&#x9;
+							| 
+							| 
 							a.btn.btn-default.btn-sm(type='button', ng-click='removeUser(user)') Remove
-							| &#x9;&#x9;&#x9;
-							| &#x9;&#x9;&#x9;&#x9;
+							| 
+							| 
 							a.btn.btn-default.btn-sm(type='button', href='https://twitter.com/{{user.screen_name}}', target='_blank') Open
-					| &#x9;&#x9;
+					| 
 					div(style='clear:both;')
 	// POP-UP!!  
 	script(type='text/ng-template', id='modalListContainer.html')

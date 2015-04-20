@@ -1,10 +1,11 @@
-doctype html
+doctype html(xmlns="http://www.w3.org/1999/xhtml")
 html
 	head
 		meta(name='viewport', content='width=device-width, initial-scale=1.0')
 		title=title
 		link(rel='stylesheet', href='/dist/css/bootstrap.css')
-		link(rel='stylesheet', href='/stylesheets/turaco_base.css')
+		link(rel='stylesheet', href='/css/style.css')
+		link(rel='stylesheet', href='/css/font-awesome.css')
 	body
 		include header
 		block content
@@ -12,5 +13,5 @@ html
 		//script(src='//ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js')
 		//script(src='//ajax.googleapis.com/ajax/libs/angularjs/1.0.8/angular.min.js')
 		//script(src='//ajax.googleapis.com/ajax/libs/angularjs/1.0.8/angular-resource.min.js')
-		script(src="/frameworks/require.js" data-main="/javascripts/main")
+		//script(src="/frameworks/require.js" data-main="/javascripts/main")
 		

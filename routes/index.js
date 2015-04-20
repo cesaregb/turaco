@@ -13,6 +13,14 @@ var fileName = "routes/index.js";
 
 var router = express.Router();
 
+router.get('*', function(req, res, next) {
+	console.log("TURACO_DEBUG - INTO THE global SETTER ");
+	res.locals = {
+		topMenuOption : '1'
+	};
+	next();
+});
+
 router.get('/', function(req, res) {
 	console.log("TURACO_DEBUG - ROUTES /");
 	if (req.isAuthenticated()) {
@@ -77,20 +85,13 @@ function commonHandler(req, res) {
 
 router.get('/lists', ensureAuthenticated, commonHandler);
 router.get('/copy_list', ensureAuthenticated,commonHandler);
+router.get('/copy_list_home', ensureAuthenticated,commonHandler);
 router.get('/view_user_lists', ensureAuthenticated,commonHandler);
 
 
 // ************************************* 
-router.get('/account', ensureAuthenticated, function(req, res) {
-	res.render('account', {
-		"user" : req.user
-	});
-});
-
 router.get('/login', function(req, res) {
-	res.render('login', {
-		"user" : req.user
-	});
+	res.redirect('/auth/twitter');
 });
 
 router.get('/auth/twitter', passport.authenticate('twitter'), function(req, res) {
@@ -145,9 +146,12 @@ router.get('/auth/twitter/callback', passport.authenticate('twitter', {
 });
 
 router.get('/logout', function(req, res) {
+	console.log("TURACO_DEBUG - within logout");
 	req.logout();
-	req.session.destroy()
-	res.redirect('/');
+	req.session.destroy(function(err) {
+		console.log("TURACO_DEBUG - session destroyed");
+		res.redirect('/');
+	});
 });
 
 function ensureAuthenticated(req, res, next) {

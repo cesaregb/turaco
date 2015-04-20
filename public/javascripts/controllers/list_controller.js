@@ -6,6 +6,7 @@ function (module) {
 		createMessageHelper($scope, null);
 		function init(){
 			var path = $location.$$path; // get the path for initialization per page.
+
 			if (path == '/lists'){
 				createGetListsByLoggedUser($scope, listFactory, null);
 				crateConfirmModal($scope, $modal, null);
@@ -121,6 +122,8 @@ function (module) {
 				copyListsController($scope, userFactory, listFactory, filterFilter, $modal, 1, list_id);
 			}else if(path == '/view_user_lists'){
 				copyListsController($scope, userFactory, listFactory, filterFilter, $modal, 2);
+			}else if(path == '/copy_list_home'){
+				console.log("TURACO_DEBUG - into the home controller... ");
 			}else{
 				//PLACE HOLDER FOR A URL PATTERN DIDNT MATCHED..
 			}

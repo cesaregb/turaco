@@ -211,6 +211,8 @@ app.use(function(err, req, res, next) {
 	});
 });
 
+module.exports = app;
+
 /*
  * session.user_lists 			= [] 
  *	all the users that are in lists!! 
@@ -220,8 +222,6 @@ app.use(function(err, req, res, next) {
  * global.refresSessionObject	= true||false
  * global.savedSearches			= []
  * */
-
-module.exports = app;
 
 /*
  * 

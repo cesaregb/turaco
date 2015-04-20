@@ -1,24 +1,17 @@
 .container
-	.alert.alert-danger(role='alert', ng-show="error")
-		span.glyphicon.glyphicon-exclamation-sign(aria-hidden='true')
-		span.sr-only Error:
-		|  {{error_message}}
-	div.alert.alert-info(ng-show="info") {{info_message}}
-	div.alert.alert-info(data-loading) Loading...
-	
 	.row.col-md-12.well.well-sm(style='padding-bottom:10px;')
 		.btn-group.col-lg-5.left-search-box
 			.input-group
 				ui-select(ng-model='selectedPlace', theme='bootstrap', ng-disabled='disabled', reset-search-input='false', on-select="searchChanged($item)")
 					ui-select-match(placeholder='Enter a location...') {{$select.selected.name}}
-					| &#x9;
+					| 
 					ui-select-choices(repeat='place in places | propsFilter: {name: $select.search}')
 						div(ng-bind-html='place.name | highlight: $select.search')
 				.input-group-btn
 					button.btn.btn-default(type='button', ng-click='activateLocation()') 
 						span.glyphicon.glyphicon-map-marker
 		.btn-group.pull-right
-			a.btn.btn-default.btn-sm(href='/lists/add_list', type='button')
+			a.btn.btn-default.btn-sm(href='/lists', type='button')
 				span.glyphicon.glyphicon-th-list
 				|  Lists
 			a.btn.btn-default.btn-sm(href='/view_user_lists', type='button')
@@ -27,7 +20,6 @@
 			a.btn.btn-default.btn-sm(href='/lists/assign_users_to_list', type='button')
 				span.glyphicon.glyphicon-transfer
 				|  Following 
-	
 	.row
 		.col-md-4
 			.panel.panel-default

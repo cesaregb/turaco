@@ -1,11 +1,4 @@
 .container
-	.alert.alert-danger(role='alert', ng-show="error")
-		span.glyphicon.glyphicon-exclamation-sign(aria-hidden='true')
-		span.sr-only Error:
-		|  {{error_message}}
-	div.alert.alert-info(ng-show="info") {{info_message}}
-	div.alert.alert-info(data-loading) Loading...
-	
 	.row.col-md-12
 		div.well.well-sm
 			.input-group
@@ -26,29 +19,29 @@
 						div(style='float:left; margin-top: 10px; max-width: 750px;')
 							.stream-item-header
 								div.account-group
-									| &#x9;&#x9;&#x9;&#x9;&#x9;
+									| 
 									img.avatar(src='{{user.profile_image_url}}', alt='', style='float: left; margin-top: 3px; padding-right:10px;')
-									| &#x9;&#x9;
-									| &#x9;&#x9;&#x9;&#x9;&#x9;
+									| 
+									| 
 									strong {{user.name}}
-									| &#x9;&#x9;
-									| &#x9;&#x9;&#x9;&#x9;&#x9;
+									| 
+									| 
 									span @{{user.screen_name}}
-							| &#x9;
-							| &#x9;&#x9;&#x9;
+							| 
+							| 
 							p.bio {{user.description}}
-						| &#x9;
+						| 
 						div(style='clear:both;')
 		.col-md-3
 			.panel.panel-default
 				.panel-body
 					.btn-group
 						a.btn.btn-default.btn-sm(type='button', ng-disabled="isListSelected()", ng-click='cloneList()') Clone
-						| &#x9;&#x9;&#x9;
-						| &#x9;&#x9;&#x9;&#x9;
+						| 
+						| 
 						a.btn.btn-default.btn-sm(type='button', ng-disabled="isListSelected()", ng-click='subscribeList()') Subscribe
-						| &#x9;&#x9;&#x9;
-						| &#x9;&#x9;&#x9;&#x9;
+						| 
+						| 
 						a.btn.btn-default.btn-sm(type='button', ng-disabled="isListSelected()", href='https://twitter.com{{list_info.uri}}', target='_blank') Open
-						| &#x9;&#x9;&#x9;
-						| &#x9;&#x9;&#x9;&#x9;
+						| 
+						| 
