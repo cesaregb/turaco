@@ -12,19 +12,7 @@ html
 		link(rel='stylesheet', href='/dist/css/select.css')
 	body
 		include header
-		.content-wrapper
-			.container
-				.row
-					.col-md-12
-						.alert.alert-success(ng-show="info", style='display:none') {{info_message}}
-						.alert.alert-success(data-loading, style='display:none') Loading...
-						.alert.alert-success(id="PreLoading") Loading...
-						.alert.alert-danger(ng-show="error", style='display:none'){{error_message}}
-				.row
-					.col-md-12
-						h4.page-head-line(ng-bind="title")
-				| 
-				block content
+		block content
 		include footer
 		
 		script(src="/frameworks/require.js" data-main="/javascripts/main")

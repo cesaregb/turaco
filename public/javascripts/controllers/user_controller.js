@@ -1,8 +1,10 @@
 define(['./module', './message_helper',  './accounts_helper'],
 function (module) {
-   module.controller('userController', ['$scope', 'listFactory', 'userFactory', '$location', '$routeParams', '$geolocation',
-   function ($scope, listFactory, userFactory, $location, $routeParams, $geolocation) {
-      createMessageHelper($scope, null);
+   module.controller('userController', ['$scope', 'listFactory', 'userFactory', '$location', '$routeParams', '$geolocation', 'errorFactory',
+   function ($scope, listFactory, userFactory, $location, $routeParams, $geolocation, errorFactory) {
+
+      $scope.errorFactory = errorFactory;
+      createMessageHelper($scope, $scope.errorFactory, null);
 
       function init(){
 
@@ -124,13 +126,13 @@ function (module) {
             $scope.getTrendsAvailable();
 
             $scope.selectedPlace = null; // red.
+            $scope.error = true;
 
             $scope.searchChanged = function (value) {
                console.log("TURACO_DEBUG - searchChanged: " + JSON.stringify(value) );
                var woeid = value.woeid;
                $scope.getTrendsPlace(woeid);
             };
-
 
          }else if(path.indexOf("some_other_shit") > 0){
          }else{

@@ -1,53 +1,36 @@
-define(['./module', './message_helper',  './accounts_helper', './list_usersFriendsListsController',
-'./list_viewListUsersController', './list_copyListController'],
-function (module) {
-	module.controller('listController', ['$scope', 'listFactory', 'userFactory', '$location', '$routeParams', 'filterFilter', '$modal',
-	function ($scope, listFactory, userFactory, $location, $routeParams, filterFilter, $modal) {
-		createMessageHelper($scope, null);
-		function init(){
-			var path = $location.$$path; // get the path for initialization per page.
+define(['./module', './message_helper',
+		'./accounts_helper', './list_usersFriendsListsController',
+		'./list_viewListUsersController', './list_copyListController'],
 
-			if (path == '/lists'){
-				createGetListsByLoggedUser($scope, listFactory, null);
-				crateConfirmModal($scope, $modal, null);
-				var varAction = $routeParams.action;
-				if ($scope.lists == null || $scope.refresh){
-					$scope.getListsByLoggedUser();
-				}
-				//DISABLED TO AVOID REPETING A MESSAGE THAT MAY NO BE APPLICABLE.
-				if (varAction != null && varAction != "undefined" && false) {
-					$scope.$emit('AJAX_SUCCESS');
-				}
+		function (module) {
+			module.controller('listController', ['$scope', 'listFactory', 'userFactory', '$location', '$routeParams', 'filterFilter', '$modal', 'errorFactory',
+			function ($scope, listFactory, userFactory, $location, $routeParams, filterFilter, $modal, errorFactory) {
+				$scope.errorFactory = errorFactory;
+				createMessageHelper($scope, $scope.errorFactory, null);
 
-				$scope.openConfirmModal = function(list){
-					var message = "Are you sure you want to delete list: " + list.name + " ?";
-					if(!list.own_list){
-						message = "Are you sure you want to unsubscribe from list: " + list.name + " ?";
-					}
-					$scope.open_modal(message, list.own_list, function(err, response){
+				function init(){
+					var path = $location.$$path; // get the path for initialization per page.
 
-						function handleDeleteList(response){
-							var result = response;
-							if (result.type == "SUCCESS"){
-								$scope.getListsByLoggedUser();
-								$scope.$emit('AJAX_SUCCESS');
-							}else {
-								$scope.handleErrorResponse(response);
-							}
+					if (path == '/lists'){
+						createGetListsByLoggedUser($scope, listFactory, null);
+						crateConfirmModal($scope, $modal, null);
+						var varAction = $routeParams.action;
+						if ($scope.lists == null || $scope.refresh){
+							$scope.getListsByLoggedUser();
+						}
+						//DISABLED TO AVOID REPETING A MESSAGE THAT MAY NO BE APPLICABLE.
+						if (varAction != null && varAction != "undefined" && false) {
+							$scope.$emit('AJAX_SUCCESS');
 						}
 
-						var unfollowUsers = response.unfollowUsers;
-						if(!err){// dont delete lists while testing ui...
-							$scope.refresh = true;
-							if (list.own_list) {
-								if (unfollowUsers){
-									listFactory.deleteListAndUnfollow(list).success(handleDeleteList).error($scope.handleErrorResponse);
-								}else{
-									listFactory.deleteList(list).success(handleDeleteList).error($scope.handleErrorResponse);
-								}
-							}else{
-								console.log("TURACO_DEBUG - unsubscribe");
-								listFactory.unsubscribe(list.id).success(function (response){
+						$scope.openConfirmModal = function(list){
+							var message = "Are you sure you want to delete list: " + list.name + " ?";
+							if(!list.own_list){
+								message = "Are you sure you want to unsubscribe from list: " + list.name + " ?";
+							}
+							$scope.open_modal(message, list.own_list, function(err, response){
+
+								function handleDeleteList(response){
 									var result = response;
 									if (result.type == "SUCCESS"){
 										$scope.getListsByLoggedUser();
@@ -55,94 +38,115 @@ function (module) {
 									}else {
 										$scope.handleErrorResponse(response);
 									}
-								}).error($scope.handleErrorResponse);
+								}
+
+								var unfollowUsers = response.unfollowUsers;
+								if(!err){// dont delete lists while testing ui...
+									$scope.refresh = true;
+									if (list.own_list) {
+										if (unfollowUsers){
+											listFactory.deleteListAndUnfollow(list).success(handleDeleteList).error($scope.handleErrorResponse);
+										}else{
+											listFactory.deleteList(list).success(handleDeleteList).error($scope.handleErrorResponse);
+										}
+									}else{
+										console.log("TURACO_DEBUG - unsubscribe");
+										listFactory.unsubscribe(list.id).success(function (response){
+											var result = response;
+											if (result.type == "SUCCESS"){
+												$scope.getListsByLoggedUser();
+												$scope.$emit('AJAX_SUCCESS');
+											}else {
+												$scope.handleErrorResponse(response);
+											}
+										}).error($scope.handleErrorResponse);
+									}
+								}
+							});
+						};
+
+						$scope.isListOwner = function(list){
+							return !list.own_list;
+						};
+
+					}else if(path.indexOf("lists/view_users") > 0){
+						/* VIEW LIST USERS... */
+						var list_id = $routeParams.list_id;
+						viewListUsersController(list_id, $scope, listFactory, $modal);
+					}else if(path == '/lists/assign_users_to_list'){
+						/* get users and lists */
+						usersFriendsListsController($scope, userFactory, listFactory, filterFilter, $modal);
+					}else if(path == '/lists/add_list'){
+						// nothing to do here?  ehmm.. not sure of that..
+						$scope.list = {};
+						$scope.list.mode = "public";
+						$scope.saveList = function(){
+							$scope.refresh = true;
+
+							listFactory.saveList($scope.list).success(function (response){
+								var result = response;
+								if (result.type == "SUCCESS"){
+									//$location.path('/lists/index').search({action: 'true'});
+									$location.path('/lists/index');
+									$location.replace();
+								}else{$scope.handleErrorResponse(response);}
+							}).error($scope.handleErrorResponse);
+						};
+					}else if(path.indexOf("lists/edit_list") > 0){
+						var list_id = $routeParams.list_id;
+						//get the list and load values to
+
+						var listsByLoggedUserCallback = function(err, result){
+							var lists = result.data.items;
+							for (var index in lists){
+								if (lists[index].id == list_id){
+									// assigning values to the form... for editing...
+									$scope.list = lists[index];
+								}
 							}
-						}
-					});
-				};
+						};
+						createGetListsByLoggedUser($scope, listFactory, function(err, res){
+							$scope.getListsByLoggedUser(listsByLoggedUserCallback);
+						});
 
-				$scope.isListOwner = function(list){
-					return !list.own_list;
-				};
+						$scope.saveList = function(){
+							$scope.refresh = true;
 
-			}else if(path.indexOf("lists/view_users") > 0){
-				/* VIEW LIST USERS... */
-				var list_id = $routeParams.list_id;
-				viewListUsersController(list_id, $scope, listFactory, $modal);
-			}else if(path == '/lists/assign_users_to_list'){
-				/* get users and lists */
-				usersFriendsListsController($scope, userFactory, listFactory, filterFilter, $modal);
-			}else if(path == '/lists/add_list'){
-				// nothing to do here?  ehmm.. not sure of that..
-				$scope.list = {};
-				$scope.list.mode = "public";
-				$scope.saveList = function(){
-					$scope.refresh = true;
+							listFactory.updateList($scope.list).success(function (response){
+								var result = response;
+								if (result.type == "SUCCESS"){
+									$location.path('/lists/index');
+									$location.replace();
 
-					listFactory.saveList($scope.list).success(function (response){
-						var result = response;
-						if (result.type == "SUCCESS"){
-							//$location.path('/lists/index').search({action: 'true'});
-							$location.path('/lists/index');
-							$location.replace();
-						}else{$scope.handleErrorResponse(response);}
-					}).error($scope.handleErrorResponse);
-				};
-			}else if(path.indexOf("lists/edit_list") > 0){
-				var list_id = $routeParams.list_id;
-				//get the list and load values to
-
-				var listsByLoggedUserCallback = function(err, result){
-					var lists = result.data.items;
-					for (var index in lists){
-						if (lists[index].id == list_id){
-							// assigning values to the form... for editing...
-							$scope.list = lists[index];
-						}
+								}else{$scope.handleErrorResponse(response);}
+							}).error($scope.handleErrorResponse);
+						};
+					}else if(path.indexOf("copy_list") > 0){
+						var list_id = $routeParams.list_id;
+						copyListsController($scope, userFactory, listFactory, filterFilter, $modal, 1, list_id);
+					}else if(path == '/view_user_lists'){
+						copyListsController($scope, userFactory, listFactory, filterFilter, $modal, 2);
+					}else if(path == '/copy_list_home'){
+						console.log("TURACO_DEBUG - into the home controller... ");
+					}else{
+						//PLACE HOLDER FOR A URL PATTERN DIDNT MATCHED..
 					}
-				};
-				createGetListsByLoggedUser($scope, listFactory, function(err, res){
-					$scope.getListsByLoggedUser(listsByLoggedUserCallback);
-				});
+				}
 
-				$scope.saveList = function(){
-					$scope.refresh = true;
+				init();
 
-					listFactory.updateList($scope.list).success(function (response){
+				$scope.refreshList = function(){
+					listFactory.getUserLists().success(function (response) {
 						var result = response;
 						if (result.type == "SUCCESS"){
-							$location.path('/lists/index');
-							$location.replace();
-
+							$scope.lists = result.data.items;
 						}else{$scope.handleErrorResponse(response);}
 					}).error($scope.handleErrorResponse);
 				};
-			}else if(path.indexOf("copy_list") > 0){
-				var list_id = $routeParams.list_id;
-				copyListsController($scope, userFactory, listFactory, filterFilter, $modal, 1, list_id);
-			}else if(path == '/view_user_lists'){
-				copyListsController($scope, userFactory, listFactory, filterFilter, $modal, 2);
-			}else if(path == '/copy_list_home'){
-				console.log("TURACO_DEBUG - into the home controller... ");
-			}else{
-				//PLACE HOLDER FOR A URL PATTERN DIDNT MATCHED..
-			}
-		}
 
-		init();
+				$scope.openDialog = function(){
+					$dialog.dialog({}).open('<div>this is the modal</div>');
+				};
 
-		$scope.refreshList = function(){
-			listFactory.getUserLists().success(function (response) {
-				var result = response;
-				if (result.type == "SUCCESS"){
-					$scope.lists = result.data.items;
-				}else{$scope.handleErrorResponse(response);}
-			}).error($scope.handleErrorResponse);
-		};
-
-		$scope.openDialog = function(){
-			$dialog.dialog({}).open('<div>this is the modal</div>');
-		};
-
-	}]);
-});
+			}]);
+	});

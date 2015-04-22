@@ -4,6 +4,7 @@ define([
 	return app.config([ '$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) {
 		var urlBase = '/';
 		var urlListBase = '/partials/';
+
 		$routeProvider.when('/lists/index', {
          redirectTo: '/lists'
 		}).when('/lists', {
@@ -53,6 +54,7 @@ define([
       }).otherwise({
 			redirectTo: '/home'
 		});
+      
 		$locationProvider.html5Mode(true);
 	}]);
 });

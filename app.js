@@ -46,6 +46,7 @@ global.userInfoLoaded = false;
 global.success = "01";
 global.error = "02";
 global.warn = "03";
+global.attachError = false;
 
 
 var globalTunnel = require('global-tunnel');
@@ -101,6 +102,7 @@ app.use(function(req, res, next) {
 					gatherInfoInstance.getAll(req.user, req.session, function(err, data){
 						if (err){
 							console.log("TURACO_DEBUG - ERROR in gatherInfoInstance.getAll " );
+							global.attachError = true;
 						}else{
 							global.userInfoLoaded = true;
 							console.log("TURACO_DEBUG - Success gatherInfoInstance.getAll" );

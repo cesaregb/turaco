@@ -304,3 +304,8 @@ footer a, footer a:hover {
     background-color: #193441;
     text-decoration: none;
 }
+
+.panel-body{
+	line-height: 15px;
+	font-size: 12px;
+}
