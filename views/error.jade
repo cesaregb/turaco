@@ -1,6 +1,41 @@
 extends layout_index
 
 block content
-	h1= message
-	h2= error.status
-	pre #{error.stack}
+	.content-wrapper
+		.container
+			.row
+				.col-md-12
+					.alert.alert-danger #{message}
+					.alert.alert-danger #{error.stack}
+			.row
+				.col-md-12
+					h4.page-head-line Please Login To Enter
+			| 
+			.row
+				.col-md-6
+					h4 Login with Twitter
+					| 
+					br
+					|  
+					a.btn.btn-social.btn-twitter(href='/login')
+						i.fa.fa-twitter
+						| &nbsp; Twitter Account
+					|  
+					br
+				| 
+				.col-md-6
+					.alert.alert-info
+						| Clear a little the noise that twitter can bring from time to time.
+						br
+						| 
+						strong Easy and quickly way to:
+						| 
+						ul
+							li Search/View what is trending on different places
+							| 
+							li Quick access to your Lists and saved searches
+							| 
+							li Easily Create, Update and Remove Lists
+							| 
+							li Organize the accounts your follow in Lists
+							

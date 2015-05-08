@@ -12,28 +12,28 @@ var SessionObjects = require('../app/models/sessionObjects');
 
 var fileName = "sessionObject_helpers.js";
 
-function merge(defaults) {
-	for (var i = 1; i < arguments.length; i++) {
-		for ( var opt in arguments[i]) {
-			defaults[opt] = arguments[i][opt];
-		}
-	}
-	return defaults;
-};
-function isFunctionA(object) {
-	return (typeof object === 'function');
-}
-
 function SessionObjectHelper(options) {
-	  if (!(this instanceof SessionObjectHelper)) return new SessionObjectHelper(options);
-	  var defaults = {
-	    consumer_key: null,
-	    cookie_secret: null
-	  };
-	  this.options = merge(defaults, options);
+  if (!(this instanceof SessionObjectHelper)) return new SessionObjectHelper(options);
 }
 SessionObjectHelper.user = null;
+SessionObjectHelper.sessionObject = null;
 module.exports = SessionObjectHelper;
+
+SessionObjectHelper.prototype.createSessionObject = function(user, callback){
+	var _method = "createSessionObject()";
+	console.log("IN " + fileName + " - "+ _method);
+	var obj = this;
+	var sessionObject = new SessionObjects();
+	sessionObject.uid = user.uid;
+	sessionObject.save(function(err){
+		if (err){ 
+			return callback(err);
+		}else{
+			obj.sessionObject = sessionObject;
+			callback(null, sessionObject);
+		}
+	});
+}
 
 /*
  * require that:
@@ -646,9 +646,6 @@ SessionObjectHelper.prototype.createUserArrayFromJsonTwitObj = createUserArrayFr
 /*
  * GETTERS
  * */ 
-/*
- * remove list YES USERS
- * */
 SessionObjectHelper.prototype.getSavedSearches = function(user, callback){
 	var _method = "getSavedSearches()";
 	console.log("IN " + fileName + " - "+ _method);
@@ -669,3 +666,73 @@ SessionObjectHelper.prototype.getSavedSearches = function(user, callback){
 		}
 	});
 }
+
+/*
+ * split init method 
+ */
+SessionObjectHelper.prototype.saveSavedSearches = function(savedSearches, callback){
+	var _method = "saveSavedSearches()";
+	console.log("IN " + fileName + " - "+ _method);
+	if(savedSearches == null){
+		return callback("invalid params");
+	}
+	this.sessionObject.savedSearches = savedSearches;
+	this.sessionObject.markModified('savedSearches');
+	this.sessionObject.save(function(err){
+		return callback(err, global.success);
+	});
+}
+
+SessionObjectHelper.prototype.saveLists = function(lists, callback){
+	var _method = "saveLists()";
+	console.log("IN " + fileName + " - "+ _method);
+	
+	if(lists == null){
+		return callback("invalid params");
+	}
+	
+	this.sessionObject.lists = lists;
+	this.sessionObject.markModified('lists');
+	this.sessionObject.save(function(err){
+		return callback(err, global.success);
+	});
+}
+
+SessionObjectHelper.prototype.saveListComplexObjects = function(set, callback){
+	var _method = "saveListComplexObjects()";
+	console.log("IN " + fileName + " - "+ _method);
+	
+	if(set == null){
+		return callback("invalid params");
+	}
+	this.sessionObject.usersListHash = set.usersListHash;
+	this.sessionObject.completeListsObject = set.completeListsObject;
+	this.sessionObject.markModified('usersListHash');
+	this.sessionObject.markModified('completeListsObject');
+	this.sessionObject.save(function(err){
+		return callback(err, global.success);
+	});
+}
+
+SessionObjectHelper.prototype.saveAllFriends = function(dataAllFriends, callback){
+	var _method = "saveAllFriends()";
+	console.log("IN " + fileName + " - "+ _method);
+	
+	if(dataAllFriends == null){
+		return callback("invalid params");
+	}
+	this.sessionObject.friends = dataAllFriends;
+	this.sessionObject.markModified('friends');
+	this.sessionObject.save(function(err){
+		return callback(err, global.success);
+	});
+}
+
+SessionObjectHelper.prototype.deleteExisting = function(callback){
+	var _method = "deleteExisting()";
+	console.log("IN " + fileName + " - "+ _method);
+	this.sessionObject.remove(function(err) {
+		return callback(err, global.success);
+	});
+}
+

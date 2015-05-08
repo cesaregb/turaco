@@ -112,20 +112,6 @@ function getUsersListFunction(req, res) {
 							});
 						});
 					});
-					
-					/*
-					 * get the starting information... and save it to the database. 
-					 * */
-					var gatherInfoInstance = new loginGatherInfoUser();
-					console.log("TURACO_DEBUG - calling GET_ALL from listHandlers.js");
-					gatherInfoInstance.getAll(req.user, req.session, function(err, data){
-						if (err){
-							console.log("TURACO_DEBUG - ERROR in gatherInfoInstance.getAll " );
-						}else{
-							console.log("TURACO_DEBUG - Success gatherInfoInstance.getAll" );
-						}
-					});
-					
 				}else{
 					session.friends = sessionObj.friends;
 					session.usersListHash = sessionObj.usersListHash; 

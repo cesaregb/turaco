@@ -93,17 +93,7 @@ function getAllFriends(req, res) {
 			'uid' : user.uid
 		}).sort({created: 'desc'}).exec(function(err, sessionObj) {
 			if(sessionObj == null || err){
-				console.log("TURACO_DEBUG - calling GET_ALL from userHandlers.js")
-				var gatherInfoInstance = new loginGatherInfoUser();
-				gatherInfoInstance.getAll(req.user, req.session, function(err, data){
-					if (err){
-						console.log("TURACO_DEBUG - error gettin the user basic information " );
-						return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
-					}else{
-						console.log("TURACO_DEBUG - user information gather complete." );
-						return res.json(json_api_responses.success(data));
-					}
-				});
+				return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
 			}else{
 				return res.json(json_api_responses.success(sessionObj.friends));
 			}

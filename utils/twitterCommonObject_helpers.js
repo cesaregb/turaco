@@ -7,18 +7,6 @@ var TwitterCommonObjects = require('../app/models/twitterCommonObjects');
 
 var fileName = "twitterCommonObject_helpers.js";
 
-function merge(defaults) {
-	for (var i = 1; i < arguments.length; i++) {
-		for ( var opt in arguments[i]) {
-			defaults[opt] = arguments[i][opt];
-		}
-	}
-	return defaults;
-};
-function isFunctionA(object) {
-	return (typeof object === 'function');
-}
-
 function TwitterCommonObjectstHelper(options) {
 	if (!(this instanceof TwitterCommonObjectstHelper))
 		return new TwitterCommonObjectstHelper(options);

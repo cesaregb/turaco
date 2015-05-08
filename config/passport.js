@@ -18,9 +18,9 @@ passportConfig = function(passport) {
 	
 	var twittSettings = 
 		passport.use(new TwitterStrategy({
-			consumerKey : configAppCredentials.TWITTER_CONSUMER_KEY,
-			consumerSecret : configAppCredentials.TWITTER_CONSUMER_SECRET,
-			callbackURL : configAppCredentials.CALLBACK_URL
+			consumerKey : global.TWITTER_CONSUMER_KEY,
+			consumerSecret : global.TWITTER_CONSUMER_SECRET,
+			callbackURL : global.CALLBACK_URL
 		}, function(token, tokenSecret, profile, done) {
 			process.nextTick(function() {
 				var user = new User();

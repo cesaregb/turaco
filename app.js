@@ -15,6 +15,7 @@ var mongoose = require('mongoose');
 var configDB = require('./config/database');
 var passportConfig = require('./config/passport');
 mongoose.connect(configDB.url);
+var appCredentials = require('./config/appCredentials');
 
 passportConfig(passport);
 
@@ -41,7 +42,7 @@ var app = express();
 
 var fileName = "app.js";
 
-global.dev_mode = true;
+global.dev_mode = false;
 global.userInfoLoaded = false;
 global.success = "01";
 global.error = "02";
@@ -76,6 +77,25 @@ app.use(function (req, res, next) {
     next();
 });
 
+app.use(function(req, res, next) { // initialize environment
+	if (process.env.CALLBACK_URL != null){
+		global.CALLBACK_URL = process.env.CALLBACK_URL;
+	}else{
+		global.CALLBACK_URL = appCredentials.CALLBACK_URL;
+	}
+	if (process.env.TWITTER_CONSUMER_KEY != null){
+		global.TWITTER_CONSUMER_KEY = process.env.TWITTER_CONSUMER_KEY;
+	}else{
+		global.TWITTER_CONSUMER_KEY = appCredentials.TWITTER_CONSUMER_KEY;
+	}
+	if (process.env.TWITTER_CONSUMER_SECRET != null){
+		global.TWITTER_CONSUMER_SECRET = process.env.TWITTER_CONSUMER_SECRET;
+	}else{
+		global.TWITTER_CONSUMER_SECRET = appCredentials.TWITTER_CONSUMER_SECRET;
+	}
+	next();
+});
+
 app.use(function(req, res, next) {
 	// This is for the api calls 
 	if (req.url.indexOf("api") > 0){
@@ -97,18 +117,7 @@ app.use(function(req, res, next) {
 				'uid' : user.uid
 			}).sort({created: 'desc'}).exec(function(err, sessionObj) {
 				if(sessionObj == null || err){
-					var gatherInfoInstance = new loginGatherInfoUser();
-					console.log("TURACO_DEBUG - calling GET_ALL from app.js");
-					gatherInfoInstance.getAll(req.user, req.session, function(err, data){
-						if (err){
-							console.log("TURACO_DEBUG - ERROR in gatherInfoInstance.getAll " );
-							global.attachError = true;
-						}else{
-							global.userInfoLoaded = true;
-							console.log("TURACO_DEBUG - Success gatherInfoInstance.getAll" );
-						}
-						callback(err);
-					});
+					callback("Error User's session not found");
 				}else{
 					global.userInfoLoaded = true;
 					session.friends = sessionObj.friends;
@@ -132,6 +141,10 @@ app.use(function(req, res, next) {
 			checkLoadData(session.user, session, function(err){
 				if (err){
 					console.log("TURACO_DEBUG - ERROR checkLoadData ");
+					res.render('error', {
+						message : err,
+						error : {}
+					});
 				}
 				next();
 			});
@@ -214,34 +227,3 @@ app.use(function(err, req, res, next) {
 });
 
 module.exports = app;
-
-/*
- * session.user_lists 			= [] 
- *	all the users that are in lists!! 
- * session.usersListHash 		= {lists: []}
- * session.completeListsObject 	= { [hash<uid, boolean>] }
- * session.friends 				= {friends_count, users: []}
- * global.refresSessionObject	= true||false
- * global.savedSearches			= []
- * */
-
-/*
- * 
-db.sessionobjects.find();
-db.sessionobjects.find({'completeListsObject.lists.name':"Test", 'completeListsObject.lists.list_users.screen_name':"Trevornoah"}, {"completeListsObject.lists.$" : 1});
-db.sessionobjects.find({'completeListsObject.lists.name':"Test"}, {"completeListsObject.lists.$" : 1});
-db.sessionobjects.find({'friends.users.screen_name':"Shevlis"}, {"friends.users.$" : 1});
-db.sessionobjects.find({"friends.complete_users": {$exists : "13348"}}, {"friends.complete_users" : 1});
-var myCursor = db.sessionobjects.find(null, {"friends.complete_users" : 1});
-var myDocument = myCursor.hasNext() ? myCursor.next() : null;
-if (myDocument) {
-    var hashedList = myDocument.friends.complete_users;
-    for (var i in hashedList) {
-        if (hashedList.hasOwnProperty(i) && hashedList[i].screen_name == "VivirGDL" ) {
-        if (hashedList.hasOwnProperty(i) && i == "13348" ) {
-            print(i + " == " + tojson(hashedList[i]));
-        }
-    }
-}
- * 
- */

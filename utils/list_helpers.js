@@ -20,7 +20,6 @@ function merge(defaults) {
 	return defaults;
 };
 
-
 function ListHelper(options) {
 	  if (!(this instanceof ListHelper)) return new ListHelper(options);
 	  var defaults = {
@@ -41,9 +40,7 @@ ListHelper.prototype.getUser = function(_user, uid, callback){
 		callback = uid;
 		uid = null;
 	}
-	
 	var _self = this;
-	
 	if ( _user == null) {
 		User.findOne({uid: uid}, function(err, user) {
 			if (err){

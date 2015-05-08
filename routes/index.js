@@ -14,7 +14,6 @@ var fileName = "routes/index.js";
 var router = express.Router();
 
 router.get('*', function(req, res, next) {
-	console.log("TURACO_DEBUG - INTO THE global SETTER ");
 	res.locals = {
 		topMenuOption : '1'
 	};
@@ -35,11 +34,15 @@ router.get('/home', ensureAuthenticated, function(req, res) {
 	if (req.user == null){
 		res.render('index', { title: 'Turaco', login_status: false});
 	}else{
-		if (!global.userInfoLoaded){
+		if (global.dev_mode){
 			var gatherInfoInstance = new loginGatherInfoUser();
 			gatherInfoInstance.getAll(req.user, req.session, function(err, data){
 				if (err){
 					console.log("TURACO_DEBUG - ERROR in gatherInfoInstance.getAll " );
+					res.render('error', {
+						message : err,
+						error : {}
+					});
 				}else{
 					global.userInfoLoaded = true;
 					console.log("TURACO_DEBUG - Success gatherInfoInstance.getAll" );
@@ -59,11 +62,15 @@ router.get('/reload_user', ensureAuthenticated, function(req, res) {
 	gatherInfoInstance.getAll(req.user, req.session, function(err, data){
 		if (err){
 			console.log("TURACO_DEBUG - ERROR in gatherInfoInstance.getAll " );
+			res.render('error', {
+				message : err,
+				error : {}
+			});
 		}else{
 			global.userInfoLoaded = true;
 			console.log("TURACO_DEBUG - Success gatherInfoInstance.getAll" );
+			res.redirect('/home');
 		}
-		res.redirect('/home');
 	});
 });
 
@@ -85,6 +92,7 @@ function commonHandler(req, res) {
 
 router.get('/lists', ensureAuthenticated, commonHandler);
 router.get('/copy_list', ensureAuthenticated,commonHandler);
+router.get('/copy_list/*', ensureAuthenticated,commonHandler);
 router.get('/copy_list_home', ensureAuthenticated,commonHandler);
 router.get('/view_user_lists', ensureAuthenticated,commonHandler);
 
@@ -127,11 +135,15 @@ router.get('/auth/twitter/callback', passport.authenticate('twitter', {
 			gatherInfoInstance.getAll(req.user, req.session, function(err, data){
 				if (err){
 					console.log("TURACO_DEBUG - ERROR in gatherInfoInstance.getAll " );
+					res.render('error', {
+						message : err,
+						error : {}
+					});
 				}else{
 					global.userInfoLoaded = true;
 					console.log("TURACO_DEBUG - Success gatherInfoInstance.getAll" );
+					res.redirect('/');
 				}
-				res.redirect('/');
 			});
 		}else{
 			global.userInfoLoaded = true;
