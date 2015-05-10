@@ -50,7 +50,7 @@ function createMessageHelper($scope, errorFactory, callback){
 
 		}else{
 			setTimeout(function(){
-				$scope.$emit('ERROR_SHOW');
+				$scope.$emit('ERROR_HIDE');
 			}, 6000);
 		}
 	});
@@ -58,6 +58,7 @@ function createMessageHelper($scope, errorFactory, callback){
 	$scope.$on('ERROR_HIDE', function(){
 		if(!$scope.$$phase) {
 			$scope.$apply(function(){
+				$scope.error_blocked = false;
 				$scope.error_message = "";
 				$scope.error = false;
 				errorFactory.setValue({error: $scope.error, error_message: $scope.error_message});
@@ -72,12 +73,14 @@ function createMessageHelper($scope, errorFactory, callback){
 			if (parseInt(error_json.err_data.statusCode) == 429){
 				$scope.error_blocked = true;
 				$scope.error_message = "Ups, Twitter want us to wait 15m to keep using their API. \n Give us a few";
+			}else if (parseInt(error_json.err_data.statusCode) != null){
+				$scope.error_blocked = true;
+				$scope.error_message = "Ups, At this moment we have problems communicating with Twitter, we are working on it. ";
 			}
 		}
 		if (!$scope.error_blocked){
 			$scope.error_message = message;
 		}
-
 		$scope.$emit('ERROR_SHOW');
 	};
 

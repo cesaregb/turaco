@@ -16,7 +16,7 @@ var configDB = require('./config/database');
 var passportConfig = require('./config/passport');
 mongoose.connect(configDB.url);
 var appCredentials = require('./config/appCredentials');
-
+initEnvVars();
 passportConfig(passport);
 
 //routes helpers 
@@ -77,7 +77,7 @@ app.use(function (req, res, next) {
     next();
 });
 
-app.use(function(req, res, next) { // initialize environment
+function initEnvVars(){ // initialize environment
 	if (process.env.CALLBACK_URL != null){
 		global.CALLBACK_URL = process.env.CALLBACK_URL;
 	}else{
@@ -93,8 +93,9 @@ app.use(function(req, res, next) { // initialize environment
 	}else{
 		global.TWITTER_CONSUMER_SECRET = appCredentials.TWITTER_CONSUMER_SECRET;
 	}
-	next();
-});
+	
+	console.log("TURACO_DEBUG - Global Vars: \n" + global.CALLBACK_URL + "\n" + global.TWITTER_CONSUMER_KEY + "\n" + global.TWITTER_CONSUMER_SECRET);
+}
 
 app.use(function(req, res, next) {
 	// This is for the api calls 

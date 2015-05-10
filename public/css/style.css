@@ -309,3 +309,15 @@ footer a, footer a:hover {
 	line-height: 15px;
 	font-size: 12px;
 }
+
+.info-text{
+	line-height: 18px;
+}
+.info-text div{
+	padding-bottom: 15px;
+}
+
+.info-text h1 {
+	font-size: 18px;
+	color: #3E606F;
+}

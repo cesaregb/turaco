@@ -1,0 +1,34 @@
+if (login_status)
+	extends layout_logged
+else
+	extends layout_index
+
+block content
+	.content-wrapper
+		.container
+			.row
+				.col-md-12
+					h4.page-head-line FAQ {{login_status}}
+			| 
+			.row
+				.col-md-8(class='info-text')
+					div
+						h1 Does Turaco save passwords
+						div
+							| No, all the login Process and the credentials exchange are made directly on the secure Twitter side.
+						h1 Does Turaco save your lists and or fiends. 
+						div
+							| We do store the lists and friends you have this with the main propose of offering a better experience while using the application, and if your account or some list are private we remove them.
+						h1 Why my information is out of sync with Twitter. 
+						div
+							| We store the information in order to avoid making multiple unnecessary calls to the twitter API, trying to make the applicator work faster. Some times if you make a change directly on Twitter or another application this may not reflect on Turaco. We are sorry for that, in order to refresh the information of Turaco under the User menu we added an option &quot;Refresh Session&quot; that will help you with this.
+						h1 What si the &quot;Refresh Session&quot; Button for. 
+						div
+							| We store the information in order to avoid making multiple unnecessary calls to the twitter API, trying to make the application work faster. Some times if you make a change directly on Twitter or another application this may not reflect on Turaco. We are sorry for that, in order to refresh the information of Turaco under the User menu we added an option &quot;Refresh Session&quot; that will help you with this. 
+							br
+							|  Do, sorry for repeating this text on the previous question.
+						h1 Can I request Turaco to remove your information. 
+						div
+							| Yeah sure, at this moment we dont have a automated way to do this,  but we are working on adding it, Still if you want us to remove your information please sent me a Twitt to cesaregb and sure thing I will help you with this.
+					div
+						| Any other question, Please contact us to the twitter account of cesaregb, there I will answer any question that you may have, as well if you have suggestions they are very welcome.

@@ -86,7 +86,6 @@ router.get('/lists/*', ensureAuthenticated, function(req, res) {
 });
 
 function commonHandler(req, res) {
-	console.log("TURACO_DEBUG - ROUTES commonHandler");
 	res.render('index_logged', { title: 'Turaco', login_status: true, "user" : req.user });
 }
 
@@ -95,6 +94,22 @@ router.get('/copy_list', ensureAuthenticated,commonHandler);
 router.get('/copy_list/*', ensureAuthenticated,commonHandler);
 router.get('/copy_list_home', ensureAuthenticated,commonHandler);
 router.get('/view_user_lists', ensureAuthenticated,commonHandler);
+
+router.get('/contact', function(req, res){
+	res.render('contact', { title: 'Turaco', login_status: req.isAuthenticated(), "user" : req.user });
+});
+
+router.get('/faq', function(req, res){
+	res.render('faq', { title: 'Turaco', login_status: req.isAuthenticated(), "user" : req.user });
+});
+
+router.get('/help', function(req, res){
+	res.render('help', { title: 'Turaco', login_status: req.isAuthenticated(), "user" : req.user });
+});
+
+router.get('/about', function(req, res){
+	res.render('about', { title: 'Turaco', login_status: req.isAuthenticated(), "user" : req.user });
+});
 
 
 // ************************************* 

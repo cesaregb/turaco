@@ -1,0 +1,36 @@
+if (login_status)
+	extends layout_logged
+else
+	extends layout_index
+	
+block content
+	.content-wrapper
+		.container
+			.row
+				.col-md-12
+					h4.page-head-line Help
+			| 
+			.row
+				.col-md-8(class='info-text')
+					div
+						h1 Home
+						div
+							| Here you can:
+							| Search Trends on different places. Using the search box you will be able to filter the places Twitter is storing trends.
+							| View your lists and access quickly to the them.
+							| View your saved searches and access quickly to the them.
+						h1 Lists 
+						div
+							| You will be able to Create, Read, Update and Delete your lists.
+							| Add and remove accounts to the lists.
+						h1 Following 
+						div
+							| You will be able to search and add users to your lists.
+						h1 Copy Lists
+						div
+							| You will be able to view, subscribe to other people Lists 
+							| You can search lists by 
+							| URL. If you already know the Twitter URL of the list you are interested on just paste it on the &quot;URL input box&quot;, and click Action we will bring the information so you can make the call if you want to subscribe to it or not. 
+							br
+							br
+							| User. You know of a User that have great lists, you enter it on the &quot;user input box&quot; click action we will bring the User lists and again its your call Subscribe it to list.

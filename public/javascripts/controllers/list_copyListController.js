@@ -26,14 +26,7 @@ function copyListsController($scope, userFactory, listFactory, filterFilter, $mo
 
 	$scope.cloneList = function(list_id){
 		list_id = validateListId(list_id);
-		listFactory.cloneList(list_id).success(function (response){
-			var result = response;
-			if (result.type == "SUCCESS"){
-				$scope.$emit('AJAX_SUCCESS');
-			}else {
-				$scope.handleErrorResponse(response);
-			}
-		}).error($scope.handleErrorResponse);
+		$scope.handleErrorResponse(null, "Sorry at this time this option is not allowed. By now you can subscribe to the list instead.");
 	};
 
 	$scope.subscribeList = function(list_id){

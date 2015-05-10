@@ -8,13 +8,16 @@ header
 				#bs-example-navbar-collapse-1.collapse.navbar-collapse
 					ul.menu-top.nav.navbar-nav.navbar-right
 						li
-							a(href='#') Contact
+							a(href='/contact', target='_self') Contact
 						| 
 						li
-							a(href='#') FAQ
+							a(href='/faq', target='_self') FAQ
 						| 
 						li
-							a(href='#') About
+							a(href='/help', target='_self') Help
+						| 
+						li
+							a(href='/about', target='_self') About
 						| 
 						if (login_status)
 							li.dropdown

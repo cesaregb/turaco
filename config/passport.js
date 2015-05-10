@@ -1,11 +1,11 @@
 var User = require('../app/models/user');
 var List = require('../app/models/list');
+var SessionObjects = require('../app/models/sessionObjects');
 var configAppCredentials = require('./appCredentials');
 var	TwitterStrategy = require('passport-twitter').Strategy;
 
 
 passportConfig = function(passport) {
-	
 	passport.serializeUser(function(user, done) {
 		done(null, user.uid);
 	});
@@ -35,12 +35,25 @@ passportConfig = function(passport) {
 				user.profile_image_url = image_name;
 				user.profile = profile;
 				/*Deleting user's existin information.. */
-				User.remove({uid: profile.id}, function(err) {
-					if(err) {console.log("error deleting item: " + err);
+				User.findOne({uid: profile.id}, function(err) {
+					if(err) {
+						user.save(function(err) {
+							if(err) { throw err; }
+							done(null, user);
+						});
 					} else {
 						List.remove({uid: profile.id}, function(err) {
 							if (!err){console.log("Lists deleted. ");}else{	console.log("error deleting lists: " + err);}
 						});
+						SessionObjects.remove({uid: profile.id}, function(err) {
+							if (!err){console.log("Session Object ");}else{	console.log("error deleting Session Objects: " + err);}
+						});
+					}	
+				}).remove({uid: profile.id}, function(err) {
+					if(err) {
+						console.log("error deleting item: " + err);
+						
+					} else {
 						user.save(function(err) {
 							if(err) { throw err; }
 							done(null, user);
