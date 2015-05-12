@@ -3,10 +3,10 @@ define(['./module', './message_helper',
 		'./list_viewListUsersController', './list_copyListController'],
 
 		function (module) {
-			module.controller('listController', ['$scope', 'listFactory', 'userFactory', '$location', '$routeParams', 'filterFilter', '$modal', 'errorFactory',
-			function ($scope, listFactory, userFactory, $location, $routeParams, filterFilter, $modal, errorFactory) {
-				$scope.errorFactory = errorFactory;
-				createMessageHelper($scope, $scope.errorFactory, null);
+			module.controller('listController', ['$scope', 'listFactory', 'userFactory', '$location', '$routeParams', 'filterFilter', '$modal', 'generalFactory',
+			function ($scope, listFactory, userFactory, $location, $routeParams, filterFilter, $modal, generalFactory) {
+				$scope.generalFactory = generalFactory;
+				createMessageHelper($scope, $scope.generalFactory, null);
 
 				function init(){
 					var path = $location.$$path; // get the path for initialization per page.
@@ -133,7 +133,7 @@ define(['./module', './message_helper',
 					}
 				}
 
-				init();
+				preInit($scope, userFactory, generalFactory, init);
 
 				$scope.refreshList = function(){
 					listFactory.getUserLists().success(function (response) {

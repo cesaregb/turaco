@@ -74,11 +74,11 @@ function copyListsController($scope, userFactory, listFactory, filterFilter, $mo
 	}else if(type == TYPE_URL){
 		if (list_id != null){
 			$scope.list_id = list_id;
-			console.log("TURACO_DEBUG - in get users by list_id");
 			listFactory.getListInformationByListId(list_id).success(function (response){
 				var result = response;
 				if (result.type == "SUCCESS"){
 					$scope.searchedListUsers = result.data.users;
+					$scope.list_info = result.data.list_info;
 				}else {
 					$scope.handleErrorResponse(response);
 				}
@@ -106,7 +106,6 @@ function copyListsController($scope, userFactory, listFactory, filterFilter, $mo
 						if (result.type == "SUCCESS"){
 							$scope.searchedListUsers = result.data.users;
 							$scope.list_info = result.data.list_info;
-							console.log("TURACO_DEBUG - assigning the list_info");
 						}else {
 							$scope.handleErrorResponse(response);
 						}

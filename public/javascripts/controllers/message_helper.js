@@ -2,7 +2,7 @@
  * User Interface error helpers
  */
 
-function createMessageHelper($scope, errorFactory, callback){
+function createMessageHelper($scope, generalFactory, callback){
 	var fnName = "info_message";
 	$scope.info = false;
 	$scope.important_message = false;
@@ -39,19 +39,19 @@ function createMessageHelper($scope, errorFactory, callback){
 
 	$scope.$on('ERROR_SHOW', function(){
 		$scope.error = true;
-		errorFactory.setValue({error: $scope.error, error_message: $scope.error_message});
+		generalFactory.setValue({error: $scope.error, error_message: $scope.error_message});
 		if (!$scope.error_blocked){
 			if ($scope.error_message == null || $scope.error_message == "")
 				$scope.error_message = "Error on the service.";
 
 			setTimeout(function(){
 				$scope.$emit('ERROR_HIDE');
-			}, 6000);
+			}, 7000);
 
 		}else{
 			setTimeout(function(){
 				$scope.$emit('ERROR_HIDE');
-			}, 6000);
+			}, 7000);
 		}
 	});
 
@@ -61,7 +61,7 @@ function createMessageHelper($scope, errorFactory, callback){
 				$scope.error_blocked = false;
 				$scope.error_message = "";
 				$scope.error = false;
-				errorFactory.setValue({error: $scope.error, error_message: $scope.error_message});
+				generalFactory.setValue({error: $scope.error, error_message: $scope.error_message});
 			});
 		}
 	});
@@ -77,12 +77,43 @@ function createMessageHelper($scope, errorFactory, callback){
 				$scope.error_blocked = true;
 				$scope.error_message = "Ups, At this moment we have problems communicating with Twitter, we are working on it. ";
 			}
+		}else if(error_json.message != null){
+			$scope.error_message = error_json.message;
 		}
-		if (!$scope.error_blocked){
+		if (!$scope.error_blocked && message){
 			$scope.error_message = message;
 		}
 		$scope.$emit('ERROR_SHOW');
 	};
 
 	if (callback != null){ callback(null, fnName) }
+}
+
+function preInit($scope, userFactory, generalFactory, callback){
+	var flag = generalFactory.getLoadingValue().completed;
+	if (!flag){
+		userFactory.checkUserLoadingStatus().success(function(response){
+			var result = response;
+			if (result.type == "SUCCESS"){
+				generalFactory.setLoadingValue({completed: true, percent: 100});
+				callback(); //normally init..
+			}else {
+				//{"type":"ERROR","message":"Twitter information is being loaded","data":6,"err_data":{"completed":false,"percent":70}}
+				if (parseInt(result.data) == 6){
+					if (result.err_data != null && result.err_data.percent != null)
+						generalFactory.setLoadingValue({completed: false, percent: result.err_data.percent});
+					else
+						generalFactory.setLoadingValue({completed: false, percent: 0});
+					setTimeout(function(){
+						preInit($scope, userFactory, generalFactory, callback);
+					}, 4000);
+				}else{
+					// other error different than expected...
+					$scope.handleErrorResponse(result);
+				}
+			}
+		}).error($scope.handleErrorResponse);
+	}else{
+		callback(); //normally init..
+	}
 }

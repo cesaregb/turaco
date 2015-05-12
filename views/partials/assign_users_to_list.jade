@@ -62,23 +62,15 @@
 								| 
 								img.avatar(src='{{user.profile_image_url}}', alt='', style='float: left; margin-top: 3px; padding-right:10px;')
 								| 
-								| 
 								strong {{user.name}}
-								| 
 								| 
 								span @{{user.screen_name}}
 						| 
-						| 
 						p.bio {{user.description}}
-					| 
 					| 
 					div(style='float: right; margin-top:10px')
 						.btn-group.pull-right
 							a.btn.btn-default.btn-sm(type='button', ng-disabled="isFollowing(user)", ng-click='unfowlloUser(user)') Unfollow
-							| 
-							| 
-							a.btn.btn-default.btn-sm(type='button') Remove
-							| 
 							| 
 							a.btn.btn-default.btn-sm(type='button', href='https://twitter.com/{{user.screen_name}}', target='_blank') Open
 					| 

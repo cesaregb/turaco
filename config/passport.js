@@ -42,17 +42,17 @@ passportConfig = function(passport) {
 							done(null, user);
 						});
 					} else {
-						List.remove({uid: profile.id}, function(err) {
+						var uid = profile.id;
+						List.remove({uid: uid}, function(err) {
 							if (!err){console.log("Lists deleted. ");}else{	console.log("error deleting lists: " + err);}
 						});
-						SessionObjects.remove({uid: profile.id}, function(err) {
+						SessionObjects.remove({uid: uid}, function(err) {
 							if (!err){console.log("Session Object ");}else{	console.log("error deleting Session Objects: " + err);}
 						});
 					}	
 				}).remove({uid: profile.id}, function(err) {
 					if(err) {
 						console.log("error deleting item: " + err);
-						
 					} else {
 						user.save(function(err) {
 							if(err) { throw err; }

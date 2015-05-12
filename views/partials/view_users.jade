@@ -10,7 +10,7 @@
 					button.btn.btn-default.btn-sm(type='button')
 						span.glyphicon.glyphicon-search
 		.btn-group.pull-right
-			button#btnBackLists.btn.btn-default.btn-sm(type='button', ng-click='removeUsers()')
+			button#btnBackLists.btn.btn-default.btn-sm(type='button', ng-click='removeUsers()', ng-disabled="isSelectedListOwner()")
 				span.glyphicon.glyphicon-remove
 				| Remove Selected
 			button.btn.btn-default.btn-sm(type='button', href='#', ng-click="open()")
@@ -47,7 +47,7 @@
 							a.btn.btn-default.btn-sm(type='button', ng-disabled="isFollowing(user)", ng-click='unfowlloUser(user)') Unfollow
 							| 
 							| 
-							a.btn.btn-default.btn-sm(type='button', ng-click='removeUser(user)') Remove
+							a.btn.btn-default.btn-sm(type='button', ng-disabled="isSelectedListOwner()", ng-click='removeUser(user)') Remove
 							| 
 							| 
 							a.btn.btn-default.btn-sm(type='button', href='https://twitter.com/{{user.screen_name}}', target='_blank') Open

@@ -1,10 +1,10 @@
 define(['./module', './message_helper',  './accounts_helper'],
 function (module) {
-   module.controller('userController', ['$scope', 'listFactory', 'userFactory', '$location', '$routeParams', '$geolocation', 'errorFactory',
-   function ($scope, listFactory, userFactory, $location, $routeParams, $geolocation, errorFactory) {
+   module.controller('userController', ['$scope', 'listFactory', 'userFactory', '$location', '$routeParams', '$geolocation', 'generalFactory',
+   function ($scope, listFactory, userFactory, $location, $routeParams, $geolocation, generalFactory) {
 
-      $scope.errorFactory = errorFactory;
-      createMessageHelper($scope, $scope.errorFactory, null);
+      $scope.generalFactory = generalFactory;
+      createMessageHelper($scope, $scope.generalFactory, null);
 
       function init(){
 
@@ -129,7 +129,6 @@ function (module) {
             $scope.error = true;
 
             $scope.searchChanged = function (value) {
-               console.log("TURACO_DEBUG - searchChanged: " + JSON.stringify(value) );
                var woeid = value.woeid;
                $scope.getTrendsPlace(woeid);
             };
@@ -139,6 +138,7 @@ function (module) {
             //PLACE HOLDER FOR A URL PATTERN DIDNT MATCHED..
          }
       }
-      init();
+      preInit($scope, userFactory, generalFactory, init);
+
    }]);
 });

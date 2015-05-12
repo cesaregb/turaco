@@ -44,4 +44,9 @@ router.get('/saved_searches', handler.getSavedSearches);
  * */
 router.get('/trends_available', handler.getTrendsAvailable);
 
+/*
+ * Check user Loading Status
+ * */
+router.get('/check_user_loading', handler.checkLoadingStatus);
+
 module.exports = router;

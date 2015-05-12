@@ -44,7 +44,8 @@ require(
 
 require(['jquery', 'bootstrap'], function($, boostrap) {
    $(document).ready(function(){
-      $("#PreLoading").hide();
+      $("#error_message").show();
+      $("#info_message").show();
    });
 
 });

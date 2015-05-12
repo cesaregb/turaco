@@ -42,16 +42,18 @@ var app = express();
 
 var fileName = "app.js";
 
-global.dev_mode = false;
-global.userInfoLoaded = false;
+global.dev_mode = true;
+global.load_for_dev = false;
 global.success = "01";
 global.error = "02";
 global.warn = "03";
 global.attachError = false;
-
+global.usersInProgress = {};
+global.refresSessionObject = {};
 
 var globalTunnel = require('global-tunnel');
 //globalTunnel.initialize();
+
 //globalTunnel.initialize({
 //	host : 'www-proxy.us.oracle.com',
 //	port : 80
@@ -93,7 +95,9 @@ function initEnvVars(){ // initialize environment
 	}else{
 		global.TWITTER_CONSUMER_SECRET = appCredentials.TWITTER_CONSUMER_SECRET;
 	}
-	
+	if (process.env.DEV_MODE != null){
+		global.DEV_MODE = process.env.DEV_MODE;
+	}
 	console.log("TURACO_DEBUG - Global Vars: \n" + global.CALLBACK_URL + "\n" + global.TWITTER_CONSUMER_KEY + "\n" + global.TWITTER_CONSUMER_SECRET);
 }
 
@@ -107,30 +111,40 @@ app.use(function(req, res, next) {
 		res.contentType('application/json');
 	}
 	
+	req.on("close", function() {
+		console.log("TURACO_DEBUG - Client closed the request.... ");
+    });
+	
 	function checkLoadData(user, session, callback){
-		if (global.refresSessionObject){
-			session.user_lists = null;
-			session.usersListHash = null;
-			session.completeListsObject = null;
-			session.friends = null;
-			session.savedSearches = null;
-			SessionObjects.findOne({
-				'uid' : user.uid
-			}).sort({created: 'desc'}).exec(function(err, sessionObj) {
-				if(sessionObj == null || err){
-					callback("Error User's session not found");
-				}else{
-					global.userInfoLoaded = true;
-					session.friends = sessionObj.friends;
-					session.usersListHash = sessionObj.usersListHash; 
-					session.completeListsObject = sessionObj.completeListsObject;
-					session.user_lists = sessionObj.lists; 
-					session.savedSearches = sessionObj.savedSearches; 
-					callback(null);				
-				}
-			});
+		var userProgress = (global.usersInProgress[user.uid] != null)? global.usersInProgress[user.uid] : null;
+		if (userProgress != null && userProgress.completed){
+			var refreshMe = (global.refresSessionObject[user.uid] != null)||(session.refresSessionObject);
+			if (refreshMe){ // after the applicatoin save the information in the next request we store the info in the session.
+				global.refresSessionObject[user.uid] = null;
+				session.user_lists = null;
+				session.usersListHash = null;
+				session.completeListsObject = null;
+				session.friends = null;
+				session.savedSearches = null;
+				SessionObjects.findOne({
+					'uid' : user.uid
+				}).sort({created: 'desc'}).exec(function(err, sessionObj) {
+					if(sessionObj == null || err){
+						callback("Error User's session not found \n sessionObject " + sessionObj + " \n err:" + err);
+					}else{
+						session.friends = sessionObj.friends;
+						session.usersListHash = sessionObj.usersListHash; 
+						session.completeListsObject = sessionObj.completeListsObject;
+						session.user_lists = sessionObj.lists; 
+						session.savedSearches = sessionObj.savedSearches; 
+						callback(null);				
+					}
+				});
+			}else{
+				callback(null);
+			}
 		}else{
-			callback(null);
+			callback("Loading user in progress");
 		}
 	}
 	
@@ -141,23 +155,38 @@ app.use(function(req, res, next) {
 		}else{
 			checkLoadData(session.user, session, function(err){
 				if (err){
-					console.log("TURACO_DEBUG - ERROR checkLoadData ");
-					res.render('error', {
-						message : err,
-						error : {}
-					});
+					var user_uid = session.user.uid;
+					// remove any possible existing information. 
+					if (false){ // we skip the possible erros.. instead we remove existing user information and 
+						console.log("TURACO_DEBUG - ERROR checkLoadData ");
+						res.render('error', {
+							message : err,
+							error : {}
+						});
+					}
 				}
 				next();
 			});
 		}
 	}else{// dev mode 
 		if (session.user == null){
-			global.refresSessionObject = true;
-//			var id = "36063580"; //cesar
-			var id = "1710981037";
-			User.findOne({"uid": id}, function(err, u){
+			var id = "36063580"; //cesar
+//			var id = "42261512"; // joel
+			global.refresSessionObject[id] = null;
+			session.refresSessionObject = true;
+ 			User.findOne({"uid": id}, function(err, u){
 				req.user = u;
 				session.user = u;
+				if (global.load_for_dev){
+					global.usersInProgress[u.uid] = null;
+				}else{
+					global.usersInProgress[u.uid] = {
+						completed : true,
+						percent : 100
+					};
+					
+				}
+				
 				checkLoadData(session.user, session, function(err){
 					if (err){
 						console.log("TURACO_DEBUG - ERROR checkLoadData ");
@@ -184,8 +213,6 @@ app.use('/', routes);
 
 /***** Services */
 function requireAuthenticationAPI(req, res, next) {
-	var _method = "requireAuthenticationAPI";
-	console.log("IN " + fileName + " - " + _method);
 	if (req.session.user != null) {
 		return next();
 	}else{
@@ -194,7 +221,6 @@ function requireAuthenticationAPI(req, res, next) {
 }
 
 app.all('/api/*', requireAuthenticationAPI);
-
 app.use('/api/lists', routesListsApi);
 app.use('/api/users', routesUsersApi);
 

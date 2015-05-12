@@ -20,10 +20,15 @@ function viewListUsersController(list_id, $scope, listFactory, $modal){
 				if (lists[index].id == list_id){
 					$scope.selectedList = lists[index];
 					$scope.listName = lists[index].name;
+					$scope.own_list = lists[index].own_list;
 				}
 			}
 		}
 	});
+
+	$scope.isSelectedListOwner = function(){
+		return ($scope.own_list==null || !$scope.own_list);
+	};
 
 	createGetListUsers($scope, listFactory, callback);
 	$scope.getListUsers(list_id); // this automatically refresh the users, on the table and so on...

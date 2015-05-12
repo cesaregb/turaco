@@ -359,6 +359,24 @@ function getTrendsAvailable(req, res) {
 }
 module.exports.getTrendsAvailable = getTrendsAvailable;
 
+function checkLoadingStatus(req, res) {
+	var _method = "checkLoadingStatus";
+	console.log("IN " + fileName + " - " + _method);
+	var session = req.session;
+	var uid = session.user.uid; 
+	var userProgress = (global.usersInProgress[uid] != null)? global.usersInProgress[uid] : null;
+	if (userProgress != null && userProgress.completed){
+		return res.json(json_api_responses.success(userProgress));
+	}else{
+		if (userProgress.error != null){
+			return res.json(json_api_responses.error(error_codes.GENERIC_ERROR, userProgress));
+		}else{
+			return res.json(json_api_responses.error(error_codes.DATA_LOADING, userProgress));
+		}
+	}
+}
+module.exports.checkLoadingStatus = checkLoadingStatus;
+
 function getParams(req){
 	var uid = req.body.uid;
 	var list_id = req.body.list_id;

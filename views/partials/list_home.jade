@@ -30,9 +30,9 @@
 								.btn-group.pull-right
 									a.btn.btn-default.btn-sm(type='button', href='/lists/edit_list/{{list.id}}', ng-disabled="isListOwner(list)") Edit
 									| 
+									a.btn.btn-default.btn-sm(type='button', href='/lists/view_users/{{list.id}}') Members of
 									| 
 									a.btn.btn-default.btn-sm(type='button', ng-click='openConfirmModal(list)') {{isListOwner(list) ? 'Unsubscribe' : 'Delete'}}
-									| 
 									| 
 									a.btn.btn-default.btn-sm(type='button', href='https://twitter.com{{list.uri}}', target='_blank') Open
 	

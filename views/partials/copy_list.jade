@@ -22,12 +22,9 @@
 									| 
 									img.avatar(src='{{user.profile_image_url}}', alt='', style='float: left; margin-top: 3px; padding-right:10px;')
 									| 
-									| 
 									strong {{user.name}}
 									| 
-									| 
 									span @{{user.screen_name}}
-							| 
 							| 
 							p.bio {{user.description}}
 						| 
@@ -36,12 +33,7 @@
 			.panel.panel-default
 				.panel-body
 					.btn-group
-						a.btn.btn-default.btn-sm(type='button', ng-disabled="isListSelected()", ng-click='cloneList()') Clone
-						| 
-						| 
 						a.btn.btn-default.btn-sm(type='button', ng-disabled="isListSelected()", ng-click='subscribeList()') Subscribe
 						| 
-						| 
 						a.btn.btn-default.btn-sm(type='button', ng-disabled="isListSelected()", href='https://twitter.com{{list_info.uri}}', target='_blank') Open
-						| 
 						| 

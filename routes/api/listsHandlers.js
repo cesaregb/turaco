@@ -160,7 +160,7 @@ function createList (req, res) {
 					if (err){ return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
 					}else{
 						//update the sessionObject and set value to restore sessions 
-						global.refresSessionObject = true;
+						req.session.refresSessionObject = true;
 						sessionHelper = new sessionObjectHelpers({param:"nel"});
 						sessionHelper.addList(user, newListData, function(err, code){
 							if (err){
@@ -214,7 +214,7 @@ function deleteList(req, res) {
 							return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
 						}else{
 							//update the sessionObject and set value to restore sessions 
-							global.refresSessionObject = true;
+							req.session.refresSessionObject = true;
 							sessionHelper = new sessionObjectHelpers({param:"nel"});
 							sessionHelper.removeList(user, list_id, function(err, code){
 								if (err){
@@ -283,7 +283,7 @@ function deleteAndUnfollow(req, res) {
 										if (err){
 											return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
 										}else{
-											global.refresSessionObject = true;
+											req.session.refresSessionObject = true;
 											sessionHelper = new sessionObjectHelpers({param:"nel"});
 											sessionHelper.removeListComplete(user, finalList.id, finalListOfUsers, function(err, code){
 												if (err){
@@ -376,7 +376,7 @@ function updateList(req, res) {
 								return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
 							}else{
 								/* update the list */
-								global.refresSessionObject = true;
+								req.session.refresSessionObject = true;
 								
 								var list_object = {
 										list_id: req.body.list_id, 
@@ -434,7 +434,7 @@ function subscribe(req, res) {
 					return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
 				}else{
 					twit.subscribeme2List( myParams, function(err, subscribeListData){
-						global.refresSessionObject = true;
+						req.session.refresSessionObject = true;
 						sessionHelper = new sessionObjectHelpers({param:"nel"});
 						sessionHelper.addList(user, result.list_info, result.users, function(err, code){
 							if (err){
@@ -479,7 +479,7 @@ function unsubscribe(req, res) {
 				}
 				twit.unsubscribeme2List(myParams, function(err, data){
 
-					global.refresSessionObject = true;
+					req.session.refresSessionObject = true;
 					sessionHelper = new sessionObjectHelpers({param:"nel"});
 					sessionHelper.removeList(user, list_id, function(err, code){
 						if (err){
@@ -591,7 +591,7 @@ function cloneList(req, res){
 						async.whilst(
 						    function () {
 						    	if (cursor == 0){
-									global.refresSessionObject = true;
+						    		req.session.refresSessionObject = true;
 									sessionHelper = new sessionObjectHelpers({param:"nel"});
 									sessionHelper.addListFollow(user, finalList, finalListOfUsers, function(err, code){
 										if (err){
@@ -712,7 +712,7 @@ function cloneNoFollow(req, res){
 						async.whilst(
 							function () {
 								if (cursor == 0){
-									global.refresSessionObject = true;
+									req.session.refresSessionObject = true;
 									sessionHelper = new sessionObjectHelpers({param:"nel"});
 									sessionHelper.addList(user, created_list, complete_list_users, function(err, code){
 										if (err){
@@ -816,7 +816,7 @@ function membersCreateAll(req, res){
 					if (err){
 						return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
 					}else{
-						global.refresSessionObject = true;
+						req.session.refresSessionObject = true;
 						sessionHelper = new sessionObjectHelpers({param:"nel"});
 						sessionHelper.membersCreateAll(user, list_id, users_list, twit, function(err, code){
 							if (err){
@@ -863,7 +863,7 @@ function membersDestroyAll(req, res){
 					if (err){
 						return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
 					}else{
-						global.refresSessionObject = true;
+						req.session.refresSessionObject = true;
 						sessionHelper = new sessionObjectHelpers({param:"nel"});
 						sessionHelper.listRefreshUsers(user, list_id, users_list, twit, function(err, data){
 							if (err){
@@ -971,7 +971,7 @@ function getListUsers(req, res) {
 			}
 		}
 		
-		global.refresSessionObject = true;
+		req.session.refresSessionObject = true;
 		SessionObjects.findOne({
 			'uid' : user.uid
 		}).sort({created: 'desc'}).exec(function(err, sessionObj) {
@@ -980,7 +980,8 @@ function getListUsers(req, res) {
 			}else{
 				var list = null;
 				for (i in sessionObj.lists){
-					if (sessionObj.completeListsObject.lists[i].id == list_id){
+					if (sessionObj.completeListsObject.lists[i] != null 
+							&& sessionObj.completeListsObject.lists[i].id == list_id){
 						list = sessionObj.completeListsObject.lists[i];
 					}
 				}

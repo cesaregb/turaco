@@ -28,6 +28,7 @@ JsonResponse.prototype.success = function (_data){
 	this.body.type = TYPE_SUCCESS;
 	this.body.message = TYPE_SUCCESS;
 	this.body.data = _data;
+	this.body.err_data = null;
 	return this.body;
 }
 
@@ -36,6 +37,7 @@ JsonResponse.prototype.string_success = function (_message){
 	this.init();
 	this.body.type = TYPE_SUCCESS;
 	this.body.message = _message;
+	this.body.err_data = null;
 	return this.body;
 }
 
@@ -45,6 +47,7 @@ JsonResponse.prototype.error = function (_code, err){
 	if( Object.prototype.toString.call( _code ) === '[object Object]' ) {
 		this.body.type = TYPE_ERROR;
 		this.body.message = _code.message;
+		this.body.data = _code.code;
 	}else{
 		this.body.type = TYPE_ERROR;
 		this.body.message = _code;

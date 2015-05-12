@@ -6,9 +6,11 @@ var express = require('express');
 var listHelpers = require('./list_helpers');
 var twitter = require('ntwitter');
 var async = require("async");
+
 var User = require('../app/models/user');
 var List = require('../app/models/list');
 var SessionObjects = require('../app/models/sessionObjects');
+var ListInfoTemporal = require('../app/models/listInfoTemporal');
 
 var fileName = "sessionObject_helpers.js";
 
@@ -23,16 +25,28 @@ SessionObjectHelper.prototype.createSessionObject = function(user, callback){
 	var _method = "createSessionObject()";
 	console.log("IN " + fileName + " - "+ _method);
 	var obj = this;
-	var sessionObject = new SessionObjects();
-	sessionObject.uid = user.uid;
-	sessionObject.save(function(err){
-		if (err){ 
-			return callback(err);
-		}else{
-			obj.sessionObject = sessionObject;
-			callback(null, sessionObject);
+	
+	// we remove existing information this may on the future be overrided in case we start using the information... 
+	SessionObjects.remove({uid: user.uid}, function(err) {
+		if (!err){
+			createSession();
 		}
 	});
+	
+	function createSession(){
+		var sessionObject = new SessionObjects();
+		sessionObject.uid = user.uid;
+		sessionObject.save(function(err){
+			if (err){ 
+				return callback(err);
+			}else{
+				obj.sessionObject = sessionObject;
+				obj.user = user;
+				callback(null, sessionObject);
+			}
+		});
+	}
+	
 }
 
 /*
@@ -701,17 +715,44 @@ SessionObjectHelper.prototype.saveLists = function(lists, callback){
 SessionObjectHelper.prototype.saveListComplexObjects = function(set, callback){
 	var _method = "saveListComplexObjects()";
 	console.log("IN " + fileName + " - "+ _method);
+	var parent = this;
 	
 	if(set == null){
 		return callback("invalid params");
 	}
-	this.sessionObject.usersListHash = set.usersListHash;
-	this.sessionObject.completeListsObject = set.completeListsObject;
-	this.sessionObject.markModified('usersListHash');
-	this.sessionObject.markModified('completeListsObject');
-	this.sessionObject.save(function(err){
-		return callback(err, global.success);
+	//save saved information... 
+	console.log("TURACO_DEBUG - this.user.uid " + parent.user.uid);
+	var completeListsObject = {};
+	completeListsObject.uid = parent.user.uid;
+	completeListsObject.lists = [];
+	ListInfoTemporal.find({uid: parent.user.uid}, function(err, dataArray){
+		if (err) console.log("TURACO_DEBUG - Error finding items: " +  err);
+		console.log("TURACO_DEBUG - dataArray: " + dataArray.length);
+		for (var i in dataArray){
+			var list = dataArray[i].list;
+				console.log("TURACO_DEBUG - adding to complex obj list: " + list.name);
+				completeListsObject.lists.push(list);
+		};
+		completeObjGenerated(completeListsObject);
 	});
+	
+	function removeTemporal(){
+		ListInfoTemporal.remove({uid: parent.user.uid}, function(err){
+			if (err) console.log("TURACO_DEBUG - Error deleting items: " +  err);
+		});
+	}
+	
+	function completeObjGenerated(completeListsObject){
+		removeTemporal();
+		console.log("TURACO_DEBUG - completeObjGenerated " + completeListsObject.lists.length);
+		parent.sessionObject.usersListHash = set.usersListHash;
+		parent.sessionObject.completeListsObject = completeListsObject;
+		parent.sessionObject.markModified('usersListHash');
+		parent.sessionObject.markModified('completeListsObject');
+		parent.sessionObject.save(function(err){
+			return callback(err, global.success);
+		});
+	}
 }
 
 SessionObjectHelper.prototype.saveAllFriends = function(dataAllFriends, callback){

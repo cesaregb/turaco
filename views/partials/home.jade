@@ -1,15 +1,23 @@
 .container
+	div(class='info-text', style='padding-bottom:15px') Here you can access your Lists, and Saved Searchs quickly. As well you can search what is trending on different places. 
+		br
+		| If the browser is not allowed to access your location you can search the nearest city. 
+	| 
 	.row.col-md-12.well.well-sm(style='padding-bottom:10px;')
-		.btn-group.col-lg-5.left-search-box
-			.input-group
-				ui-select(ng-model='selectedPlace', theme='bootstrap', ng-disabled='disabled', reset-search-input='false', on-select="searchChanged($item)")
-					ui-select-match(placeholder='Enter a location...') {{$select.selected.name}}
-					| 
-					ui-select-choices(repeat='place in places | propsFilter: {name: $select.search}')
-						div(ng-bind-html='place.name | highlight: $select.search')
-				.input-group-btn
-					button.btn.btn-default(type='button', ng-click='activateLocation()') 
-						span.glyphicon.glyphicon-map-marker
+		.btn-group.col-lg-4.left-search-box
+			form
+				.form-group
+					p Location:
+					ui-select(ng-model='selectedPlace', theme='bootstrap', ng-disabled='disabled', reset-search-input='false', on-select="searchChanged($item)")
+						ui-select-match(placeholder='Enter a location...') {{$select.selected.name}}
+						| 
+						ui-select-choices(repeat='place in places | propsFilter: {name: $select.search}')
+							div(ng-bind-html='place.name | highlight: $select.search')
+		.btn-group.pull-right
+			button.btn.btn-default(type='button', ng-click='activateLocation()', ng-disabled='geolocationDenied') 
+				span.glyphicon.glyphicon-map-marker 
+				| User Geolocation
+		
 		//-
 			.btn-group.pull-right
 				a.btn.btn-default.btn-sm(href='/lists', type='button')

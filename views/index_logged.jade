@@ -5,10 +5,10 @@ block content
 			.container
 				.row(ng-controller="errorController")
 					.col-md-12
-						.alert.alert-success(ng-show="info",class="ng-hide" , style='display:none') {{info_message}}
+						.alert.alert-success(ng-show="info",class="ng-hide", id="info_message", style='display:none') {{info_message}}
 						.alert.alert-success(data-loading, style='display:none') Loading...
-						.alert.alert-success(id="PreLoading") Loading your stuff from Twitter, this takes some time...
-						.alert.alert-danger(ng-show="error", class="ng-hide") {{error_message}}
+						.alert.alert-success(id="PreLoading", ng-show="preLoading") Loading some libraries...
+						.alert.alert-danger(ng-show="error", class="ng-hide", id="error_message", style='display:none') {{error_message}}
 				.row
 					.col-md-12
 						h4.page-head-line(ng-bind="title")

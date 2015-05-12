@@ -26,6 +26,14 @@ module.exports.error_codes = {
 	USER_NOT_LOGED : {
 		code : 5,
 		message : 'User not loged'
+	},
+	DATA_LOADING : {
+		code : 6,
+		message : 'Twitter information is being loaded'
+	},
+	GENERIC_ERROR : {
+		code : 7,
+		message : 'There is a error with Turaco Server, we are working on it. Sorry'
 	} 
 };
 

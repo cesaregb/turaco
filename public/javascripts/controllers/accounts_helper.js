@@ -148,7 +148,7 @@ function createAssignUser2List($scope, listFactory, callback){
 			});
 		}else{
 			$scope.$emit('ERROR_SHOW');
-			console.log("TURACO_DEBUG - getSelectedIds NOT DECLARED");
+			// console.log("TURACO_DEBUG - getSelectedIds NOT DECLARED");
 		}
 	};
 
