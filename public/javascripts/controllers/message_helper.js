@@ -2,7 +2,7 @@
  * User Interface error helpers
  */
 
-function createMessageHelper($scope, generalFactory, callback){
+function createMessageHelper($scope, $window, generalFactory, callback){
 	var fnName = "info_message";
 	$scope.info = false;
 	$scope.important_message = false;
@@ -67,6 +67,7 @@ function createMessageHelper($scope, generalFactory, callback){
 	});
 
 	$scope.handleErrorResponse = function(error_json, message) {
+
 		if (error_json != null
 					&& error_json.err_data != null
 					&& error_json.err_data.statusCode != null){
@@ -77,6 +78,9 @@ function createMessageHelper($scope, generalFactory, callback){
 				$scope.error_blocked = true;
 				$scope.error_message = "Ups, At this moment we have problems communicating with Twitter, we are working on it. ";
 			}
+		}else if(parseInt(error_json.data) == 5){
+			$scope.error_message = error_json.message;
+			$window.location.reload();
 		}else if(error_json.message != null){
 			$scope.error_message = error_json.message;
 		}
@@ -106,7 +110,7 @@ function preInit($scope, userFactory, generalFactory, callback){
 						generalFactory.setLoadingValue({completed: false, percent: 0});
 					setTimeout(function(){
 						preInit($scope, userFactory, generalFactory, callback);
-					}, 4000);
+					}, 6000);
 				}else{
 					// other error different than expected...
 					$scope.handleErrorResponse(result);

@@ -25,7 +25,7 @@ module.exports.error_codes = {
 	},
 	USER_NOT_LOGED : {
 		code : 5,
-		message : 'User not loged'
+		message : 'User session expired, please refresh your browser.'
 	},
 	DATA_LOADING : {
 		code : 6,

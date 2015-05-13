@@ -62,19 +62,21 @@ function usersFriendsListsController($scope, userFactory, listFactory, filterFil
 	* end pagination logic
 	* */
 
+	function callGetListsByLoggedUser(){
 	// $scope.getListsByLoggedUser();
-	$scope.getListsByLoggedUser(function(err, result){
-		if (!err){
-			var lists = result.data.items;
-			$scope.updatableLists = [];
-			for (var index in lists){
-				if (lists[index].own_list){
-					$scope.updatableLists.push(lists[index]);
+		$scope.getListsByLoggedUser(function(err, result){
+			if (!err){
+				var lists = result.data.items;
+				$scope.updatableLists = [];
+				for (var index in lists){
+					if (lists[index].own_list){
+						$scope.updatableLists.push(lists[index]);
+					}
 				}
 			}
-		}
-	});
-
+		});
+	}
+	callGetListsByLoggedUser();
 	/*
 	* with the existing information filter the lists
 	* */
@@ -90,7 +92,7 @@ function usersFriendsListsController($scope, userFactory, listFactory, filterFil
 			$scope.usersArray = {};
 			if (!err){
 
-				$scope.getListsByLoggedUser();
+				callGetListsByLoggedUser();
 				$scope.getUserFriends();
 			}
 		});

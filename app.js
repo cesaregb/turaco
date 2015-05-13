@@ -42,8 +42,8 @@ var app = express();
 
 var fileName = "app.js";
 
-global.dev_mode = true;
-global.load_for_dev = true;
+global.dev_mode = false;
+global.load_for_dev = false;
 global.success = "01";
 global.error = "02";
 global.warn = "03";
@@ -169,8 +169,8 @@ app.use(function(req, res, next) {
 		}
 	}else{// dev mode 
 		if (session.user == null){
-			var id = "14347292"; //beto
-//			var id = "36063580"; //cesar
+//			var id = "14347292"; //beto
+			var id = "36063580"; //cesar
 //			var id = "42261512"; // joel
 			global.refresSessionObject[id] = null;
 			session.refresSessionObject = true;
@@ -216,7 +216,7 @@ function requireAuthenticationAPI(req, res, next) {
 	if (req.session.user != null) {
 		return next();
 	}else{
-		return res.json(json_api_responses.error(error_codes.USER_NOT_FOUND_ERROR));
+		return res.json(json_api_responses.error(error_codes.USER_NOT_LOGED));
 	}
 }
 

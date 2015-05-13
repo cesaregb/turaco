@@ -3,10 +3,11 @@ define(['./module', './message_helper',
 		'./list_viewListUsersController', './list_copyListController'],
 
 		function (module) {
-			module.controller('listController', ['$scope', 'listFactory', 'userFactory', '$location', '$routeParams', 'filterFilter', '$modal', 'generalFactory',
-			function ($scope, listFactory, userFactory, $location, $routeParams, filterFilter, $modal, generalFactory) {
+			module.controller('listController', [
+				'$scope', 'listFactory', 'userFactory', '$location', '$routeParams', 'filterFilter', '$modal', 'generalFactory', '$window',
+			function ($scope, listFactory, userFactory, $location, $routeParams, filterFilter, $modal, generalFactory, $window) {
 				$scope.generalFactory = generalFactory;
-				createMessageHelper($scope, $scope.generalFactory, null);
+				createMessageHelper($scope, $window, $scope.generalFactory, null);
 
 				function init(){
 					var path = $location.$$path; // get the path for initialization per page.
