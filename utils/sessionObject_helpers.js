@@ -726,11 +726,9 @@ SessionObjectHelper.prototype.saveListComplexObjects = function(set, callback){
 	completeListsObject.uid = parent.user.uid;
 	completeListsObject.lists = [];
 	ListInfoTemporal.find({uid: parent.user.uid}, function(err, dataArray){
-		if (err) console.log("TURACO_DEBUG - Error finding items: " +  err);
 		console.log("TURACO_DEBUG - dataArray: " + dataArray.length);
 		for (var i in dataArray){
 			var list = dataArray[i].list;
-				console.log("TURACO_DEBUG - adding to complex obj list: " + list.name);
 				completeListsObject.lists.push(list);
 		};
 		completeObjGenerated(completeListsObject);

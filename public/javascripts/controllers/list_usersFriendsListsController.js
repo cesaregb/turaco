@@ -62,7 +62,18 @@ function usersFriendsListsController($scope, userFactory, listFactory, filterFil
 	* end pagination logic
 	* */
 
-	$scope.getListsByLoggedUser();
+	// $scope.getListsByLoggedUser();
+	$scope.getListsByLoggedUser(function(err, result){
+		if (!err){
+			var lists = result.data.items;
+			$scope.updatableLists = [];
+			for (var index in lists){
+				if (lists[index].own_list){
+					$scope.updatableLists.push(lists[index]);
+				}
+			}
+		}
+	});
 
 	/*
 	* with the existing information filter the lists

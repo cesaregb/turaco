@@ -3,7 +3,13 @@ define([ './module' ], function(module) {
 	'$modalInstance', 'lists',
 	function($scope, listFactory, $modalInstance, lists) {
 
-		$scope.lists = lists;
+		$scope.lists = [];
+		for (var index in lists){
+			if (lists[index].own_list){
+				$scope.lists.push(lists[index]);
+			}
+		}
+
 		$scope.selected = {
 			list : $scope.lists[0]
 		};

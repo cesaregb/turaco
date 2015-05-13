@@ -43,7 +43,7 @@
 				span.caret
 			|   
 			ul.dropdown-menu(role='menu')
-				li(ng-repeat="list in lists")
+				li(ng-repeat="list in updatableLists")
 					a(href='#', ng-click='handleAddUsers(list)') {{list.name}} | {{list.member_count}}
 			a.btn.btn-default.btn-sm(href='#', type='button', ng-click="open()")
 				span.glyphicon.glyphicon-modal-window

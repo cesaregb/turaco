@@ -43,7 +43,7 @@ var app = express();
 var fileName = "app.js";
 
 global.dev_mode = true;
-global.load_for_dev = false;
+global.load_for_dev = true;
 global.success = "01";
 global.error = "02";
 global.warn = "03";
@@ -53,7 +53,6 @@ global.refresSessionObject = {};
 
 var globalTunnel = require('global-tunnel');
 //globalTunnel.initialize();
-
 //globalTunnel.initialize({
 //	host : 'www-proxy.us.oracle.com',
 //	port : 80
@@ -170,7 +169,8 @@ app.use(function(req, res, next) {
 		}
 	}else{// dev mode 
 		if (session.user == null){
-			var id = "36063580"; //cesar
+			var id = "14347292"; //beto
+//			var id = "36063580"; //cesar
 //			var id = "42261512"; // joel
 			global.refresSessionObject[id] = null;
 			session.refresSessionObject = true;

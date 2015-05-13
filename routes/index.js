@@ -53,10 +53,7 @@ router.get('/home', ensureAuthenticated, function(req, res) {
 
 router.get('/reload_user', ensureAuthenticated, function(req, res) {
 	console.log("TURACO_DEBUG - ROUTES /reload_user");
-	console.log("TURACO_DEBUG - calling GET_ALL from index.js and reload_user ");
-	
-	global.usersInProgress[user.uid] = null; //initialize the loading process 
-	
+	global.usersInProgress[req.user.uid] = null; //initialize the loading process 
 	var gatherInfoInstance = new loginGatherInfoUser();
 	gatherInfoInstance.getAll(req.user, req.session, function(err, data){
 		if (err){
@@ -171,6 +168,7 @@ router.get('/auth/twitter/callback', passport.authenticate('twitter', {
 
 router.get('/logout', function(req, res) {
 	console.log("TURACO_DEBUG - within logout");
+	global.usersInProgress[req.session.user.uid] = null; //initialize the loading process
 	req.logout();
 	req.session.destroy(function(err) {
 		res.redirect('/');
