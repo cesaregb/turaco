@@ -113,10 +113,11 @@ function getUsersListFunction(req, res) {
 						});
 					});
 				}else{
-					session.friends = sessionObj.friends;
+					var friends = sessionObj.friends;
+					friends.complete_users = null;
+					session.friends = friends;
 					session.usersListHash = sessionObj.usersListHash; 
 					session.savedSearches = sessionObj.savedSearches; 
-					session.completeListsObject = sessionObj.completeListsObject;
 					session.user_lists = sessionObj.lists; 
 					
 					var response = {};
@@ -164,7 +165,11 @@ function createList (req, res) {
 						sessionHelper = new sessionObjectHelpers({param:"nel"});
 						sessionHelper.addList(user, newListData, function(err, code){
 							if (err){
-								return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
+								if (err.indexOf("Object sessionObj not found") > 0){
+									res.redirect('/reload_user');
+								}else{
+									return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
+								}
 							}else{
 								return res.json(json_api_responses.success(newListData));
 							}
@@ -438,9 +443,23 @@ function subscribe(req, res) {
 						sessionHelper = new sessionObjectHelpers({param:"nel"});
 						sessionHelper.addList(user, result.list_info, result.users, function(err, code){
 							if (err){
-								return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
+								if (err.indexOf("sessionObj not found") > 0){
+									global.usersInProgress[req.session.user.uid] = null; //initialize the loading process
+									req.logout();
+									req.session.destroy();
+									return res.json(json_api_responses.error(error_codes.MALFORMED_USER_DATA, err));
+								}else{
+									return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
+								}
 							}else{
 								return res.json(json_api_responses.success(subscribeListData));
+							}
+							
+							
+							if (err){
+								return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
+							}else{
+								
 							}
 						});
 					});
@@ -972,6 +991,7 @@ function getListUsers(req, res) {
 		}
 		
 		req.session.refresSessionObject = true;
+		
 		SessionObjects.findOne({
 			'uid' : user.uid
 		}).sort({created: 'desc'}).exec(function(err, sessionObj) {

@@ -42,7 +42,7 @@ JsonResponse.prototype.string_success = function (_message){
 }
 
 JsonResponse.prototype.error = function (_code, err){
-	console.log("RESPONSE error: " + err);
+	console.log("RESPONSE error: " + JSON.stringify(err));
 	this.init();
 	if( Object.prototype.toString.call( _code ) === '[object Object]' ) {
 		this.body.type = TYPE_ERROR;

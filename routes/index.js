@@ -156,9 +156,10 @@ router.get('/auth/twitter/callback', passport.authenticate('twitter', {
 				completed : true,
 				percent : 100
 			};
-			session.friends = sessionObj.friends;
+			var friends = sessionObj.friends;
+			friends.complete_users = null;
+			session.friends = friends;
 			session.usersListHash = sessionObj.usersListHash; 
-			session.completeListsObject = sessionObj.completeListsObject;
 			session.user_lists = sessionObj.lists; 
 			session.savedSearches = sessionObj.savedSearches; 
 			res.redirect('/');		

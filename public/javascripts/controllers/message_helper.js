@@ -7,6 +7,7 @@ function createMessageHelper($scope, $window, generalFactory, callback){
 	$scope.info = false;
 	$scope.important_message = false;
 	$scope.error_blocked = false;
+	$scope.sticky_error = false;
 
 	$scope.$on('AJAX_SUCCESS', function(){
 		$scope.important_message = true;
@@ -40,18 +41,20 @@ function createMessageHelper($scope, $window, generalFactory, callback){
 	$scope.$on('ERROR_SHOW', function(){
 		$scope.error = true;
 		generalFactory.setValue({error: $scope.error, error_message: $scope.error_message});
-		if (!$scope.error_blocked){
-			if ($scope.error_message == null || $scope.error_message == "")
-				$scope.error_message = "Error on the service.";
+		if (!$scope.sticky_error){
+			if (!$scope.error_blocked){
+				if ($scope.error_message == null || $scope.error_message == "")
+					$scope.error_message = "Error on the service.";
 
-			setTimeout(function(){
-				$scope.$emit('ERROR_HIDE');
-			}, 7000);
+				setTimeout(function(){
+					$scope.$emit('ERROR_HIDE');
+				}, 7000);
 
-		}else{
-			setTimeout(function(){
-				$scope.$emit('ERROR_HIDE');
-			}, 7000);
+			}else{
+				setTimeout(function(){
+					$scope.$emit('ERROR_HIDE');
+				}, 7000);
+			}
 		}
 	});
 
@@ -80,12 +83,20 @@ function createMessageHelper($scope, $window, generalFactory, callback){
 			}
 		}else if(parseInt(error_json.data) == 5){
 			$scope.error_message = error_json.message;
-			$window.location.reload();
+			setTimeout(function(){
+				$window.location.reload();
+			}, 3000);
+
 		}else if(error_json.message != null){
 			$scope.error_message = error_json.message;
 		}
 		if (!$scope.error_blocked && message){
 			$scope.error_message = message;
+		}
+
+		if (parseInt(error_json.data) == 7){
+			$scope.error_blocked = true;
+			$scope.sticky_error = true;
 		}
 		$scope.$emit('ERROR_SHOW');
 	};
@@ -105,12 +116,12 @@ function preInit($scope, userFactory, generalFactory, callback){
 				//{"type":"ERROR","message":"Twitter information is being loaded","data":6,"err_data":{"completed":false,"percent":70}}
 				if (parseInt(result.data) == 6){
 					if (result.err_data != null && result.err_data.percent != null)
-						generalFactory.setLoadingValue({completed: false, percent: result.err_data.percent});
+						generalFactory.setLoadingValue({completed: false, percent: result.err_data.percent, message: result.message});
 					else
-						generalFactory.setLoadingValue({completed: false, percent: 0});
+						generalFactory.setLoadingValue({completed: false, percent: 0, mesage: null});
 					setTimeout(function(){
 						preInit($scope, userFactory, generalFactory, callback);
-					}, 6000);
+					}, 5000);
 				}else{
 					// other error different than expected...
 					$scope.handleErrorResponse(result);

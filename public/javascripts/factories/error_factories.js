@@ -4,7 +4,7 @@ function (module) {
    module.factory('generalFactory', function(){
       var data = {
          error_status: {error: false, error_message: ""},
-         user_loading_status: {completed: false, percent: 0}
+         user_loading_status: {completed: false, percent: 0, message: null}
       };
 
       return {

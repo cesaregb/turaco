@@ -93,7 +93,11 @@ function getAllFriends(req, res) {
 			'uid' : user.uid
 		}).sort({created: 'desc'}).exec(function(err, sessionObj) {
 			if(sessionObj == null || err){
-				return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
+				if (req.session.user != null){
+					return res.json(json_api_responses.error(error_codes.ACCOUNT_NOT_SUPPORTED_1, err));
+				}else{
+					return res.json(json_api_responses.error(error_codes.USER_NOT_LOGED));
+				}
 			}else{
 				return res.json(json_api_responses.success(sessionObj.friends));
 			}
@@ -361,7 +365,7 @@ module.exports.getTrendsAvailable = getTrendsAvailable;
 
 function checkLoadingStatus(req, res) {
 	var _method = "checkLoadingStatus";
-	console.log("IN " + fileName + " - " + _method);
+//	console.log("IN " + fileName + " - " + _method);
 	var session = req.session;
 	var uid = session.user.uid; 
 	var userProgress = (global.usersInProgress[uid] != null)? global.usersInProgress[uid] : null;
@@ -369,7 +373,38 @@ function checkLoadingStatus(req, res) {
 		return res.json(json_api_responses.success(userProgress));
 	}else{
 		if (userProgress.error != null){
-			return res.json(json_api_responses.error(error_codes.GENERIC_ERROR, userProgress));
+			if (req.session.userLoadingError == null){
+				
+				req.session.userLoadingError = 0;
+				var uid = req.user.uid;
+				List.remove({uid: uid}, function(err) {
+					if (!err){console.log("Lists deleted. ");}else{	console.log("error deleting lists: " + err);}
+				});
+				SessionObjects.remove({uid: uid}, function(err) {
+					if (!err){console.log("Session Object ");}else{	console.log("error deleting Session Objects: " + err);}
+				});
+				
+				global.usersInProgress[req.user.uid] = null; //initialize the loading process 
+				var gatherInfoInstance = new loginGatherInfoUser();
+				gatherInfoInstance.getAll(req.user, req.session, function(err, data){
+					if (err){
+						console.log("TURACO_DEBUG - ERROR in gatherInfoInstance.getAll: " + err);
+					}else{
+						console.log("TURACO_DEBUG - Success gatherInfoInstance.getAll" );
+					}
+				});
+				return res.json(json_api_responses.error(error_codes.PROBLEM_LOADING_TWITTER_INFO, userProgress));
+			}else{
+				
+				req.session.userLoadingError++;
+				if(req.session.userLoadingError > 8){ // 8 * 6 seg. 
+					return res.json(json_api_responses.error(error_codes.GENERIC_ERROR, userProgress));
+				}else{
+					return res.json(json_api_responses.error(error_codes.PROBLEM_LOADING_TWITTER_INFO, userProgress));
+				}
+			}
+			console.log("Error on the loding process,... we are deleting and loading again... ");
+			
 		}else{
 			return res.json(json_api_responses.error(error_codes.DATA_LOADING, userProgress));
 		}

@@ -20,7 +20,14 @@ define([ './module' ], function(module) {
 			if (newValue !== oldValue){
 				$scope.info = !newValue.completed;
 				var percent = newValue.percent;
-				$scope.info_message = (!newValue.completed)?"Turaco is loading your information from Twitter "+percent+"%. This may take time please give us a few seconds.":"";
+				$scope.info_message = "";
+				if (!newValue.completed) {
+					var message = newValue.message;
+					if (message == null){
+						message = "Turaco is loading your information from Twitter "+percent+"%. This may take time please give us a few seconds.";
+					}
+					$scope.info_message = message;
+				}
 			}
 		});
 	}]);

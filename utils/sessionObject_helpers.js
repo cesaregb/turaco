@@ -46,7 +46,6 @@ SessionObjectHelper.prototype.createSessionObject = function(user, callback){
 			}
 		});
 	}
-	
 }
 
 /*
@@ -94,6 +93,11 @@ SessionObjectHelper.prototype.addList = function(user, list, twitter_users, call
 	var _method = "addList()";
 	console.log("IN " + fileName + " - "+ _method);
 	
+	if (true){
+		var _err = "Object sessionObj not found" + user.uid;
+		return callback(_err);
+	}
+	
 	if (typeof twitter_users == "function"){
 		callback = twitter_users;
 		twitter_users = null;
@@ -106,48 +110,64 @@ SessionObjectHelper.prototype.addList = function(user, list, twitter_users, call
 		'uid' : user.uid
 	}).sort({created: 'desc'}).exec(function(err, sessionObj) {
 		if(sessionObj == null || err){
-			var _err = (err)?err:"Object sessionObj not found";
+			console.log("TURACO_DEBUG - Error getting session while adding lists... " +
+					"\n error: " + error + " \n sessionObj: " + JSON.stringify(sessionObj));
+			
+			
+			var _err = (err)?err:"Object sessionObj not found" + user.uid;
 			return callback(_err);
 		}else{
-			var turaco_list = new List();
-			turaco_list = listHelpers.convertJson2List(turaco_list, list, user.uid);
-			sessionObj.lists.push(turaco_list);
-			
-			if (twitter_users != null){
-				list.list_users = twitter_users;
-				var list_users_hash = {};
-				for (var i in twitter_users){
-					list_users_hash[twitter_users[i].id] = true;
-				}
-				list.list_users_hash = list_users_hash;
-				
-				//update users adding non existing... 
-				var friendsUpdated = false;
-				for (var index in twitter_users) {
-					var id = twitter_users[index].id;
-					if (sessionObj.friends.complete_users[id] != null 
-							&& sessionObj.friends.complete_users[id].inList == false){
-						friendsUpdated = true;
-						sessionObj.friends.complete_users[id].inList = true;
-					}
-					
-					sessionObj.usersListHash[id] = (sessionObj.usersListHash[id] == null) ? 1 : sessionObj.usersListHash[id] + 1;
-				}
-				if (friendsUpdated){ // if we removed the inList value from at least one friend ... 
-					var complete_users = sessionObj.friends.complete_users;
-					var users = createUserArrayFromJsonTwitObj(complete_users, null);
-					sessionObj.friends.users = users;
-					sessionObj.markModified('friends');
+			var existingLists = sessionObj.lists;
+			var listExisting = false;
+			for (var lI in existingLists){// validate if the list exist FOR SUBCRIPTIONS 
+				if (existingLists[lI].id == list.id){
+					listExisting = true;
 				}
 			}
-			sessionObj.completeListsObject.lists.push(list);
-			
-			sessionObj.markModified('lists');
-			sessionObj.markModified('completeListsObject');
-			sessionObj.markModified('usersListHash');
-			sessionObj.save(function(err) {
-				return callback(err, global.success);
-			});
+			if (! listExisting){
+				var turaco_list = new List();
+				turaco_list = listHelpers.convertJson2List(turaco_list, list, user.uid);
+				sessionObj.lists.push(turaco_list);
+				
+				if (twitter_users != null){
+					list.list_users = twitter_users;
+					var list_users_hash = {};
+					for (var i in twitter_users){
+						list_users_hash[twitter_users[i].id] = true;
+					}
+					list.list_users_hash = list_users_hash;
+					
+					//update users adding non existing... 
+					var friendsUpdated = false;
+					for (var index in twitter_users) {
+						var id = twitter_users[index].id;
+						if (sessionObj.friends.complete_users[id] != null 
+								&& sessionObj.friends.complete_users[id].inList == false){
+							friendsUpdated = true;
+							sessionObj.friends.complete_users[id].inList = true;
+						}
+						
+						sessionObj.usersListHash[id] = (sessionObj.usersListHash[id] == null) ? 1 : sessionObj.usersListHash[id] + 1;
+					}
+					if (friendsUpdated){ // if we removed the inList value from at least one friend ... 
+						var complete_users = sessionObj.friends.complete_users;
+						var users = createUserArrayFromJsonTwitObj(complete_users, null);
+						sessionObj.friends.users = users;
+						sessionObj.markModified('friends');
+					}
+				}
+				sessionObj.completeListsObject.lists.push(list);
+				
+				sessionObj.markModified('lists');
+				sessionObj.markModified('completeListsObject');
+				sessionObj.markModified('usersListHash');
+				sessionObj.save(function(err) {
+					return callback(err, global.success);
+				});
+			}else{
+				// return true because the list exist.
+				return callback(null, global.success);
+			}
 		}
 	});
 }
@@ -167,7 +187,7 @@ SessionObjectHelper.prototype.addListFollow = function(user, list, twitter_users
 		'uid' : user.uid
 	}).sort({created: 'desc'}).exec(function(err, sessionObj) {
 		if(sessionObj == null || err){
-			var _err = (err)?err:"Object sessionObj not found";
+			var _err = (err)?err:"Object sessionObj not found" + user.uid;
 			return callback(_err);
 		}else{
 			var turaco_list = new List();
@@ -229,7 +249,7 @@ SessionObjectHelper.prototype.removeList = function(user, list_id, callback){
 		'uid' : user.uid
 	}).sort({created: 'desc'}).exec(function(err, sessionObj) {
 		if(sessionObj == null || err){
-			var _err = (err)?err:"Object sessionObj not found";
+			var _err = (err)?err:"Object sessionObj not found" + user.uid;
 			return callback(_err);
 		}else{
 			var friendsUpdated = false;
@@ -296,7 +316,7 @@ SessionObjectHelper.prototype.removeListComplete = function(user, list_id, listU
 		'uid' : user.uid
 	}).sort({created: 'desc'}).exec(function(err, sessionObj) {
 		if(sessionObj == null || err){
-			var _err = (err)?err:"Object sessionObj not found";
+			var _err = (err)?err:"Object sessionObj not found" + user.uid;
 			return callback(_err);
 		}else{
 			for (index in sessionObj.completeListsObject.lists){
@@ -336,7 +356,7 @@ SessionObjectHelper.prototype.updateList = function(user, list_object, callback)
 		'uid' : user.uid
 	}).sort({created: 'desc'}).exec(function(err, sessionObj) {
 		if(sessionObj == null || err){
-			var _err = (err)?err:"Object sessionObj not found";
+			var _err = (err)?err:"Object sessionObj not found" + user.uid;
 			return callback(_err);
 		}else{
 			var uri = null;
@@ -427,7 +447,7 @@ SessionObjectHelper.prototype.listRefreshUsers = function(user, list_id, users_l
 		'uid' : user.uid
 	}).sort({created: 'desc'}).exec(function(err, sessionObj) {
 		if(sessionObj == null || err){
-			var _err = (err)?err:"Object sessionObj not found";
+			var _err = (err)?err:"Object sessionObj not found" + user.uid;
 			return callback(_err);
 		}else{
 			var i = 0;
@@ -553,7 +573,7 @@ SessionObjectHelper.prototype.membersCreateAll = function(user, list_id, users_l
 				'uid' : user.uid
 			}).sort({created: 'desc'}).exec(function(err, sessionObj) {
 				if(sessionObj == null || err){
-					var _err = (err)?err:"Object sessionObj not found";
+					var _err = (err)?err:"Object sessionObj not found" + user.uid;
 					return callback(_err);
 				}else{
 					var memeber_count = 0;
@@ -672,7 +692,7 @@ SessionObjectHelper.prototype.getSavedSearches = function(user, callback){
 		'uid' : user.uid
 	}).sort({created: 'desc'}).exec(function(err, sessionObj) {
 		if(sessionObj == null || err){
-			var _err = (err)?err:"Object sessionObj not found";
+			var _err = (err)?err:"Object sessionObj not found" + user.uid;
 			return callback(_err);
 		}else{
 			var savedSearches = sessionObj.savedSearches;
