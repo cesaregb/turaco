@@ -14,3 +14,9 @@ block content
 						h4.page-head-line(ng-bind="title")
 				| 
 				div(ng-view)
+	
+	script(type='text/ng-template', id='modalLoadingContainer.html')
+		.modal-header
+			h4 Processing...
+		.modal-body
+			div Twitter Information is being loaded 

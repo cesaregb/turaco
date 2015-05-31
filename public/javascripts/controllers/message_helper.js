@@ -111,19 +111,20 @@ function preInit($scope, userFactory, generalFactory, callback){
 			var result = response;
 			if (result.type == "SUCCESS"){
 				generalFactory.setLoadingValue({completed: true, percent: 100});
+
 				callback(); //normally init..
 			}else {
-				//{"type":"ERROR","message":"Twitter information is being loaded","data":6,"err_data":{"completed":false,"percent":70}}
 				if (parseInt(result.data) == 6){
+
 					if (result.err_data != null && result.err_data.percent != null)
 						generalFactory.setLoadingValue({completed: false, percent: result.err_data.percent, message: result.message});
 					else
 						generalFactory.setLoadingValue({completed: false, percent: 0, mesage: null});
+
 					setTimeout(function(){
 						preInit($scope, userFactory, generalFactory, callback);
 					}, 5000);
 				}else{
-					// other error different than expected...
 					$scope.handleErrorResponse(result);
 				}
 			}

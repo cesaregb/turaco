@@ -60,7 +60,9 @@ if(inProxy){
 	});
 }
 
-
+var hour = 3600000;
+var timeForSession = hour * 5;
+var min10 = (hour/6) / 10;
 app.set('views', path.join(__dirname, 'views'))
 	.set('view engine', 'jade')
 	.use(favicon())
@@ -72,8 +74,10 @@ app.set('views', path.join(__dirname, 'views'))
 	.use(expressSession({ 
 		secret:'keyboard cat',
 		cookie: {
-			maxAge  : new Date(Date.now() + 3600000),
-			expires : new Date(Date.now() + 3600000)
+			secure: false,
+//			maxAge  : new Date(Date.now() + 3600000),
+//			expires : new Date(Date.now() + min10)
+			maxAge  : timeForSession
 		}
 	}))
 	.use(passport.initialize())
@@ -110,6 +114,8 @@ function initEnvVars(){ // initialize environment
 }
 
 app.use(function(req, res, next) {
+//	console.log("TURACO_DEBUG - user request: " + JSON.stringify(req.user));
+//	console.log("TURACO_DEBUG - user session: " + JSON.stringify(req.session.user));
 	// This is for the api calls 
 	if (req.url.indexOf("api") > 0){
 		res.locals.jsonType = true;

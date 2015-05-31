@@ -116,6 +116,8 @@ router.get('/auth/twitter', passport.authenticate('twitter'), function(req, res)
 router.get('/auth/twitter/callback', passport.authenticate('twitter', {
 	failureRedirect : '/error'
 }), function(req, res) {
+	console.log("TURACO_DEBUG - in /auth/twitter/callback");
+	
 	/* LOGIN successful, web container side. */
 	var user = req.user;
 	var session = req.session;

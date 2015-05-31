@@ -1,7 +1,7 @@
 define(['./module', './message_helper',  './accounts_helper'],
 function (module) {
-   module.controller('userController', ['$scope', 'listFactory', 'userFactory', '$location', '$routeParams', '$geolocation', 'generalFactory', '$window',
-   function ($scope, listFactory, userFactory, $location, $routeParams, $geolocation, generalFactory, $window) {
+   module.controller('userController', ['$scope', 'listFactory', 'userFactory', '$location', '$routeParams', '$geolocation', 'generalFactory', '$window', '$modal',
+   function ($scope, listFactory, userFactory, $location, $routeParams, $geolocation, generalFactory, $window, $modal) {
 
       $scope.generalFactory = generalFactory;
       createMessageHelper($scope, $window, $scope.generalFactory, null);

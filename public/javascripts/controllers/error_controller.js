@@ -1,8 +1,8 @@
 define([ './module' ], function(module) {
-	module.controller('errorController', [ '$scope', 'generalFactory', 'userFactory',
-	function($scope, generalFactory, userFactory) {
+	module.controller('errorController', [ '$scope', 'generalFactory', 'userFactory', '$modal',
+	function($scope, generalFactory, userFactory, $modal) {
 		$scope.generalFactory = generalFactory;
-
+		$scope.windowLoading = false;
 		$scope.error = false;
 		$scope.error_message = "";
 
@@ -22,6 +22,11 @@ define([ './module' ], function(module) {
 				var percent = newValue.percent;
 				$scope.info_message = "";
 				if (!newValue.completed) {
+					console.log("TURACO_DEBUG - should open the loading window... ");
+					if (! $scope.windowLoading){
+						$scope.open_loading_modal(message, newValue);
+					}
+
 					var message = newValue.message;
 					if (message == null){
 						message = "Turaco is loading your information from Twitter "+percent+"%. This may take time please give us a few seconds.";
@@ -30,5 +35,29 @@ define([ './module' ], function(module) {
 				}
 			}
 		});
+
+		$scope.open_loading_modal = function (message, response) {
+			$scope.windowLoading = true;
+			$scope.modalInstance = $modal.open({
+				templateUrl: 'modalLoadingContainer.html',
+				controller: 'modalLoadingContainer',
+				backdrop: 'static',
+				animation: false,
+				resolve: {
+					generalFactory: function () {
+						return generalFactory;
+					}
+				}
+			});
+
+			$scope.modalInstance.result.then(function (response) {
+				if (response){
+				}else{
+				}
+			}, function () {
+				$scope.windowLoading = false;
+				//console.log('Confirm Modal dismissed at: ' + new Date());
+			});
+		};
 	}]);
 });
