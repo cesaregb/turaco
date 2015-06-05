@@ -7,12 +7,10 @@ var	TwitterStrategy = require('passport-twitter').Strategy;
 
 passportConfig = function(passport) {
 	passport.serializeUser(function(user, done) {
-		console.log("TURACO_DEBUG - serializeUser");
 		done(null, user.uid);
 	});
 
 	passport.deserializeUser(function(obj, done) {
-		console.log("TURACO_DEBUG - deserializeUser");
 		User.findOne({uid: obj}, function (err, user) {
 			done(err, user);
 		});

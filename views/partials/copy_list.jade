@@ -2,7 +2,7 @@
 	.row.col-md-12
 		div.well.well-sm
 			.input-group
-				input.form-control(placeholder="https://twitter.com/twitterapi/lists/meetup-20100301", , ng-model="listUrl")
+				input.form-control(placeholder="https://twitter.com/twitter/lists/media", ng-model="listUrl")
 				.input-group-btn
 					button.btn.btn-default(type='button', ng-click='sendListURL()') 
 						span.glyphicon.glyphicon-ok
@@ -36,4 +36,3 @@
 						a.btn.btn-default.btn-sm(type='button', ng-disabled="isListSelected()", ng-click='subscribeList()') Subscribe
 						| 
 						a.btn.btn-default.btn-sm(type='button', ng-disabled="isListSelected()", href='https://twitter.com{{list_info.uri}}', target='_blank') Open
-						| 

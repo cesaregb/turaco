@@ -158,7 +158,8 @@ function createList (req, res) {
 					return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
 				}
 				twit.createList(user.screen_name, list_name, myParams, function(err, newListData){
-					if (err){ return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
+					if (err){ 
+						return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
 					}else{
 						//update the sessionObject and set value to restore sessions 
 						req.session.refresSessionObject = true;
@@ -240,121 +241,6 @@ function deleteList(req, res) {
 }
 module.exports.deleteList = deleteList;
 
-function deleteAndUnfollow(req, res) {
-	var _method = "deleteAndUnfollow";
-	console.log("IN " + fileName + " - " + _method);
-	var uid = null;
-	var myParams = getParams(req);
-	var list_id = req.params.list_id;
-	myParams.list_id = list_id;
-	var finalList = null;
-	var finalListOfUsers = [];
-	try{
-		if (req.user){
-			user = req.user;
-			uid = user.uid;
-			name = user.name;
-		}else{
-			throw error_codes.ACCESS_USER_ERROR;
-		}
-		helper = new listHelpers.ListHelper();
-		helper.getUser(user, function(err, user){
-			if (err){
-				res.json(json_api_responses.error(error_codes.USER_NOT_FOUND_ERROR, err));
-				return;
-			}else{
-				helper.getTwittObjectFromUser(function(err, twit){
-					if (err){
-						res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
-						return;
-					}
-					twit.getList(myParams, function(err, data){
-						if (err){
-							res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
-							return;
-						}
-						var list_member_count = data.member_count;
-						var list = new List();
-						list = listHelpers.convertJson2List(list, data, uid);
-						list_id = list.id;
-						finalList = data;
-						
-						var created_list_id = data.id; 
-						var cursor = -1;
-						async.whilst(
-							function () {
-								if (cursor == 0){
-									twit.deleteList(user.screen_name, myParams, function(err, data){
-										if (err){
-											return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
-										}else{
-											req.session.refresSessionObject = true;
-											sessionHelper = new sessionObjectHelpers({param:"nel"});
-											sessionHelper.removeListComplete(user, finalList.id, finalListOfUsers, function(err, code){
-												if (err){
-													return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
-												}else{
-													return res.json(json_api_responses.success(data));
-												}
-											});
-										}
-									});
-								}
-								return cursor != 0; 
-							},
-							function (callback) {
-								var params = {cursor : cursor};
-								if (list_member_count < 5000){
-									params.count = list_member_count;
-								}else{
-									params.count = 1000;
-								}
-								var self = this;
-								twit.getListMembers(list_id, params, function(err, data){
-									if (err){
-										res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
-										return;
-									}
-									cursor = data.next_cursor;
-									var usersWithError = new Array();
-									var numErr = 0;
-									var numTries = 0;
-									var members2Add = new Array();
-									var usersList = data.users.length;
-									// users to remove from session object.. 
-									finalListOfUsers.push.apply(finalListOfUsers, data.users);
-									data = data.users;		
-									var memebers = "";	
-									for (pos in data){
-										(function(item){
-											numTries++;
-											var user_id = item.id;
-											twit.destroyFriendship(user_id, function(err, data){
-												if (err){
-													console.log("Problem deleting frienship with: " + user_id);
-												}
-											});
-										})(data[pos]);
-									}
-									callback(null, cursor);
-								});
-							},
-							function (err) {
-								if (err){
-									console.log("err: " + err)
-								}
-							}
-						);
-					});
-				})
-			}
-		});
-	}catch(ex){
-		res.json(json_api_responses.error(ex, null));
-		return;
-	}
-}
-module.exports.deleteAndUnfollow = deleteAndUnfollow;
 
 function updateList(req, res) {
 	var _method = "updateList";
@@ -415,12 +301,9 @@ module.exports.updateList = updateList;
 function subscribe(req, res) {
 	var _method = "subscribe";
 	console.log("IN " + fileName + " - " + _method);
-	var uid = req.body.uid;
 	var myParams = getParams(req); 
 	if (req.user){
 		user = req.user;
-		uid = user.uid;
-		name = user.name;
 	}else{
 		return res.json(json_api_responses.error(error_codes.ACCESS_USER_ERROR, null));
 	}
@@ -439,29 +322,26 @@ function subscribe(req, res) {
 					return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
 				}else{
 					twit.subscribeme2List( myParams, function(err, subscribeListData){
-						req.session.refresSessionObject = true;
-						sessionHelper = new sessionObjectHelpers({param:"nel"});
-						sessionHelper.addList(user, result.list_info, result.users, function(err, code){
-							if (err){
-								if (err.indexOf("sessionObj not found") > 0){
-									global.usersInProgress[req.session.user.uid] = null; //initialize the loading process
-									req.logout();
-									req.session.destroy();
-									return res.json(json_api_responses.error(error_codes.MALFORMED_USER_DATA, err));
+						if (!err){
+							req.session.refresSessionObject = true;
+							sessionHelper = new sessionObjectHelpers({param:"nel"});
+							sessionHelper.addList(user, result.list_info, result.users, function(err, code){
+								if (err){
+									if (err.indexOf("sessionObj not found") > 0){
+										global.usersInProgress[req.session.user.uid] = null; //initialize the loading process
+										req.logout();
+										req.session.destroy();
+										return res.json(json_api_responses.error(error_codes.MALFORMED_USER_DATA, err));
+									}else{
+										return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
+									}
 								}else{
-									return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
+									return res.json(json_api_responses.success(subscribeListData));
 								}
-							}else{
-								return res.json(json_api_responses.success(subscribeListData));
-							}
-							
-							
-							if (err){
-								return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
-							}else{
-								
-							}
-						});
+							});
+						}else{
+							return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
+						}
 					});
 				}
 			});
@@ -563,248 +443,6 @@ function getSubscriptions(req, res) {
 	}
 }
 module.exports.getSubscriptions = getSubscriptions;
-
-function cloneList(req, res){
-	var _method = "cloneList";
-	console.log("IN " + fileName + " - " + _method);
-	var uid = null;
-	var list_id = null;
-	var finalList = null;
-	var finalListOfUsers = [];
-	var myParams = getParams(req);
-	try{
-		if (req.user){
-			user = req.user;
-			uid = user.uid;
-			name = user.name;
-		}else{
-			throw error_codes.ACCESS_USER_ERROR;
-		}
-		
-		helper = new listHelpers.ListHelper();
-		helper.getUser(user, function(err, user){
-			if (err){
-				res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
-				return;
-			}
-			helper.getTwittObjectFromUser(function(err, twit){
-				twit.getList(myParams, function(err, data){
-					if (err){
-						res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
-						return;
-					}
-					var list_member_count = data.member_count;
-					var list = new List();
-					list = listHelpers.convertJson2List(list, data, uid);
-					list_id = list.id;
-					twit.createList(user.screen_name, list.name, {mode: list.mode, description: list.description}, function(err, data){
-						if (err){
-							res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
-							return;
-						}
-						finalList = data;
-						var created_list_id = data.id;
-						var created_list = data;
-						var cursor = -1;
-						var complete_list_users = [];
-						async.whilst(
-						    function () {
-						    	if (cursor == 0){
-						    		req.session.refresSessionObject = true;
-									sessionHelper = new sessionObjectHelpers({param:"nel"});
-									sessionHelper.addListFollow(user, finalList, finalListOfUsers, function(err, code){
-										if (err){
-											return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
-										}else{
-											return res.json(json_api_responses.string_success("Success"));
-										}
-									});
-						    	}
-						    	return cursor != 0; 
-						    },
-						    function (callback) {
-						    	var params = {cursor : cursor};
-								if (list_member_count < 5000){
-									params.count = list_member_count;
-								}else{
-									params.count = 1000;
-								}
-								var self = this;
-								twit.getListMembers(list_id, params, function(err, data){
-									if (err){
-										return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
-									}
-									cursor = data.next_cursor;
-									var usersWithError = new Array();
-									var numTries = 0;
-									var members2Add = new Array();
-									var usersList = data.users.length;
-									data = data.users;	
-									
-									finalListOfUsers.push.apply(finalListOfUsers, data);
-									var memebers = "";
-									for (pos in data){
-										var item = data[pos]
-										var user2FollowId = item.id;
-										complete_list_users.push(item);
-										twit.createFriendship(user2FollowId, function(err, data){
-											numTries++;
-											if (err){
-												usersWithError.push(err);
-											}else{
-												members2Add.push(data.id_str);
-											}
-											if (numTries == usersList){
-												var i, j, temparray, chunk = 100;
-												for (i=0, j = members2Add.length; i < j; i+=chunk) {
-												    temparray = members2Add.slice(i, i+chunk);
-												    var ids = temparray.toString();
-												    twit.subscribeMemebers2List(created_list_id, ids, function(err, data){
-												    	if (err){
-												    		return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
-												    	}else{
-												    		callback(null, cursor);
-												    	}
-												    });
-												}
-											}
-										});
-									}
-								});
-						    },
-						    function (err) {
-						        if (err){
-						        	return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
-						        }
-						    }
-						);
-					});
-					
-				});
-			});
-		});
-	}catch(ex){
-		res.json(json_api_responses.error(ex, null));
-		return;
-	}
-}
-module.exports.cloneList = cloneList;
-
-/*not used!!!! */
-function cloneNoFollow(req, res){
-	var _method = "cloneList";
-	console.log("IN " + fileName + " - " + _method);
-	var uid = null;
-	var list_id = null;
-	var myParams = getParams(req);
-	try{
-		if (req.user){
-			user = req.user;
-			uid = user.uid;
-			name = user.name;
-		}else{
-			throw error_codes.ACCESS_USER_ERROR;
-		}
-		
-		helper = new listHelpers.ListHelper();
-		helper.getUser(user, function(err, user){
-			if (err){
-				return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
-			}
-			helper.getTwittObjectFromUser(function(err, twit){
-				twit.getList(myParams, function(err, data){
-					if (err){
-						return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
-					}
-					var list_member_count = data.member_count;
-					var list = new List();
-					list = listHelpers.convertJson2List(list, data, uid);
-					list_id = list.id;
-					twit.createList(user.screen_name, list.name, {mode: list.mode, description: list.description}, function(err, data){
-						if (err){
-							return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
-						}
-						var created_list_id = data.id;
-						var created_list = data;
-						var cursor = -1;
-						var complete_list_users = [];
-						async.whilst(
-							function () {
-								if (cursor == 0){
-									req.session.refresSessionObject = true;
-									sessionHelper = new sessionObjectHelpers({param:"nel"});
-									sessionHelper.addList(user, created_list, complete_list_users, function(err, code){
-										if (err){
-											return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
-										}else{
-											return res.json(json_api_responses.string_success("Success"));
-										}
-									});
-								}
-								return cursor != 0; 
-							},
-							function (callback) {
-								var params = {cursor : cursor};
-								if (list_member_count < 5000){
-									params.count = list_member_count;
-								}else{
-									params.count = 1000;
-								}
-								var self = this;
-								twit.getListMemebers(list_id, params, function(err, data){
-									if (err){
-										return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
-									}
-									cursor = data.next_cursor;
-									var usersWithError = new Array();
-									var numTries = 0;
-									var members2Add = new Array();
-									var usersList = data.users.length;
-									data = data.users;		
-									var memebers = "";
-									for (pos in data){
-										var item = data[pos]
-										numTries++;
-										var user2FollowId = item.id;
-										complete_list_users.push(item);
-										members2Add.push(user2FollowId);
-										if (numTries == usersList){
-											(function (members2Add){
-												var i, j, temparray, chunk = 100;
-												for (i=0, j = members2Add.length; i < j; i+=chunk) {
-													temparray = members2Add.slice(i, i+chunk);
-													var ids = temparray.toString();
-													
-													twit.subscribeMemebers2List(created_list_id, ids, function(err, data){
-														if (err){
-															return res.json(json_api_responses.error(error_codes.SERVICE_ERROR, err));
-														}else{
-															callback(null, cursor);
-														}
-													});
-												}
-											})(members2Add);
-										}
-									}
-								});
-							},
-							function (err) {
-								if (err){
-									console.log("err: " + err)
-								}
-							}
-						);
-					});
-					
-				});
-			});
-		});
-	}catch(ex){
-		res.json(json_api_responses.error(ex, null));
-		return;
-	}
-}
-module.exports.cloneNoFollow = cloneNoFollow;
 
 function membersCreateAll(req, res){
 	var _method = "membersCreateAll";

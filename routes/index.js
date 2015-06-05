@@ -138,16 +138,13 @@ router.get('/auth/twitter/callback', passport.authenticate('twitter', {
 		if(sessionObj == null || err){
 			session.loadingInfo = true;
 			res.redirect('/');
+			
 			//gather info is made async... 
 			var gatherInfoInstance = new loginGatherInfoUser();
 			console.log("TURACO_DEBUG - Login -> Start gather info process ");
 			gatherInfoInstance.getAll(req.user, req.session, function(err, data){
 				if (err){
 					console.log("TURACO_DEBUG - ERROR in gatherInfoInstance.getAll: " + err);
-//					res.render('error', {
-//						message : err,
-//						error : {}
-//					});
 				}else{
 					console.log("TURACO_DEBUG - Success gatherInfoInstance.getAll" );
 				}

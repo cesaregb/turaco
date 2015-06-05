@@ -15,6 +15,7 @@ define(['./module'], function (module) {
 					turaco_user.screen_name = json_user.screen_name;
 					turaco_user.description = json_user.description;
 					turaco_user.profile_image_url = json_user.profile_image_url;
+					turaco_user.location = json_user.location;
 					users.push(turaco_user);
 				}
 				$scope.friends = users;

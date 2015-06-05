@@ -11,8 +11,6 @@ router.put('/', handler.createList);
 
 router.delete('/:list_id', handler.deleteList);
 
-router.delete('/and_unfollow/:list_id', handler.deleteAndUnfollow);
-
 router.post('/', handler.updateList);
 
 router.post('/subscribe', handler.subscribe);
@@ -20,10 +18,6 @@ router.post('/subscribe', handler.subscribe);
 router.post('/unsubscribe', handler.unsubscribe);
 
 router.get('/subscriptions', handler.getSubscriptions);
-
-router.post('/clone', handler.cloneList);
-
-router.post('/clone/no_follow', handler.cloneNoFollow);
 
 router.post('/members_create_all' , handler.membersCreateAll); 
 

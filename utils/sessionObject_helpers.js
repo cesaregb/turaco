@@ -93,11 +93,6 @@ SessionObjectHelper.prototype.addList = function(user, list, twitter_users, call
 	var _method = "addList()";
 	console.log("IN " + fileName + " - "+ _method);
 	
-	if (true){
-		var _err = "Object sessionObj not found" + user.uid;
-		return callback(_err);
-	}
-	
 	if (typeof twitter_users == "function"){
 		callback = twitter_users;
 		twitter_users = null;
@@ -111,7 +106,7 @@ SessionObjectHelper.prototype.addList = function(user, list, twitter_users, call
 	}).sort({created: 'desc'}).exec(function(err, sessionObj) {
 		if(sessionObj == null || err){
 			console.log("TURACO_DEBUG - Error getting session while adding lists... " +
-					"\n error: " + error + " \n sessionObj: " + JSON.stringify(sessionObj));
+					"\n error: " + err + " \n sessionObj: " + JSON.stringify(sessionObj));
 			
 			
 			var _err = (err)?err:"Object sessionObj not found" + user.uid;
@@ -665,6 +660,7 @@ function createUserArrayFromJsonTwitObj(complete_users, callback){
     		turaco_user.following = complete_users[property].following;
     		turaco_user.description = complete_users[property].description;
     		turaco_user.profile_image_url = complete_users[property].profile_image_url;
+    		turaco_user.location = complete_users[property].location;
     		turaco_user.inList = complete_users[property].inList;
 	    	users.push(turaco_user);
 	    }

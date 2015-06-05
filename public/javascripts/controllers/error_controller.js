@@ -22,7 +22,6 @@ define([ './module' ], function(module) {
 				var percent = newValue.percent;
 				$scope.info_message = "";
 				if (!newValue.completed) {
-					console.log("TURACO_DEBUG - should open the loading window... ");
 					if (! $scope.windowLoading){
 						$scope.open_loading_modal(message, newValue);
 					}

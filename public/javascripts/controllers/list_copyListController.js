@@ -86,7 +86,6 @@ function copyListsController($scope, userFactory, listFactory, filterFilter, $mo
 		}
 
 		$scope.sendListURL = function(){
-			console.log("TURACO_DEBUG - listUrl:" + $scope.listUrl);
 			if ($scope.listUrl == null
 				|| $scope.listUrl == ""){
 					$scope.handleErrorResponse(null, "Ups couldnt use that URL, try another please ");

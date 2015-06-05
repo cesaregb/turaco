@@ -1,11 +1,7 @@
 #containerLists.container
 	.row.col-md-12(style='padding-bottom:10px;')
-		.btn-group.col-lg-5.left-search-box
+		.btn-group.col-lg-6.left-search-box
 			.input-group
-				span.input-group-addon
-					input(type='checkbox', checked='true', disabled='')
-					|  Search
-				input.form-control.input-sm(type='text', placeholder='@account', ng-model="search")
 				span.input-group-btn
 					button.btn.btn-default.btn-sm(type='button', ng-click='searchFriends()', ng-show="showSearchButton")
 						span.glyphicon.glyphicon-search
@@ -20,21 +16,24 @@
 							li 
 								a(href='#', ng-click='filteredFriends(\'0\')') All
 							li 
-								a(href='#', ng-click='filteredFriends(\'1\')') Friends not listed
+								a(href='#', ng-click='filteredFriends(\'1\')') Friends not in list
 							li 
-								a(href='#', ng-click='filteredFriends(\'2\')') Friends listed
-					.btn-group(ng-show="showSearchButton")
+								a(href='#', ng-click='filteredFriends(\'2\')') Friends in lists
+					.btn-group
 						button.btn.btn-default.btn-sm.dropdown-toggle(type='button', data-toggle='dropdown', aria-expanded='false')
-							| Sort By 
+							| Search By 
 							span.caret
 						|   
 						ul.dropdown-menu(role='menu')
 							li 
-								a(href='#', ng-click='filteredFriends("name")') Name
+								a(href='#', ng-click='searchFriendsBy("1")') Name
 							li 
-								a(href='#', ng-click='filteredFriends("screen_name")') Username
+								a(href='#', ng-click='searchFriendsBy("2")') Screen Name
 							li 
-								a(href='#', ng-click='filteredFriends("followers")') # Followers
+								a(href='#', ng-click='searchFriendsBy("3")') Location
+				span.input-group-addon
+					|  {{searchFilter}}
+				input.form-control.input-sm(type='text', placeholder='search', ng-model="search")
 				span.input-group-addon 
 					| Items: {{totalItems}}
 		.btn-group.pull-right

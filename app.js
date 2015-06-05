@@ -14,6 +14,7 @@ var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
 var configDB = require('./config/database');
 var passportConfig = require('./config/passport');
+mongoose.set('debug', false);
 mongoose.connect(configDB.url);
 var appCredentials = require('./config/appCredentials');
 initEnvVars();
@@ -62,7 +63,6 @@ if(inProxy){
 
 var hour = 3600000;
 var timeForSession = hour * 5;
-var min10 = (hour/6) / 10;
 app.set('views', path.join(__dirname, 'views'))
 	.set('view engine', 'jade')
 	.use(favicon())
@@ -75,8 +75,6 @@ app.set('views', path.join(__dirname, 'views'))
 		secret:'keyboard cat',
 		cookie: {
 			secure: false,
-//			maxAge  : new Date(Date.now() + 3600000),
-//			expires : new Date(Date.now() + min10)
 			maxAge  : timeForSession
 		}
 	}))
@@ -134,7 +132,6 @@ app.use(function(req, res, next) {
 		
 		var userProgress = (global.usersInProgress[user.uid] != null)? global.usersInProgress[user.uid] : null;
 		if (userProgress != null && userProgress.completed){
-			console.log("TURACO_DEBUG - checkLoadData if TRUE");
 			
 			var refreshMe = (global.refresSessionObject[user.uid] != null)||(session.refresSessionObject);
 			if (refreshMe){ // after the applicatoin save the information in the next request we store the info in the session.
@@ -218,12 +215,12 @@ app.use(function(req, res, next) {
 					};
 				}
 				
-				if (req.url.indexOf("check_user_loading") > 0){
+				if (req.url.indexOf("check_user_loading") > 0){ //if is validation for loading 
 					next();
 				}else{
 					checkLoadData(session.user, session, function(err){
 						if (err){
-							console.log("TURACO_DEBUG - ERROR checkLoadData " + err);
+							console.log("TURACO_DEBUG - ERROR checkLoadData \n" + err);
 						}
 						next();
 					});

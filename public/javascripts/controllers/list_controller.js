@@ -51,7 +51,6 @@ define(['./module', './message_helper',
 											listFactory.deleteList(list).success(handleDeleteList).error($scope.handleErrorResponse);
 										}
 									}else{
-										console.log("TURACO_DEBUG - unsubscribe");
 										listFactory.unsubscribe(list.id).success(function (response){
 											var result = response;
 											if (result.type == "SUCCESS"){
@@ -125,8 +124,13 @@ define(['./module', './message_helper',
 					}else if(path.indexOf("copy_list") > 0){
 						var list_id = $routeParams.list_id;
 						copyListsController($scope, userFactory, listFactory, filterFilter, $modal, 1, list_id);
+						$scope.listUrl = "https://twitter.com/twitter/lists/media";
+						$scope.sendListURL();
 					}else if(path == '/view_user_lists'){
 						copyListsController($scope, userFactory, listFactory, filterFilter, $modal, 2);
+						item = {};
+						item.screen_name = "twitter";
+						$scope.userSearchChanged(item);
 					}else if(path == '/copy_list_home'){
 						console.log("TURACO_DEBUG - into the home controller... ");
 					}else{

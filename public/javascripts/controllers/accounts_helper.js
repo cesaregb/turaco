@@ -209,7 +209,7 @@ function createGetUserFriends($scope, userFactory, filterFilter, callback){
 
 				$scope.totalItems = $scope.filtered.length;
 				if ($scope.totalItems > 25000){
-					$scope.showSearchButton = true;
+					// well you are popular and we will be slow cuz of that... 
 				}
 			}else{
 				$scope.handleErrorResponse(response);
