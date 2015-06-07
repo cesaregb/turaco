@@ -1,74 +1,77 @@
 header
 	nav.navbar
-		.container-fluid
-			.container
-				.navbar-header
-					a.navbar-brand(href='/home', target='_self') Turaco
-				| 
-				#bs-example-navbar-collapse-1.collapse.navbar-collapse
-					ul.menu-top.nav.navbar-nav.navbar-right
-						li
-							a(href='/contact', target='_self') Contact
-						| 
-						li
-							a(href='/faq', target='_self') FAQ
-						| 
-						li
-							a(href='/help', target='_self') Help
-						| 
-						li
-							a(href='/about', target='_self') About
-						| 
-						if (login_status)
-							li.dropdown
-								a.dropdown-toggle(href='#', data-toggle='dropdown')
-									| User 
-									b.caret
+		.container
+			.navbar-header
+				.navbar-inverse
+					button.navbar-toggle(type='button', data-toggle="collapse", data-target="#appHeaderNavbar")
+						span.icon-bar
+						|                     
+						span.icon-bar
+						|                     
+						span.icon-bar
+				a.navbar-brand(href='/home', target='_self') Turaco
+			#appHeaderNavbar.collapse.navbar-collapse
+				ul.menu-top.nav.navbar-nav.navbar-right
+					li
+						a(href='/contact', target='_self') Contact
+					| 
+					li
+						a(href='/faq', target='_self') FAQ
+					| 
+					li
+						a(href='/help', target='_self') Help
+					| 
+					li
+						a(href='/about', target='_self') About
+					| 
+					if (login_status)
+						li.dropdown
+							a.dropdown-toggle(href='#', data-toggle='dropdown')
+								| User 
+								b.caret
+							| 
+							ul.dropdown-menu
+								li
+									a(href='/logout', target='_self') Logout
 								| 
-								ul.dropdown-menu
-									li
-										a(href='/logout', target='_self') Logout
-									| 
-									li
-										a(href='/reload_user', target='_self') Refresh Session
-						else
-							li
-								a(href='/login', target='_self') Login
+								li
+									a(href='/reload_user', target='_self') Refresh Session
+					else
+						li
+							a(href='/login', target='_self') Login
 // **************HEADER END
 .navbar.navbar-inverse.set-radius-zero
-	.container
-		.navbar-header
-			button.navbar-toggle(type='button', data-toggle='collapse', data-target='.navbar-collapse')
-				span.icon-bar
-				|                     
-				span.icon-bar
-				|                     
-				span.icon-bar
-		|             
-		.left-div
-			if (login_status)
-				.user-settings-wrapper.media
-					.media-left
-						img.img-rounded(src='#{user.profile_image_url}', alt='#{user.name}')
-					.media-body.white-content
-						h4.media-heading #{user.screen_name}
+	.container.left-div
+		if (login_status)
+			.user-settings-wrapper.media
+				.media-left
+					img.img-rounded(src='#{user.profile_image_url}', alt='#{user.name}')
+				.media-body.white-content
+					h4.media-heading #{user.screen_name}
 // **************LOGO HEADER END
 if (login_status)
 	section.menu-section
 		.container
-			.row
-				.col-md-12
-					.navbar-collapse.collapse
-						ul.menu-top.nav.navbar-nav.navbar-right
-							li
-								a(href='/home', ng-class="{'menu-top-active' : title === 'Home'}") Home 
-							|                             
-							li
-								a(href='/lists', ng-class="{'menu-top-active' : title === 'Lists'}") Lists
-							|                             
-							li
-								a(href='/lists/assign_users_to_list', ng-class="{'menu-top-active' : title === 'Following'}") Following
-							|                             
-							li
-								a(href='/copy_list_home', ng-class="{'menu-top-active' : title === 'Copy List'}") Copy List
+			.navbar-header.navbar-inverse
+				button.navbar-toggle(type='button', data-toggle='collapse', data-target='#appMenuNavbar')
+					span.icon-bar
+					|                     
+					span.icon-bar
+					|                     
+					span.icon-bar
+			.row.col-md-12
+				#appMenuNavbar.navbar-collapse.collapse
+					ul.menu-top.nav.navbar-nav.navbar-right
+						li
+							a.topMenu(href='/home', ng-class="{'menu-top-active' : title === 'Home'}") Home 
+						|                             
+						li
+							a.topMenu(href='/lists', ng-class="{'menu-top-active' : title === 'Lists'}") Lists
+						|                             
+						li
+							a.topMenu(href='/lists/assign_users_to_list', ng-class="{'menu-top-active' : title === 'Following'}") Following
+						|                             
+						li
+							a.topMenu(href='/copy_list_home', ng-class="{'menu-top-active' : title === 'Copy List'}") Copy List
+						
 // **************MENU SECTION END

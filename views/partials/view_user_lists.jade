@@ -34,8 +34,9 @@
 						thead
 							tr
 								td Name
-								th Members
-								th Description
+								if (windowsSize)
+									th Members
+									th Description
 								th
 						tbody
 							tr(ng-hide="lists.length") 
@@ -43,8 +44,9 @@
 							tr(ng-repeat="list in lists")
 								td 
 									a(href='/copy_list/{{list.id}}' ) {{list.name}}
-								td {{list.member_count}}
-								td {{list.description}}
+								if (windowsSize)
+									td {{list.member_count}}
+									td {{list.description}}
 								td
 									.btn-group.pull-right
 										a.btn.btn-default.btn-sm(type='button', ng-click='subscribeList(list.id)') Subscribe

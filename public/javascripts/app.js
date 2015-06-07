@@ -11,10 +11,16 @@ define([ 'ngRoute',
 
 	return angular.module('app', ['ngRoute', 'ngSanitize', 'app.controllers', 'app.factories',
          'app.filters', 'app.directives', 'ui.bootstrap', 'ngGeolocation', 'ui.select' ])
-      .run(['$location', '$rootScope', function($location, $rootScope) {
+      .run(['$location', '$rootScope', '$window', function($location, $rootScope, $window) {
          $rootScope.$on('$routeChangeSuccess', function (event, current, previous) {
             $rootScope.title = current.$$route.title;
             $rootScope.preLoading = false;
+         });
+
+         $rootScope.$watch(function(){
+             return $window.innerWidth;
+          }, function(value) {
+             //add responsive design logic when the user is logged
          });
       }]);
 });

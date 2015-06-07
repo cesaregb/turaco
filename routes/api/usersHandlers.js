@@ -412,6 +412,21 @@ function checkLoadingStatus(req, res) {
 }
 module.exports.checkLoadingStatus = checkLoadingStatus;
 
+function setDeviceSession(req, res) {
+	var _method = "set_device_session";
+	console.log("IN " + fileName + " - " + _method);
+	var session = req.session;
+	var windowsSize = req.body.windowsSize;
+	if (parseInt(windowsSize) >= 1000){
+		session.windowsSize = 1;
+	}else{
+		session.windowsSize = 0;
+	}
+	console.log("TURACO_DEBUG - windowsSize: " + windowsSize + " \n session.windowsSize: " + session.windowsSize);
+	return res.json(json_api_responses.string_success("Device size captured."));
+}
+module.exports.setDeviceSession = setDeviceSession;
+
 function getParams(req){
 	var uid = req.body.uid;
 	var list_id = req.body.list_id;

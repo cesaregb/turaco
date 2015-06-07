@@ -13,28 +13,34 @@ var fileName = "routes/index.js";
 
 var router = express.Router();
 
+var windowsSize = true;
+
+var viewParams = { title: 'Turaco', login_status: false, "user" : null };
+
 router.get('*', function(req, res, next) {
 	res.locals = {
 		topMenuOption : '1'
 	};
+	windowsSize = true;
+	if (req.session.windowsSize != null && (req.session.windowsSize == 0 || req.session.windowsSize == "0")){
+		windowsSize = false;
+	}
+	viewParams = { title: 'Turaco', login_status: req.isAuthenticated(), "user" : req.user, windowsSize: windowsSize }
 	next();
 });
 
 router.get('/', function(req, res) {
-	console.log("TURACO_DEBUG - ROUTES /");
 	if (req.isAuthenticated()) {
 		res.redirect('/home')
 	}else{
-		res.render('index', { title: 'Turaco', login_status: false});
+		res.render('index', viewParams);
 	}
 });
 
 router.get('/home', ensureAuthenticated, function(req, res) {
-	console.log("TURACO_DEBUG - ROUTES /home");
 	if (req.user == null){
-		res.render('index', { title: 'Turaco', login_status: false});
+		res.render('index', { title: 'Turaco', login_status: false, windowsSize: windowsSize});
 	}else{
-		console.log("TURACO_DEBUG - global.load_for_dev: " +  global.load_for_dev);
 		if (global.load_for_dev){
 			var gatherInfoInstance = new loginGatherInfoUser();
 			gatherInfoInstance.getAll(req.user, req.session, function(err, data){
@@ -44,15 +50,14 @@ router.get('/home', ensureAuthenticated, function(req, res) {
 					console.log("TURACO_DEBUG - Success gatherInfoInstance.getAll" );
 				}
 			});
-			res.render('index_logged', { title: 'Turaco', login_status: true, "user" : req.user });
+			res.render('index_logged', viewParams);
 		}else{
-			res.render('index_logged', { title: 'Turaco', login_status: true, "user" : req.user });
+			res.render('index_logged', viewParams);
 		}
 	}
 });
 
 router.get('/reload_user', ensureAuthenticated, function(req, res) {
-	console.log("TURACO_DEBUG - ROUTES /reload_user");
 	global.usersInProgress[req.user.uid] = null; //initialize the loading process 
 	var gatherInfoInstance = new loginGatherInfoUser();
 	gatherInfoInstance.getAll(req.user, req.session, function(err, data){
@@ -66,40 +71,38 @@ router.get('/reload_user', ensureAuthenticated, function(req, res) {
 });
 
 router.get('/partials/:name', function(req, res) {
-	console.log("TURACO_DEBUG - ROUTES /partials/:name");
 	var name = req.params.name;
-	res.render('partials/' + name);
+	res.render('partials/' + name, viewParams);
 });
 
 router.get('/lists/*', ensureAuthenticated, function(req, res) {
-	console.log("TURACO_DEBUG - ROUTES /list/*");
-	res.render('index_logged', { title: 'Turaco', login_status: true, "user" : req.user });
+	res.render('index_logged', viewParams);
 });
 
 function commonHandler(req, res) {
-	res.render('index_logged', { title: 'Turaco', login_status: true, "user" : req.user });
+	res.render('index_logged', viewParams);
 }
 
 router.get('/lists', ensureAuthenticated, commonHandler);
-router.get('/copy_list', ensureAuthenticated,commonHandler);
-router.get('/copy_list/*', ensureAuthenticated,commonHandler);
-router.get('/copy_list_home', ensureAuthenticated,commonHandler);
-router.get('/view_user_lists', ensureAuthenticated,commonHandler);
+router.get('/copy_list', ensureAuthenticated, commonHandler);
+router.get('/copy_list/*', ensureAuthenticated, commonHandler);
+router.get('/copy_list_home', ensureAuthenticated, commonHandler);
+router.get('/view_user_lists', ensureAuthenticated, commonHandler);
 
 router.get('/contact', function(req, res){
-	res.render('contact', { title: 'Turaco', login_status: req.isAuthenticated(), "user" : req.user });
+	res.render('contact', viewParams);
 });
 
 router.get('/faq', function(req, res){
-	res.render('faq', { title: 'Turaco', login_status: req.isAuthenticated(), "user" : req.user });
+	res.render('faq', viewParams);
 });
 
 router.get('/help', function(req, res){
-	res.render('help', { title: 'Turaco', login_status: req.isAuthenticated(), "user" : req.user });
+	res.render('help', viewParams);
 });
 
 router.get('/about', function(req, res){
-	res.render('about', { title: 'Turaco', login_status: req.isAuthenticated(), "user" : req.user });
+	res.render('about', viewParams);
 });
 
 
@@ -116,8 +119,6 @@ router.get('/auth/twitter', passport.authenticate('twitter'), function(req, res)
 router.get('/auth/twitter/callback', passport.authenticate('twitter', {
 	failureRedirect : '/error'
 }), function(req, res) {
-	console.log("TURACO_DEBUG - in /auth/twitter/callback");
-	
 	/* LOGIN successful, web container side. */
 	var user = req.user;
 	var session = req.session;
@@ -131,17 +132,15 @@ router.get('/auth/twitter/callback', passport.authenticate('twitter', {
 	session.completeListsObject = null;
 	session.friends = null;
 	session.savedSearches = null;
+	
 	SessionObjects.findOne({
 		'uid' : user.uid,
-		created : {"$gte": yesterday }
+		created : {"$gte": yesterday, "$lt": today}
 	}).sort({created: 'desc'}).exec(function(err, sessionObj) {
 		if(sessionObj == null || err){
 			session.loadingInfo = true;
 			res.redirect('/');
-			
-			//gather info is made async... 
 			var gatherInfoInstance = new loginGatherInfoUser();
-			console.log("TURACO_DEBUG - Login -> Start gather info process ");
 			gatherInfoInstance.getAll(req.user, req.session, function(err, data){
 				if (err){
 					console.log("TURACO_DEBUG - ERROR in gatherInfoInstance.getAll: " + err);
@@ -150,7 +149,6 @@ router.get('/auth/twitter/callback', passport.authenticate('twitter', {
 				}
 			});
 		}else{
-			console.log("TURACO_DEBUG - Login -> Data loaded from database session in time range...");
 			global.usersInProgress[user.uid] = {
 				completed : true,
 				percent : 100
@@ -167,7 +165,6 @@ router.get('/auth/twitter/callback', passport.authenticate('twitter', {
 });
 
 router.get('/logout', function(req, res) {
-	console.log("TURACO_DEBUG - within logout");
 	global.usersInProgress[req.session.user.uid] = null; //initialize the loading process
 	req.logout();
 	req.session.destroy(function(err) {

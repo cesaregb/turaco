@@ -164,7 +164,7 @@ header {
 }
 
 .navbar-toggle {
-	background-color: #F0677C;
+	background-color: #BEBCC2;
 	border: 1px solid #fff;
 }
 
@@ -320,4 +320,10 @@ footer a, footer a:hover {
 .info-text h1 {
 	font-size: 18px;
 	color: #3E606F;
+}
+
+@media (max-width: 767px){
+	.navbar-nav .open .dropdown-menu > li > a {
+		color: #aabbff;
+	}
 }

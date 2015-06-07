@@ -22,4 +22,6 @@ router.get('/trends_available', handler.getTrendsAvailable);
 
 router.get('/check_user_loading', handler.checkLoadingStatus);
 
+router.post('/set_device_session', handler.setDeviceSession);
+
 module.exports = router;

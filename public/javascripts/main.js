@@ -48,6 +48,22 @@ require(['jquery', 'bootstrap'], function($, boostrap) {
       $("#info_message").show();
    });
 
+   $.ajax({// update the var on the back end to serve small devices or big...
+      url: '/api/users/set_device_session',
+      dataType : "json",
+      method: "POST",
+      data : {windowsSize: $(this).width()}
+   }).done(function(jsonResponse){
+   }).fail(function() {
+   });
+
+   if ($(this).width() < 1000){
+      $(".topMenu").each(function(){
+         $(this).attr('data-toggle',"collapse");
+         $(this).attr('data-target',"#appMenuNavbar");
+      });
+   }
+
 });
 
 define (['jquery'], function ($) {

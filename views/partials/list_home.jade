@@ -11,10 +11,11 @@
 					thead
 						tr
 							th Name
-							th Mode
-							th Own List
-							th Members
-							th(style='width:400px') Description
+							if (windowsSize)
+								th Mode
+								th Own List
+								th Members
+								th(style='width:400px') Description
 							th
 					tbody
 						tr(ng-hide="lists.length") 
@@ -22,16 +23,18 @@
 						tr(ng-repeat="list in lists")
 							td 
 								a(href='/lists/view_users/{{list.id}}' ) {{list.name}}
-							td {{list.mode}}
-							td {{list.own_list}}
-							td {{list.member_count}}
-							td {{list.description}}
+							if (windowsSize)
+								td {{list.mode}}
+								td {{list.own_list}}
+								td {{list.member_count}}
+								td {{list.description}}
 							td
 								.btn-group.pull-right
-									a.btn.btn-default.btn-sm(type='button', href='/lists/edit_list/{{list.id}}', ng-disabled="isListOwner(list)") Edit
-									| 
-									a.btn.btn-default.btn-sm(type='button', href='/lists/view_users/{{list.id}}') Members of
-									| 
+									if (windowsSize)
+										a.btn.btn-default.btn-sm(type='button', href='/lists/edit_list/{{list.id}}', ng-disabled="isListOwner(list)") Edit
+										| 
+										a.btn.btn-default.btn-sm(type='button', href='/lists/view_users/{{list.id}}') Members of
+										| 
 									a.btn.btn-default.btn-sm(type='button', ng-click='openConfirmModal(list)') {{isListOwner(list) ? 'Unsubscribe' : 'Delete'}}
 									| 
 									a.btn.btn-default.btn-sm(type='button', href='https://twitter.com{{list.uri}}', target='_blank') Open

@@ -112,8 +112,6 @@ function initEnvVars(){ // initialize environment
 }
 
 app.use(function(req, res, next) {
-//	console.log("TURACO_DEBUG - user request: " + JSON.stringify(req.user));
-//	console.log("TURACO_DEBUG - user session: " + JSON.stringify(req.session.user));
 	// This is for the api calls 
 	if (req.url.indexOf("api") > 0){
 		res.locals.jsonType = true;
