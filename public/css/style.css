@@ -136,18 +136,19 @@ header {
 
 /* MENU LINKS SECTION*/
 .menu-section {
-	background-color: #91AA9D;
+	background-color: #193441;
+}
+
+.menu-top-active{
+	color: #F5F5F5 !important;	
+	background-color: #3E606F;
 }
 
 .menu-top a {
-	color: #FFF;
+	color: #FCFCFC;
 	text-decoration: none;
 	font-weight: 500;
 	padding: 10px 10px 10px 10px;
-}
-
-.menu-top-active {
-	background-color: #3E606F;
 }
 
 .menu-section .nav>li>a:focus {
@@ -171,6 +172,7 @@ header {
 .navbar {
 	margin-bottom: 0px;
 }
+
 /* =============================================================
    FOOTER SECTION STYLES
  ============================================================ */

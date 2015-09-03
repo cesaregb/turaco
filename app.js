@@ -62,7 +62,7 @@ if(inProxy){
 }
 
 var hour = 3600000;
-var timeForSession = hour * 5;
+var timeForSession = hour * 72;
 app.set('views', path.join(__dirname, 'views'))
 	.set('view engine', 'jade')
 	.use(favicon())

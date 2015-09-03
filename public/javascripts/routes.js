@@ -51,10 +51,13 @@ define([
          title: 'Home',
 			templateUrl: urlListBase + 'home',
 			controller: 'userController'
+      }).when('/manage_lists', {
+         title: 'Manage Lists',
+			templateUrl: urlListBase + 'manage_lists',
+			controller: 'listController'
       }).otherwise({
 			redirectTo: '/home'
 		});
-      
 		$locationProvider.html5Mode(true);
 	}]);
 });
