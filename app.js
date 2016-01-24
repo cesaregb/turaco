@@ -1,9 +1,9 @@
-var express = require('express'); 
-var	passport = require('passport'); 
+var express = require('express');
+var	passport = require('passport');
 var	util = require('util');
 var expressSession = require('express-session');
 
-//express helpers 
+//express helpers
 var path = require('path');
 var favicon = require('static-favicon');
 var logger = require('morgan');
@@ -20,7 +20,7 @@ var appCredentials = require('./config/appCredentials');
 initEnvVars();
 passportConfig(passport);
 
-//routes helpers 
+//routes helpers
 var routes = require('./routes/index');
 var routesListsApi = require('./routes/api/listsApi');
 var routesUsersApi = require('./routes/api/usersApi');
@@ -71,7 +71,7 @@ app.set('views', path.join(__dirname, 'views'))
 	.use(bodyParser.urlencoded({ extended: false }))
 	.use(cookieParser())
 	.use(require('method-override')())
-	.use(expressSession({ 
+	.use(expressSession({
 		secret:'keyboard cat',
 		cookie: {
 			secure: false,
@@ -112,7 +112,7 @@ function initEnvVars(){ // initialize environment
 }
 
 app.use(function(req, res, next) {
-	// This is for the api calls 
+	// This is for the api calls
 	if (req.url.indexOf("api") > 0){
 		res.locals.jsonType = true;
 		if (!req.accepts('json')){
@@ -120,21 +120,21 @@ app.use(function(req, res, next) {
 		}
 		res.contentType('application/json');
 	}
-	
+
 	req.on("close", function() {
 		console.log("TURACO_DEBUG - Client closed the request.... ");
     });
-	
+
 	function checkLoadData(user, session, callback){
 		console.log("TURACO_DEBUG - IN  checkLoadData");
-		
+
 		var userProgress = (global.usersInProgress[user.uid] != null)? global.usersInProgress[user.uid] : null;
 		if (userProgress != null && userProgress.completed){
-			
+
 			var refreshMe = (global.refresSessionObject[user.uid] != null)||(session.refresSessionObject);
 			if (refreshMe){ // after the applicatoin save the information in the next request we store the info in the session.
 				console.log("TURACO_DEBUG - checkLoadData RefreshMe TRUE");
-		
+
 				global.refresSessionObject[user.uid] = null;
 				session.user_lists = null;
 				session.usersListHash = null;
@@ -149,7 +149,7 @@ app.use(function(req, res, next) {
 					}else{
 						global.refresSessionObject[user.uid] = null
 						session.refresSessionObject = false;
-				
+
 						if (sessionObj.friends != null){
 							var friends = sessionObj.friends;
 							friends.complete_users = null;
@@ -157,10 +157,10 @@ app.use(function(req, res, next) {
 						}else{
 							session.friends = null;
 						}
-						session.usersListHash = sessionObj.usersListHash; 
-						session.user_lists = sessionObj.lists; 
-						session.savedSearches = sessionObj.savedSearches; 
-						callback(null);				
+						session.usersListHash = sessionObj.usersListHash;
+						session.user_lists = sessionObj.lists;
+						session.savedSearches = sessionObj.savedSearches;
+						callback(null);
 					}
 				});
 			}else{
@@ -170,7 +170,7 @@ app.use(function(req, res, next) {
 			callback("Loading user in progress");
 		}
 	}
-	
+
 	var session = req.session;
 	if (!global.dev_mode){
 		if (session.user == null){
@@ -182,8 +182,8 @@ app.use(function(req, res, next) {
 				checkLoadData(session.user, session, function(err){
 					if (err){
 						var user_uid = session.user.uid;
-						// remove any possible existing information. 
-						if (false){ // we skip the possible erros.. instead we remove existing user information and 
+						// remove any possible existing information.
+						if (false){ // we skip the possible erros.. instead we remove existing user information and
 							res.render('error', {
 								message : err,
 								error : {}
@@ -194,7 +194,7 @@ app.use(function(req, res, next) {
 				});
 			}
 		}
-	}else{// dev mode 
+	}else{// dev mode
 		if (session.user == null){
 //			var id = "14347292"; //beto
 			var id = "36063580"; //cesar
@@ -212,8 +212,8 @@ app.use(function(req, res, next) {
 						percent : 100
 					};
 				}
-				
-				if (req.url.indexOf("check_user_loading") > 0){ //if is validation for loading 
+
+				if (req.url.indexOf("check_user_loading") > 0){ //if is validation for loading
 					next();
 				}else{
 					checkLoadData(session.user, session, function(err){
@@ -223,7 +223,7 @@ app.use(function(req, res, next) {
 						next();
 					});
 				}
-				
+
 			});
 		}else{
 			req.user = session.user;
@@ -258,8 +258,8 @@ function requireAuthenticationAPI(req, res, next) {
 			SessionObjects.remove({uid: uid}, function(err) {
 				if (!err){console.log("Session Object ");}else{	console.log("error deleting Session Objects: " + err);}
 			});
-			
-			global.usersInProgress[req.user.uid] = null; //initialize the loading process 
+
+			global.usersInProgress[req.user.uid] = null; //initialize the loading process
 			var gatherInfoInstance = new loginGatherInfoUser();
 			gatherInfoInstance.getAll(req.user, req.session, function(err, data){
 				if (err){
@@ -292,7 +292,7 @@ app.use(function(req, res, next) {
 
 if (app.get('env') === 'development') {
 	app.locals.pretty = true;
-	
+
 	app.use(function(err, req, res, next) {
 		res.status(err.status || 500);
 		res.render('error', {
