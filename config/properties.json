@@ -1,7 +1,0 @@
-{
-    "consumerKey": "",
-    "consumerSecret": "",
-    "accessToken": "{accessToken}",
-    "accessTokenSecret": "{accessTokenSecret}",
-    "callBackUrl": "http://localhost/turaco/twitter_oauth.php"
-}
